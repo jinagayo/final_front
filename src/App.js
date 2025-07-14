@@ -10,14 +10,13 @@ function App() {
       <div className="row">
         <div className="col-lg-12">
           <div className="card shadow mb-4">
-            <div className="card-body">
-                <Home></Home>
-            </div>
+              <Home></Home>
           </div>
         </div>
       </div>
     </Layout>
   );
 }
+
 
 export default App; 
