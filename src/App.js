@@ -5,6 +5,7 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
 import CourseList from './pages/course/List';
 
+
 function App() {
   return (
     <BrowserRouter>
