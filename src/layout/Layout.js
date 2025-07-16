@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import Footer from '../components/Footer';
+import { Outlet } from 'react-router-dom';
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleSidebarToggle = () => {
@@ -33,7 +34,7 @@ const Layout = ({ children }) => {
           <div id="content" className="flex-fill">
             {/* Begin Page Content */}
             <div className="container-fluid p-4">
-              {children}
+               <Outlet />
             </div>
             {/* /.container-fluid */}
           </div>

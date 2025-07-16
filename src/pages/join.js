@@ -465,7 +465,7 @@ export default function Join() {
           <div className="text-center mt-4">
             <p className="text-muted fs-6 mb-0">
               이미 계정이 있으신가요? 
-              <a href="#" className="text-primary text-decoration-none ms-1 fs-6">로그인</a>
+              <a href="/login" className="text-primary text-decoration-none ms-1 fs-6">로그인</a>
             </p>
           </div>
         </div>
