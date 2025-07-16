@@ -72,7 +72,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* 사이드바 토글을 위한 CSS */}
-      <style jsx>{`
+      <style>{`
         .sidebar {
           width: 250px !important;
           transition: width 0.3s ease !important;

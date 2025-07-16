@@ -1,9 +1,11 @@
 import React from 'react';
 import Layout from './layout/Layout';
+import Join from './pages/join';
+import Video from './pages/myclass/teacher/video';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
-import CourseList from './pages/course/List';
+import CourseList from './pages/course/list';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/course/list" element={<CourseList />} />
+                <Route path="/join" element={<Join />} />
+                <Route path="/teacher/video" element={<Video />} />
               </Routes>
             </div>
           </div>
@@ -23,5 +27,4 @@ function App() {
     </BrowserRouter>
   );
 }
-
 export default App; // 이 줄이 있는지 확인!
