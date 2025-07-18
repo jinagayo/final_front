@@ -42,8 +42,6 @@ export default function Login() {
       console.log('=== 로그인 시도 ===');
       console.log('아이디:', form.user_id);
       console.log('비밀번호:', form.password ? '***있음***' : '없음');
-
-      // 🔥 실제 로그인 API 호출
       const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
@@ -52,7 +50,7 @@ export default function Login() {
         credentials: 'include',
         body: JSON.stringify({
           user_id: form.user_id,
-          pw: form.password, // 백엔드가 pw 필드를 기대함
+          pw: form.password,
         })
       });
 
