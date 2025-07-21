@@ -1,21 +1,76 @@
-
-import React, { useState } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import Footer from '../components/Footer';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
+  const navigate = useNavigate();
+  const { user, logout, isLoading, isAuthenticated } = useAuth();
+  const [authChanged, setAuthChanged] = useState(false);
+  
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
-    console.log('Sidebar toggled:', !sidebarCollapsed); // 디버깅용
   };
+
+  useEffect(() => {
+    setAuthChanged(prev => !prev);
+  }, [user]);
+
+  // 로그아웃 처리 함수
+  const handleLogout = async () => {
+    try {
+      console.log('로그아웃 시도...');
+      const result = await logout();
+      
+      if (result && result.success) {
+        console.log('로그아웃 성공');
+        alert('로그아웃되었습니다.');
+        window.location.replace("/")
+
+      } else {
+        console.log('로그아웃 실패:', result);
+        alert('로그아웃 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      alert('로그아웃 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 로그인 페이지로 이동
+  const handleLogin = () => {
+    navigate('auth/login');
+  };
+
+  // 로딩 중일 때 표시
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 로그인 상태 확인 - user 객체로 직접 확인
+  const loggedIn = user && user.user_id; // 원래 코드 복원
+
 
   return (
     <div id="page-top" style={{backgroundColor:'#4e73df'}}>
       {/* Topbar - 상단 전체 */}
-      <Topbar onSidebarToggle={handleSidebarToggle} />
+      <Topbar
+        onSidebarToggle={handleSidebarToggle}
+        user={user}
+        isLoggedIn={loggedIn}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+      />
+
              
       {/* Page Wrapper - 탑바 아래 영역 */}
       <div id="wrapper" className="d-flex" style={{ marginTop: '0' }}>
@@ -23,7 +78,9 @@ const Layout = ({ children }) => {
         <div className={`bg-gradient-primary sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
           <Sidebar 
             isCollapsed={sidebarCollapsed} 
-            onToggle={handleSidebarToggle} 
+            onToggle={handleSidebarToggle}
+            isLoggedIn={loggedIn}
+            user={user}
           />
         </div>
                  
@@ -33,7 +90,7 @@ const Layout = ({ children }) => {
           <div id="content" className="flex-fill">
             {/* Begin Page Content */}
             <div className="container-fluid p-4">
-              {children}
+               <Outlet />
             </div>
             {/* /.container-fluid */}
           </div>
@@ -51,26 +108,52 @@ const Layout = ({ children }) => {
         <i className="fas fa-angle-up"></i>
       </a>
        
-      {/* Logout Modal */}
+      {/* Login/Logout Modal - 기존 구조 유지 */}
       <div className="modal fade" id="logoutModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+              <h5 className="modal-title" id="exampleModalLabel">
+                {loggedIn ? 'Ready to Leave?' : 'Login Required'}
+              </h5>
               <button className="close" type="button" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div className="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            
+            <div className="modal-body">
+              {loggedIn 
+                ? `안녕하세요, ${user?.user_id || user?.name}님! 로그아웃 하시겠습니까?`
+                : 'Select "Login" below if you want to access your account.'
+              }
+            </div>
+            
             <div className="modal-footer">
               <button className="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-              <a className="btn btn-primary" href="login.html">Logout</a>
+              {loggedIn ? (
+                <button 
+                  className="btn btn-primary" 
+                  type="button" 
+                  onClick={handleLogout}
+                  data-dismiss="modal"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button 
+                  className="btn btn-primary" 
+                  type="button"
+                  onClick={handleLogin}
+                  data-dismiss="modal"
+                >
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
-
       {/* 사이드바 토글을 위한 CSS */}
       <style>{`
         .sidebar {

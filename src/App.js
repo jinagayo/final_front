@@ -6,10 +6,11 @@ import Video from './pages/myclass/teacher/video';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
-
-import CourseList from './pages/course/list';
-
 import CourseRoutes from './routes/CourseRoutes'; // 코스 관련 라우팅 분리
+import CourseList from './pages/course/list';
+import Login from './pages/Login';
+import { AuthProvider } from './contexts/AuthContext';
+
 
 function App() {
   return (
@@ -19,6 +20,34 @@ function App() {
           <div className="col-lg-12">
             <div className="card shadow mb-4">
               <Routes>
+               {/* 로그인/회원가입 관련 라우트 */}
+               <Route path="auth/login" element={<Login />} />
+               <Route path="/join" element={<Join />} />
+               <Route path="/join/signup/student" element={<Join />} />
+               <Route path="/join/signup/teacher" element={<Join />} />
+
+              {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
+            <Route element={<Layout />}>
+            <Route path="/" element={
+              <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                    <Home />
+                  </div>
+                </div>
+              </div>
+                } />
+            <Route path="/course/list" element={
+              <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                    <CourseList />
+                  </div>
+                </div>
+              </div>
+               } />
+            </Route>
+
                 <Route path="/" element={<Home />} />
                 <Route path="/course/list" element={<CourseList />} />
                 <Route path="/join" element={<Join />} />
@@ -42,4 +71,3 @@ function App() {
   );
 }
 export default App; // 이 줄이 있는지 확인!
-
