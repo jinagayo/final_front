@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import CourseList from './pages/course/List';
 import Join from "./pages/Join";
 import Login from './pages/Login';
+import OAuthCallback from './pages/OAuthCallback';
+import KakaoCallback from './pages/KakaoCallback';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
@@ -14,11 +16,14 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* 로그인/회원가입 관련 라우트 */}
-          <Route path="auth/login" element={<Login />} />
-          <Route path="/join" element={<Join />} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/join" element={<Join />} />
           <Route path="/join/signup/student" element={<Join />} />
           <Route path="/join/signup/teacher" element={<Join />} />
-
+          
+          
+          <Route path="/oauth" element={<OAuthCallback />} />
+          <Route path="/kakao/callback" element={<KakaoCallback />} />
           {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
           <Route element={<Layout />}>
             <Route path="/" element={
