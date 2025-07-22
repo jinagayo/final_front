@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
 import { AuthProvider } from './contexts/AuthContext';
+import PendingTeachers from './pages/admin/PendingTeachers';
 
 function App() {
   return (
@@ -40,6 +41,16 @@ function App() {
                 <div className="col-lg-12">
                   <div className="card shadow mb-4">
                     <CourseList />
+                  </div>
+                </div>
+              </div>
+            } />
+            {/* 강사 권한 승인 페이지*/}
+            <Route path="/admin/teacher-approval" element={
+              <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                    <PendingTeachers />
                   </div>
                 </div>
               </div>

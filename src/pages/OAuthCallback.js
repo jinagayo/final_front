@@ -56,7 +56,6 @@ const OAuthCallback = () => {
             
             const userInfo = data.user || data; //user객체가 없으면 data자체의 정보 사용
 
-
             // AuthContext에 사용자 정보 저장
             login(data.user);
             
