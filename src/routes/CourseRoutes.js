@@ -4,24 +4,29 @@ import Layout from '../layout/Layout';
 import CourseList from '../pages/course/List';
 import CourseDetail from '../pages/course/Detail';
 
-// 일반 페이지용 래퍼 컴포넌트
-const PageWrapper = ({ children }) => (
-  <Layout>
-    <div className="row">
-      <div className="col-lg-12">
-        <div className="card shadow mb-4">
-          {children}
-        </div>
-      </div>
-    </div>
-  </Layout>
-);
-
 function CourseRoutes() {
   return (
     <Routes>
-      <Route path="list" element={<PageWrapper><CourseList /></PageWrapper>} />
-      <Route path="detail/:id" element={<PageWrapper><CourseDetail /></PageWrapper>} />
+      <Route element={<Layout />}>
+        <Route path="List" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CourseList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="Detail" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CourseDetail />
+              </div>
+            </div>
+          </div>
+        } />
+      </Route>
     </Routes>
   );
 }
