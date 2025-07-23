@@ -40,7 +40,6 @@ function App() {
           
           {/* 강의 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
-          
           {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
         </Routes>
