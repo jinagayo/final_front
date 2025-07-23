@@ -180,15 +180,16 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 관리자 메뉴
               </div>
               <li className='nav-item'>
-                <a className='nav-link' href='/admin/users'>
-                  <i className='fas fa-fw fa-users'></i>
-                  <span>사용자 관리</span>
+                <a className='nav-link' href='/admin/students'>
+                  <i className='fas fa-fw fa-user-graduate'></i>
+                  <span>학생 관리</span>
                 </a>
               </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/admin/courses">
-                  <i className="fas fa-fw fa-graduation-cap"></i>
-                  <span>강의 관리</span>
+
+              <li className='nav-item'>
+                <a className='nav-link' href='/admin/teachers'>
+                  <i className='fas fa-fw fa-chalkboard-teacher'></i>
+                  <span>강사 관리</span>
                 </a>
               </li>
               <li className='nav-item'>
