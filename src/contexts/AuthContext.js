@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   // 서버에서 세션 상태 확인
   const checkAuthStatus = async () => {
     try {
+      console.log('세션 체크 시작...');
+      
       const response = await fetch('http://localhost:8080/auth/check', {
         method: 'GET',
         credentials: 'include',
@@ -25,48 +27,45 @@ export const AuthProvider = ({ children }) => {
         }
       });
       
+      console.log('세션 체크 응답:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('세션 데이터:', data);
         
         // 백엔드에서 isLoggedIn 필드를 확인
-        if (data.isLoggedIn === true && data.user_id) {
-          // 서버에 세션이 있으면 해당 정보로 업데이트
-          const sessionUser = { user_id: data.user_id };
-          setUser(sessionUser);
-          localStorage.setItem('user', JSON.stringify(sessionUser));
+        if (data.isLoggedIn === true) {
+          console.log('세션 유효, 사용자 설정:', data);
+          setUser(data);
           return true;
         } else {
-
+          console.log('세션 무효');
           setUser(null);
-          localStorage.removeItem('user');
           return false;
         }
       } else {
         console.log('세션 확인 실패:', response.status);
-        // 403이나 다른 에러의 경우 세션이 없다고 판단
         setUser(null);
-        localStorage.removeItem('user');
         return false;
       }
     } catch (error) {
       console.error('세션 확인 중 오류:', error);
-      // 네트워크 에러 등의 경우 로컬 스토리지 데이터 유지하지 않음
       setUser(null);
-      localStorage.removeItem('user');
       return false;
     }
   };
 
   // 로그인
   const login = (userData) => {
+    console.log('로그인 데이터 설정:', userData);
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   // 로그아웃
   const logout = async () => {
     try {
-      // 서버에 로그아웃 요청
+      console.log('로그아웃 요청 시작...');
+      
       const response = await fetch('http://localhost:8080/auth/logout', {
         method: 'POST',
         credentials: 'include',
@@ -75,44 +74,29 @@ export const AuthProvider = ({ children }) => {
         }
       });
       
-      const data = await response.json();
-      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('로그아웃 성공:', data);
+      }
     } catch (error) {
       console.error('로그아웃 요청 실패:', error);
     }
     
     // 클라이언트 상태 정리
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberedUserId');
+    console.log('사용자 상태 초기화 완료');
     
     return { success: true, message: '로그아웃되었습니다.' };
   };
 
-  // 페이지 새로고침 시 로그인 상태 복원
+  // 컴포넌트 마운트 시 인증 상태 확인
   useEffect(() => {
-
+    console.log('AuthProvider 초기화 시작...');
+    
     const initializeAuth = async () => {
-      // 1. 먼저 서버 세션 확인
-      const hasServerSession = await checkAuthStatus();
-      
-      if (!hasServerSession) {
-        // 2. 서버 세션이 없으면 로컬 스토리지 확인
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          try {
-            const userData = JSON.parse(savedUser);
-            localStorage.removeItem('user');
-            setUser(null);
-          } catch (error) {
-            console.error('사용자 정보 파싱 오류:', error);
-            localStorage.removeItem('user');
-            setUser(null);
-          }
-        }
-      }
-      
+      await checkAuthStatus();
       setIsLoading(false);
+      console.log('AuthProvider 초기화 완료');
     };
     
     initializeAuth();
@@ -120,8 +104,7 @@ export const AuthProvider = ({ children }) => {
 
   // 인증 상태 확인
   const isAuthenticated = () => {
-    const result = user !== null;
-    return result;
+    return user !== null;
   };
 
   // 권한 확인 (숫자 기반)
@@ -135,8 +118,8 @@ export const AuthProvider = ({ children }) => {
   // 강사인지 확인 (position = "2")
   const isInstructor = () => hasPosition("2");
 
-  // 관리자인지 확인 (position = "0")
-  const isAdmin = () => hasPosition("0");
+  // 관리자인지 확인 (position = "3")
+  const isAdmin = () => hasPosition("3");
 
   // 현재 사용자 ID 가져오기
   const getCurrentUserId = () => user?.user_id;
