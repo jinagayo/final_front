@@ -1,33 +1,30 @@
 import React from 'react';
-import LayoutMain from './layout/LayoutMain';
 import Layout from './layout/Layout';
-import Join from './pages/join';
-import Video from './pages/myclass/teacher/video';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
-import CourseRoutes from './routes/CourseRoutes'; // 코스 관련 라우팅 분리
-import CourseList from './pages/course/list';
+import CourseList from './pages/course/List';
+import Join from "./pages/Join";
 import Login from './pages/Login';
-import { AuthProvider } from './contexts/AuthContext';
+import TeacherVideo from './pages/myclass/teacher/video';
 
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <div className="row">
-          <div className="col-lg-12">
-            <div className="card shadow mb-4">
-              <Routes>
-               {/* 로그인/회원가입 관련 라우트 */}
-               <Route path="auth/login" element={<Login />} />
-               <Route path="/join" element={<Join />} />
-               <Route path="/join/signup/student" element={<Join />} />
-               <Route path="/join/signup/teacher" element={<Join />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* 로그인/회원가입 관련 라우트 */}
+          <Route path="auth/login" element={<Login />} />
+          <Route path="auth/join" element={<Join />} />
+          <Route path="/join/signup/student" element={<Join />} />
+          <Route path="/join/signup/teacher" element={<Join />} />
 
-              {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
-            <Route element={<Layout />}>
+          <Route path="/teacher/video" element={<TeacherVideo />} />
+
+          {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
+          <Route element={<Layout />}>
             <Route path="/" element={
               <div className="row">
                 <div className="col-lg-12">
@@ -36,7 +33,7 @@ function App() {
                   </div>
                 </div>
               </div>
-                } />
+            } />
             <Route path="/course/list" element={
               <div className="row">
                 <div className="col-lg-12">
@@ -45,29 +42,12 @@ function App() {
                   </div>
                 </div>
               </div>
-               } />
-            </Route>
-
-                <Route path="/" element={<Home />} />
-                <Route path="/course/list" element={<CourseList />} />
-                <Route path="/join" element={<Join />} />
-                <Route path="/teacher/video" element={<Video />} />
-                       <Route path="/" element={<LayoutMain><Home /></LayoutMain>} />
-                 {/* 다른 페이지는 별도 라우팅 파일에서 처리 */}
-                <Route path="/course/*" element={<CourseRoutes />} />
-                  {/* 홈페이지는 LayoutMain 적용 */}
-                <Route path="/" element={<LayoutMain> <Home /> </LayoutMain> } />
-
-                 
-                {/* 다른 페이지는 별도 라우팅 파일에서 처리 */}
-                <Route path="/course/*" element={<CourseRoutes />} />
-              
-              </Routes>
-            </div>
-          </div>
-        </div>
-      </Layout>
-     </BrowserRouter>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-export default App; // 이 줄이 있는지 확인!
+
+export default App;

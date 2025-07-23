@@ -1,6 +1,6 @@
 // src/pages/Home.js
 import React from 'react';
-import List from './course/list'
+import List from './course/List'
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
