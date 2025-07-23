@@ -5,7 +5,7 @@ const Logo = () => {
     <>
     <a
       className="navbar-brand mr-3"
-      href="index.html"
+      href="/"
     >
       <img style={{ height: '20px' , margin:'-8px'}} src="/img/logo.png" alt="logo" />
     </a>
