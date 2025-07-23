@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 
-const List = () => {
+const CourseList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('전체');
@@ -331,4 +331,4 @@ const List = () => {
   );
 };
 
-export default List;
+export default CourseList;

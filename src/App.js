@@ -3,6 +3,7 @@ import Layout from './layout/Layout';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
+import CourseList from './pages/course/List';
 import CourseRoutes from './routes/CourseRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
