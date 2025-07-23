@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import CourseList from '../pages/course/List';
 import CourseDetail from '../pages/course/Detail';
+import CoursePayment from '../pages/course/Payment';
+import CoursePaymentEnd from '../pages/course/PaymentEnd';
 
 function CourseRoutes() {
   return (
@@ -26,7 +28,27 @@ function CourseRoutes() {
             </div>
           </div>
         } />
+        <Route path="Payment" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CoursePayment />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="PaymentEnd" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CoursePaymentEnd />
+              </div>
+            </div>
+          </div>
+        } />
       </Route>
+
+      
     </Routes>
   );
 }

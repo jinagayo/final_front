@@ -140,9 +140,8 @@ const List = () => {
 
   // 안전한 필터링 함수
   const filteredCourses = courses.filter(course => {
-    // 데이터 구조를 모르므로 안전하게 처리
-    const title = course.title || course.name || course.class_name || '';
-    const description = course.description || course.intro || '';
+    const title = course.name ;
+    const description = course.intro || '';
     const category = course.category || course.type || '';
 
     const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -298,7 +297,9 @@ const List = () => {
                     >
                       <div className="card-img-top bg-gray-200 d-flex align-items-center justify-content-center" 
                            style={{ height: '140px', backgroundColor: '#e9ecef' }}>
-                        <div className="w-100 h-100 bg-gray-300" style={{backgroundColor: '#dee2e6'}}></div>
+                        <div className="w-100 h-100 bg-gray-300" style={{backgroundColor: '#dee2e6'}}>
+                          <img style={{height:'140px', width:'100%'}}src={`/img/${course.img}`} alt={course.name} />
+                        </div>
                       </div>
                       
                       <div className="card-body p-3">
