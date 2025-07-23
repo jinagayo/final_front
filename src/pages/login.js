@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import NaverLogin from "./NaverLogin"
+import KakaoLogin from "./KakaoLogin";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ export default function Login() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-
+  const { handleKakaoLogin: kakaoLoginFunction } = KakaoLogin();
   // Remember Me 기능: 컴포넌트 로드 시 저장된 아이디 불러오기
   useEffect(() => {
     const rememberedUserId = localStorage.getItem('rememberedUserId');
@@ -33,6 +35,17 @@ export default function Login() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+  //네이버 로그인 처리
+  const handleNaverLogin = () => {
+    const NAVER_CLIENT_ID = "W24SNU9H24_ktuo8Bmmn";
+    const REDIRECT_URI = "http://localhost:3000/oauth";
+    const STATE = Math.random().toString(36).substring(2, 15); // 랜덤 상태값
+    const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&state=${STATE}&redirect_uri=${REDIRECT_URI}`;
+    sessionStorage.setItem('naver_state', STATE);
+    window.location.href = NAVER_AUTH_URL;
+  }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -208,7 +221,7 @@ export default function Login() {
               padding: "12px 0",
               marginBottom: "10px",
             }}
-            onClick={() => alert("네이버 로그인 연동 예정")}
+            onClick= {handleNaverLogin}
             disabled={isLoading}
           >
             NAVER 로 로그인
@@ -227,7 +240,7 @@ export default function Login() {
               padding: "12px 0",
               marginBottom: "15px",
             }}
-            onClick={() => alert("카카오 로그인 연동 예정")}
+            onClick={kakaoLoginFunction}
             disabled={isLoading}
           >
             <span style={{ color: "#111", fontWeight: 700 }}>kakao</span>{" "}
