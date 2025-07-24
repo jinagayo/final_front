@@ -160,12 +160,12 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 </a>
               </li>
               
-              {/* 강의관리 - 강사 */}
+              {/* 강의개설 - 강사 */}
               {isTeacher() && (
                 <li className="nav-item">
-                  <a className="nav-link" href="/course/manage">
+                  <a className="nav-link" href="/course/teacher/List">
                     <i className="fas fa-fw fa-cogs"></i>
-                    <span>강의 관리</span>
+                    <span>강의 개설</span>
                   </a>
                 </li>
               )}
