@@ -51,7 +51,6 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
       </ul>
     );
   }
-
   return (
     <ul className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`} id="accordionSidebar">
       

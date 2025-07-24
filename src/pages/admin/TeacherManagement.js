@@ -227,7 +227,7 @@ const TeacherManagement = () => {
             <div className="col-md-6">
               <div className="input-group">
                 <div className="input-group-prepend">
-                  <span className="input-group-text">
+                  <span className="input-group-text">검색
                     <i className="fas fa-search"></i>
                   </span>
                 </div>
