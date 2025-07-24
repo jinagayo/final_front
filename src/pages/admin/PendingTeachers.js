@@ -47,13 +47,7 @@ const PendingTeachers = () => {
       }
 
       const result = await response.json();
-      console.log('=== API 응답 디버깅 ===');
-      console.log('전체 응답:', result);
-      console.log('success:', result.success);
-      console.log('data:', result.data);
-      console.log('data 타입:', typeof result.data);
-      console.log('data 길이:', result.data ? result.data.length : 'data 없음');
-      
+
       if (result.success && result.data) {
         console.log('setState 호출 전 데이터:', result.data);
         setPendingTeachers(result.data);
@@ -151,15 +145,6 @@ const PendingTeachers = () => {
     <div className="card-body">
       <div className="card-header py-3">
         <h6 className="m-0 font-weight-bold text-primary">승인 대기 중인 강사</h6>
-      </div>
-      
-      {/* 디버깅 정보 표시 */}
-      <div className="alert alert-info">
-        <small>
-          디버깅: pendingTeachers 길이 = {pendingTeachers.length}, 
-          타입 = {typeof pendingTeachers}, 
-          배열인가 = {Array.isArray(pendingTeachers) ? 'Yes' : 'No'}
-        </small>
       </div>
       
       {loading && (

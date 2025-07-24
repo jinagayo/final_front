@@ -1,10 +1,11 @@
 // src/pages/Home.js
-import React from 'react';
 import List from './course/List'
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import {useNavigate } from "react-router-dom";
 
 const Home = () => {
   const navigate = useNavigate();
+  const [imageTimestamp, setImageTimestamp] = useState(Date.now());
   const courses = [
     {
       id: 1,
@@ -71,15 +72,15 @@ const Home = () => {
         className="relative bg-slate-800 text-white p-8 md:p-12 lg:p-16 cursor-pointer hover:bg-slate-700 transition-colors"
         onClick={handleGetStartedClick}
       >
-        <img 
-          style={{ height: '300px', width: '100%', marginTop:'-24px',}} 
-          src="/img/main.png" 
-          alt="main"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleGetStartedClick();
-          }}
-        />
+      <img 
+        style={{ height: '300px', width: '100%', marginTop:'-24px'}} 
+        src={`/img/main.png?v=${imageTimestamp}`} 
+        alt="main"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleGetStartedClick();
+        }}
+      />
       </div>
 
       {/* Course Grid Container */}

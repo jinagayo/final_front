@@ -7,15 +7,16 @@ import CourseList from './pages/course/List';
 import TCourseList from './pages/myclass/teacher/classList';
 import TCourseDetail from './pages/myclass/teacher/classDetail';
 import CourseRoutes from './routes/CourseRoutes';
+import AdminRoutes from './routes/AdminRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
 import TeacherVideo from './pages/myclass/teacher/video';
-
+import PendingTeachers from './pages/admin/PendingTeachers'
 import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
 
 import { AuthProvider } from './contexts/AuthContext';
-import PendingTeachers from './pages/admin/PendingTeachers';
+import { Import } from 'lucide-react';
 
 function App() {
   return (
@@ -86,6 +87,8 @@ function App() {
           
           {/* 강의 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
+          {/* 관리자 관련 라우트 */}
+          <Route path="/admin/*" element={<AdminRoutes />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
