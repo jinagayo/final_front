@@ -7,7 +7,7 @@ import StudentManagement from '../pages/admin/StudentManagement';
 import TeacherManagement from '../pages/admin/TeacherManagement';
 // import CourseManagement from '../pages/admin/CourseManagement';
 // import Statistics from '../pages/admin/Statistics';
-// import ProblemUpload from '../pages/admin/ProblemUpload';
+import ProblemUpload from '../pages/admin/ProblemUpload';
 
 const AdminRoutes = () => {
   return (
@@ -80,7 +80,7 @@ const AdminRoutes = () => {
         } />
         */}
         
-        {/* 문제 업로드 - 나중에 추가
+        {/* 문제 업로드 - 나중에 추가        */}
         <Route path="/problem-upload" element={
           <div className="row">
             <div className="col-lg-12">
@@ -90,7 +90,7 @@ const AdminRoutes = () => {
             </div>
           </div>
         } />
-        */}
+
       </Route>
     </Routes>
   );
