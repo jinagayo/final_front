@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from "react-router-dom";
 
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -144,30 +145,39 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               
               {/* 수강 신청 - 학생 */}
               {isStudent() && (
+                <>
                 <li className="nav-item">
                   <a className="nav-link" href="charts.html">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>수강신청</span>
                   </a>
                 </li>
-              )}
-
-              {/* 내 강의실 - 학생/강사 */}
-              <li className="nav-item">
+                <li className="nav-item">
                 <a className="nav-link" href="charts.html">
                   <i className="fas fa-fw fa-chart-area"></i>
                   <span>내강의실</span>
                 </a>
               </li>
-              
+              </>
+              )}
+
+             
               {/* 강의관리 - 강사 */}
               {isTeacher() && (
+                <>
                 <li className="nav-item">
                   <a className="nav-link" href="/course/manage">
                     <i className="fas fa-fw fa-cogs"></i>
                     <span>강의 관리</span>
                   </a>
                 </li>
+                <li className="nav-item">
+                <Link className="nav-link" to="/myclass/teacher/classList">
+                  <i className="fas fa-fw fa-chart-area"></i>
+                  <span>내강의실</span>
+                </Link>
+              </li>
+              </>
               )}
               <hr className="sidebar-divider" />
             </>

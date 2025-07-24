@@ -4,6 +4,8 @@ import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
 import CourseList from './pages/course/List';
+import TCourseList from './pages/myclass/teacher/classList';
+import TCourseDetail from './pages/myclass/teacher/classDetail';
 import CourseRoutes from './routes/CourseRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
@@ -60,7 +62,27 @@ function App() {
                 </div>
               </div>
             } />
+           <Route path="myclass/teacher/classList" element={
+           <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                <TCourseList />
+            </div>
+              </div>
+              </div>
+  } />
+            <Route path="myclass/teacher/classDetail" element={
+           <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                <TCourseDetail />
+            </div>
+              </div>
+              </div>
+  } />
           </Route>
+   
+  
           
           {/* 강의 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
