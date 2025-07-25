@@ -198,6 +198,19 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 </a>
               </li>
               <li className="nav-item">
+
+                <a className="nav-link" href="/admin/class/ClassList">
+                  <i className="fas fa-fw fa-chart-bar"></i>
+                  <span>강의 관리</span>
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/admin/statistics">
+                  <i className="fas fa-fw fa-chart-bar"></i>
+                  <span>통계 관리</span>
+                </a>
+              </li>
+              <li className="nav-item">
                 <a className="nav-link" href="/admin/problem-upload">
                   <i className="fas fa-fw fa-upload"></i>
                   <span>문제 업로드</span>
