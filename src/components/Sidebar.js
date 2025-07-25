@@ -8,7 +8,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   // 디버깅을 위한 useEffect 추가
   useEffect(() => {
     console.log('=== Sidebar 렌더링 ===');
-    console.log('isLoading:', isLoading);
+    console.log('isLoading:', isLoading); 
     console.log('user:', user);
     console.log('user?.position:', user?.position);
     console.log('user?.position type:', typeof user?.position);
@@ -198,6 +198,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 </a>
               </li>
               <li className="nav-item">
+
                 <a className="nav-link" href="/admin/class/ClassList">
                   <i className="fas fa-fw fa-chart-bar"></i>
                   <span>강의 관리</span>
@@ -254,7 +255,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
 
           <li className="nav-item">
-            <a className="nav-link" href="charts.html">
+            <a className="nav-link" href='/board/list'>
               <i className="fas fa-fw fa-chart-area"></i>
               <span>공지사항</span>
             </a>
