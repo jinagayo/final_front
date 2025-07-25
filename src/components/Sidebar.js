@@ -9,7 +9,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   // 디버깅을 위한 useEffect 추가
   useEffect(() => {
     console.log('=== Sidebar 렌더링 ===');
-    console.log('isLoading:', isLoading);
+    console.log('isLoading:', isLoading); 
     console.log('user:', user);
     console.log('user?.position:', user?.position);
     console.log('user?.position type:', typeof user?.position);
@@ -52,7 +52,6 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
       </ul>
     );
   }
-
   return (
     <ul className={`navbar-nav sidebar sidebar-dark accordion ${isCollapsed ? 'toggled' : ''}`} id="accordionSidebar">
       
@@ -161,14 +160,15 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               </>
               )}
 
-             
-              {/* 강의관리 - 강사 */}
+            
+              
+              {/* 강의개설 - 강사 */}
               {isTeacher() && (
                 <>
                 <li className="nav-item">
-                  <a className="nav-link" href="/course/manage">
+                  <a className="nav-link" href="/course/teacher/List">
                     <i className="fas fa-fw fa-cogs"></i>
-                    <span>강의 관리</span>
+                    <span>강의 개설</span>
                   </a>
                 </li>
                 <li className="nav-item">
@@ -206,12 +206,6 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 <a className='nav-link' href='/admin/teacher-approval'>
                   <i className='fas fa-fw fa-users'></i>
                   <span>강사 승인 관리</span>
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/admin/statistics">
-                  <i className="fas fa-fw fa-chart-bar"></i>
-                  <span>통계 관리</span>
                 </a>
               </li>
               <li className="nav-item">
@@ -259,7 +253,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
 
           <li className="nav-item">
-            <a className="nav-link" href="charts.html">
+            <a className="nav-link" href='/board/list'>
               <i className="fas fa-fw fa-chart-area"></i>
               <span>공지사항</span>
             </a>
