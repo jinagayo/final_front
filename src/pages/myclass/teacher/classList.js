@@ -73,7 +73,7 @@ const TCourseList = () => {
 
   // 클래스 상세로 이동
   const goToCourseDetail = (classId) => {
-    window.location.href = `/myclass/teacher/classDetail?${classId}`;
+    window.location.href = `/myclass/teacher/classDetail/${classId}`;
   };
 
   // 검색어 변경

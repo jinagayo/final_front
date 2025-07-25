@@ -10,13 +10,13 @@ import CourseRoutes from './routes/CourseRoutes';
 import AdminRoutes from './routes/AdminRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
-import TeacherVideo from './pages/myclass/teacher/video';
+import VideoUploader from './pages/myclass/teacher/video';
 import PendingTeachers from './pages/admin/PendingTeachers'
 import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
-
 import { AuthProvider } from './contexts/AuthContext';
 import { Import } from 'lucide-react';
+import LectureViewer from './pages/myclass/videoView';
 
 function App() {
   return (
@@ -25,7 +25,6 @@ function App() {
         <Routes>
           {/* 로그인/회원가입 관련 라우트 */}
 
-          <Route path="/teacher/video" element={<TeacherVideo />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/join" element={<Join />} />
           <Route path="/join/signup/student" element={<Join />} />
@@ -72,7 +71,7 @@ function App() {
               </div>
               </div>
   } />
-            <Route path="myclass/teacher/classDetail" element={
+            <Route path="myclass/teacher/classDetail/:classId" element={
            <div className="row">
                 <div className="col-lg-12">
                   <div className="card shadow mb-4">
@@ -80,7 +79,27 @@ function App() {
             </div>
               </div>
               </div>
-  } />
+  } />  
+            <Route path="myclass/teacher/video/:classId" element={
+               <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                 <VideoUploader />
+            </div>
+              </div>
+              </div>
+   } />
+
+           <Route path="myclass/videoView" element={
+               <div className="row">
+                <div className="col-lg-12">
+                  <div className="card shadow mb-4">
+                 < LectureViewer />
+            </div>
+              </div>
+              </div>
+   } />
+
           </Route>
    
   

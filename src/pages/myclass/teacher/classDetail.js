@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const TClassDetail = () => {
@@ -72,35 +72,18 @@ const TClassDetail = () => {
         setLectures(data.data || []);
       } else {
         console.error('강의 목록 가져오기 실패');
-        // 더미 데이터로 설정 (개발용)
-        setLectures([
-          { id: 1, title: '자료형과 변수', description: 'int형 double형 등 다양한 자료형 정리하기' },
-          { id: 2, title: '조건문 만들기', description: 'if문 while문 for문 switch문 정리하기' },
-          { id: 3, title: '반복문 활용', description: '' },
-          { id: 4, title: '객체 지향변수', description: '' },
-          { id: 5, title: '총 정리', description: '' },
-          { id: 6, title: '테스트 점검', description: '' },
-          { id: 7, title: 'math 활용', description: '' }
-        ]);
+        setLectures([]);
       }
     } catch (error) {
       console.error('강의 목록 가져오기 오류:', error);
-      // 더미 데이터로 설정 (개발용)
-      setLectures([
-        { id: 1, title: '자료형과 변수', description: 'int형 double형 등 다양한 자료형 정리하기' },
-        { id: 2, title: '조건문 만들기', description: 'if문 while문 for문 switch문 정리하기' },
-        { id: 3, title: '반복문 활용', description: '' },
-        { id: 4, title: '객체 지향변수', description: '' },
-        { id: 5, title: '총 정리', description: '' },
-        { id: 6, title: '테스트 점검', description: '' },
-        { id: 7, title: 'math 활용', description: '' }
-      ]);
+      setLectures([]);
+      setLoading(false);
     }
   };
 
   // 강의 목록으로 돌아가기
   const goBackToList = () => {
-    window.location.href = '/teacher/classList';
+    window.location.href = '/myclass/teacher/classList';
   };
 
   if (loading) {
@@ -117,81 +100,129 @@ const TClassDetail = () => {
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', padding: '40px' }}>
       <div className="container">
-        <div className="row">
-          {/* 왼쪽 강의 정보 */}
+        {/* 상단 이미지와 강의 정보 */}
+        <div className="row" style={{ marginBottom: '40px' }}>
+          {/* 왼쪽 이미지 */}
           <div className="col-md-4">
-            <div style={{ backgroundColor: '#fff5e6', borderRadius: '15px', padding: '30px', textAlign: 'center' }}>
-              {/* Java 로고 */}
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ 
-                  width: '80px', 
-                  height: '80px', 
-                  backgroundColor: '#f39c12', 
-                  borderRadius: '10px', 
-                  margin: '0 auto',
+            <div style={{ marginBottom: '20px' }}>
+              {classData?.img ? (
+                <img 
+                  src={classData?.img?.startsWith('/img/') ? classData.img : `/img/${classData.img}`}
+                  alt="강의 이미지"
+                  style={{
+                    width: '100%',
+                    height: '250px',
+                    borderRadius: '10px',
+                    objectFit: 'cover',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                  }}
+                />
+              ) : (
+                // 이미지 없을 때 임시 아이콘/색상 대체
+                <div style={{
+                  width: '100%',
+                  height: '250px',
+                  backgroundColor: '#fff5e6',
+                  borderRadius: '10px',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '24px',
-                  color: 'white',
-                  fontWeight: 'bold'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
                 }}>
-                  ☕
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    backgroundColor: '#f39c12',
+                    borderRadius: '10px',
+                    marginBottom: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}>
+                    ☕
+                  </div>
+                  <h3 style={{ color: '#e67e22', fontWeight: 'bold', fontSize: '24px', margin: 0 }}>java</h3>
                 </div>
-                <h3 style={{ marginTop: '15px', color: '#2c3e50', fontWeight: 'bold' }}>java</h3>
-              </div>
+              )}
+            </div>
+          </div>
 
+          {/* 오른쪽 강의 정보 */}
+          <div className="col-md-8">
+            <div style={{ padding: '20px 0' }}>
               {/* 강의 제목 */}
-              <h4 style={{ color: '#2c3e50', marginBottom: '20px', fontWeight: 'bold' }}>
-                {classData?.title || '즐거운 자바 강의'}
-              </h4>
+              <h2 style={{ color: '#2c3e50', marginBottom: '30px', fontWeight: 'bold', fontSize: '28px' }}>
+                {classData?.name || '즐거운 자바 강의'}
+              </h2>
 
               {/* 강의 정보 */}
-              <div style={{ marginBottom: '15px' }}>
-                <span style={{ color: '#7f8c8d', fontSize: '14px' }}>가격: </span>
-                <span style={{ color: '#2c3e50', fontWeight: 'bold' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <span style={{ color: '#7f8c8d', fontSize: '18px' }}>가격: </span>
+                <span style={{ color: '#2c3e50', fontWeight: 'bold', fontSize: '18px' }}>
                   {classData?.price ? `${classData.price.toLocaleString()}원` : '45000원'}
                 </span>
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <span style={{ color: '#7f8c8d', fontSize: '14px' }}>수강생: </span>
-                <span style={{ color: '#2c3e50', fontWeight: 'bold' }}>
+              <div style={{ marginBottom: '30px' }}>
+                <span style={{ color: '#7f8c8d', fontSize: '18px' }}>수강생: </span>
+                <span style={{ color: '#2c3e50', fontWeight: 'bold', fontSize: '18px' }}>
                   {classData?.studentCount || '40'}명
-                </span>
-                <span style={{ 
-                  backgroundColor: '#e74c3c', 
-                  color: 'white', 
-                  padding: '2px 8px', 
-                  borderRadius: '12px', 
-                  fontSize: '12px',
-                  marginLeft: '8px'
-                }}>
-                  Q&A
                 </span>
               </div>
 
-              {/* 강의 상태 버튼 */}
-              <button 
+ 
+            <div style={{display: 'flex',gap: '20px' }}>
+              {/* 강의 업로드 버튼 */}
+              <Link
+                to={`/myclass/teacher/video/${classId}`}
                 style={{ 
                   backgroundColor: '#3498db', 
                   border: 'none', 
                   color: 'white', 
-                  padding: '12px 30px', 
+                  padding: '15px 40px', 
                   borderRadius: '25px',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'inline-block',  //버튼처럼 보이게
+                  textAlign: 'center',
+                  textDecoration: 'none',
                 }}
               >
-                강의 상태변경하기
-              </button>
+                강의 업로드
+              </Link>
+
+                {/* 과제 업로드 버튼 */}
+              <Link
+                to={`/myclass/teacher/video/${classId}`}
+                style={{ 
+                  backgroundColor: '#3498db', 
+                  border: 'none', 
+                  color: 'white', 
+                  padding: '15px 40px', 
+                  borderRadius: '25px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  display: 'inline-block',  //버튼처럼 보이게
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                }}
+              >
+                과제 업로드
+              </Link>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* 오른쪽 커리큘럼 */}
-          <div className="col-md-8">
+        {/* 커리큘럼 섹션 */}
+        <div className="row">
+          <div className="col-12">
             <div style={{ backgroundColor: 'white', borderRadius: '15px', padding: '30px' }}>
-              <h5 style={{ color: '#2c3e50', marginBottom: '20px', fontWeight: 'bold' }}>커리큘럼</h5>
+              <h5 style={{ color: '#2c3e50', marginBottom: '20px', fontWeight: 'bold', fontSize: '18px' }}>커리큘럼</h5>
               
               <div className="table-responsive">
                 <table className="table table-borderless">
@@ -199,7 +230,7 @@ const TClassDetail = () => {
                     <tr style={{ borderBottom: '2px solid #ecf0f1' }}>
                       <th style={{ padding: '15px', fontWeight: 'bold', color: '#2c3e50', width: '15%' }}>강의 차시</th>
                       <th style={{ padding: '15px', fontWeight: 'bold', color: '#2c3e50', width: '30%' }}>강의명</th>
-                      <th style={{ padding: '15px', fontWeight: 'bold', color: '#2c3e50', width: '55%' }}>강의 내용</th>
+                      <th style={{ padding: '15px', fontWeight: 'bold', color: '#2c3e50', width: '30%' }}>강의내용</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -212,8 +243,8 @@ const TClassDetail = () => {
                           <td style={{ padding: '15px', color: '#2c3e50', fontWeight: '500' }}>
                             {lecture.title}
                           </td>
-                          <td style={{ padding: '15px', color: '#7f8c8d' }}>
-                            {lecture.description || ''}
+                           <td style={{ padding: '15px', color: '#2c3e50', fontWeight: '500' }}>
+                            {lecture.detail}
                           </td>
                         </tr>
                       ))
@@ -239,13 +270,12 @@ const TClassDetail = () => {
               className="btn btn-secondary"
               onClick={goBackToList}
               style={{ 
-                padding: '10px 30px',
+                padding: '10px 15px',
                 borderRadius: '8px',
                 border: 'none'
               }}
             >
-              <i className="fas fa-arrow-left me-2"></i>
-              강의 목록으로 돌아가기
+              ←
             </button>
           </div>
         </div>
