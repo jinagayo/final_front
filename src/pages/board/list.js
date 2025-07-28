@@ -16,7 +16,7 @@ const fetchNotices = async () => {
         console.log('공지사항 조회 시작');
         
         // 올바른 URL로 수정
-        const url = `http://localhost:8080/board/list?boardnum=1&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sort=${sortType}`;
+        const url = `http://localhost:8080/board/list?boardnum=1&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sort=${sortBy}`;
         console.log('요청 URL:', url);
         
         const response = await fetch(url, {

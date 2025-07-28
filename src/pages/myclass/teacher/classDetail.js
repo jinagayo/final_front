@@ -11,11 +11,13 @@ const TClassDetail = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (classId) {
-      fetchClassDetail();
-      fetchLectures();
-    }
-  }, [classId]);
+  if (!classId || isNaN(Number(classId))) {
+    console.warn("잘못된 classId:", classId);
+    return;
+  }
+  fetchClassDetail();
+  fetchLectures();
+}, [classId]);
 
   // 강사 권한 확인
   const isTeacher = () => user?.position === '2' || user?.position === 'teacher';

@@ -149,7 +149,7 @@ const TCourseList = () => {
                     <tr 
                       key={course.id || index}
                       style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                      onClick={() => goToCourseDetail(course.class_id)}
+                      onClick={() => goToCourseDetail(course.classId)}
                       onMouseEnter={(e) => e.target.closest('tr').style.backgroundColor = '#f8f9fa'}
                       onMouseLeave={(e) => e.target.closest('tr').style.backgroundColor = 'transparent'}
                     >

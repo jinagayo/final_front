@@ -24,7 +24,24 @@ export default function LectureViewer() {
 
    const BACKEND_URL = 'http://localhost:8080';
 
+   useEffect(() => {
+  const fetchMaterial = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/video/material/11`, {
+        withCredentials: true,
+      });
+      setMeterial(res.data); // 예: { id: 3, content: 'videos/abc.mp4' }
+    } catch (err) {
+      console.error('강의 메타데이터 가져오기 실패', err);
+    }
+  };
+
+  fetchMaterial();
+}, []);
+
   useEffect(() => {
+    if (!meterial || !meterial.content) return; // 값 없으면 실행 X
+
   const fetchVideoUrl = async () => {
     try {
       const res = await axios.get(`${BACKEND_URL}/video/stream`, {
@@ -77,13 +94,16 @@ export default function LectureViewer() {
           {/* Main Lecture */}
           <div className="lg:col-span-2">
             {/* Video Preview */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl text-center py-10 px-6">
-              <button onClick={() => setIsPlaying(!isPlaying)} className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
-              </button>
-              <h2 className="text-xl font-semibold">State와 라이프사이클</h2>
-              <p className="text-white/90 text-sm mt-2">React의 핵심 개념인 State 관리와 컴포넌트 라이프사이클에 대해 학습합니다.</p>
-            </div>
+           {videoUrl ? (
+              <video
+                 src={videoUrl}
+                crossOrigin="anonymous"
+                 controls
+                  style={{ width: '100%', borderRadius: '10px', marginTop: '20px' }}
+               />
+              ) : (
+               <p>동영상을 불러오는 중...</p>
+            )}
 
             {/* Controls */}
             <div className="bg-gray-800 rounded-xl p-4 mt-4">

@@ -111,35 +111,43 @@ function VideoUploader() {
       return;
     }
     try {
-      //백엔드에 presigned URL 요청
-      const response = await axios.post(`${BACKEND_URL}/video/upload`, null, {
-        params: { filename: file.name },
-        withCredentials: true
-      });
+    const response = await axios.post(`${BACKEND_URL}/video/upload`, null, {
+      params: { filename: file.name },
+      withCredentials: true
+    });
 
-      const { uploadUrl, key } = response.data;
-      setUploadUrl(uploadUrl);
-      setVideoKey(key);
+    const { uploadUrl, key } = response.data;
+    setVideoKey(key);
 
-      // S3 prsigned URL로 put 요청
-      await axios.put(uploadUrl, file, {
-        headers: { 'Content-Type': file.type }
-      });
+    await axios.put(uploadUrl, file, {
+      headers: { 'Content-Type': file.type }
+    });
 
-      setIsUploaded(true);
-    } catch (err) {
-      console.error('업로드 실패:', err);
-      alert('업로드 중 오류가 발생했습니다.');
+    // 여기서 key 제대로 설정되었는지 확인
+    console.log('✅ videoKey:', key);
+
+    // key가 없으면 종료
+    if (!key) {
+      alert('업로드 키가 유효하지 않습니다.');
+      return;
     }
 
-    await axios.post(`${BACKEND_URL}/video/save`, {
-    title: lectureTitle,
-    key: videoKey,
-    classId: classId,
-    detail: lectureDetail,
+    // 저장 요청 분리
+    const saveRes = await axios.post(`${BACKEND_URL}/video/save`, {
+      title: lectureTitle,
+      key: key,  // state 말고 응답값 그대로 사용
+      classId: classId,
+      detail: lectureDetail,
     }, {
-    withCredentials: true
+      withCredentials: true
     });
+
+    setIsUploaded(true);
+
+  } catch (err) {
+    console.error('업로드 실패:', err.response?.data || err.message);
+    alert('업로드 중 오류가 발생했습니다.');
+  }
   };
 
   return (
