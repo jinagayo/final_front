@@ -6,6 +6,7 @@ import BannerUpload from '../pages/admin/BannerUpload';
 import StudentManagement from '../pages/admin/StudentManagement';
 import TeacherManagement from '../pages/admin/TeacherManagement';
 import ClassList from '../pages/admin/class/ClassList';
+import ClassDetail from '../pages/admin/class/Detail';
 // import Statistics from '../pages/admin/Statistics';
 import ProblemUpload from '../pages/admin/ProblemUpload';
 
@@ -61,6 +62,15 @@ const AdminRoutes = () => {
             <div className="col-lg-12">
               <div className="card shadow mb-4">
                 <ClassList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="/class/Detail/:classId" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <ClassDetail />
               </div>
             </div>
           </div>
