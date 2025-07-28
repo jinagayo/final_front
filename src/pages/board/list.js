@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const NoticeBoard = () => {
+const List = () => {
   const [notices, setNotices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('latest');
@@ -15,8 +15,10 @@ const fetchNotices = async () => {
     try {
         console.log('공지사항 조회 시작');
         
-        // 올바른 URL로 수정
-        const url = `http://localhost:8080/board/list?boardnum=1&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sort=${sortBy}`;
+
+        // boardnum을 문자열로 전달 (기존 구조에 맞춤)
+        const url = `http://localhost:8080/board/list?boardnum=BOD002&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;
+
         console.log('요청 URL:', url);
         
         const response = await fetch(url, {
@@ -28,7 +30,6 @@ const fetchNotices = async () => {
         });
 
         console.log('응답 상태:', response.status);
-        console.log('응답 헤더:', response.headers);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -40,13 +41,19 @@ const fetchNotices = async () => {
         console.log('API 응답:', data);
         
         if (data.success) {
+            // 백엔드에서 이미 변환된 형식으로 데이터가 옴
             setNotices(data.data || []);
             setTotalPages(data.totalPage || 1);
+            setLoading(false);
         } else {
             console.error('API 오류:', data.message);
+            setError(data.message);
+            setLoading(false);
         }
     } catch (error) {
         console.error('공지사항 조회 오류:', error);
+        setError(error.message);
+        setLoading(false);
     }
 };
   // 컴포넌트 마운트 시 데이터 로드
@@ -83,24 +90,23 @@ const fetchNotices = async () => {
   };
 
   // 공지사항 상세보기
-  const handleNoticeClick = async (noticeId) => {
+  // handleNoticeClick 함수도 수정:
+const handleNoticeClick = async (noticeId) => {
     try {
-      // 조회수 증가 API 호출
-      await fetch(`http://localhost:8080/api/notices/${noticeId}/view`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      // 상세 페이지로 이동 (실제 라우팅에 맞게 수정)
-      window.location.href = `/notices/${noticeId}`;
-      // 또는 React Router 사용 시:
-      // navigate(`/notices/${noticeId}`);
+        // 조회수 증가 API 호출 (boardId 사용)
+        await fetch(`http://localhost:8080/board/api/notices/${noticeId}/view`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        // 상세 페이지로 이동
+        window.location.href = `/notices/${noticeId}`;
     } catch (error) {
-      console.error('조회수 증가 오류:', error);
-      // 오류가 있어도 상세 페이지로 이동
-      window.location.href = `/notices/${noticeId}`;
+        console.error('조회수 증가 오류:', error);
+        // 오류가 있어도 상세 페이지로 이동
+        window.location.href = `/notices/${noticeId}`;
     }
-  };
+};
 
   // 새 공지사항 작성
   const handleCreateNotice = () => {
@@ -424,4 +430,4 @@ const fetchNotices = async () => {
   );
 };
 
-export default NoticeBoard;
+export default List;
