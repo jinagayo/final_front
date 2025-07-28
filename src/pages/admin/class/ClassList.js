@@ -176,10 +176,38 @@ export default function ClassList() {
     }
   };
 
+  const handleDelete = async (classId, event) => {
+    // 이벤트 버블링 방지
+    event.stopPropagation();
+    
+    if (!window.confirm('정말로 이 강의를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
 
+    try {
+      const response = await fetch(`http://localhost:8080/api/admin/class/Delete/${classId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        alert('강의가 성공적으로 삭제되었습니다.');
+        window.location.reload();
+      } else {
+        const errorData = await response.text();
+        alert(`삭제 처리 중 오류가 발생했습니다: ${errorData}`);
+      }
+    } catch (error) {
+      console.error('삭제 처리 오류:', error);
+      alert('삭제 처리 중 네트워크 오류가 발생했습니다.');
+    }
+  };
 
   const handleRowClick = (classId) => {
-    navigate(`/admin/course/detail/${classId}`);
+    navigate(`/admin/class/Detail/${classId}`);
   };
 
   if (loading) {
@@ -383,7 +411,7 @@ export default function ClassList() {
                     <th>상태</th>
                     <th>신청일</th>
                     <th>검토일</th>
-                    <th>작업</th>
+                    <th width="180">작업</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -409,36 +437,49 @@ export default function ClassList() {
                       <td>{formatDate(application.createdAt)}</td>
                       <td>{getReviewDate(application.createdAt, application.updatedAt)}</td>
                       <td onClick={(e) => e.stopPropagation()}>
-                        <div className="btn-group" role="group" style={{width:"100%" , height:"30px"}}>
+                        <div className="d-flex flex-wrap gap-1">
                           {application.state === 'STA002' ? (
                             // 검토중일 때 - 승인, 반려 버튼
                             <>
                               <button
-                                className="btn btn-sm btn-success"
+                                className="btn btn-sm btn-success mr-1"
                                 onClick={(e) => handleQuickApproval(application.classId, 'STA001', e)}
                                 title="승인"
                               >
-                                <i className="fas fa-check"></i>
+                                <i className="fas fa-check mr-1"></i>
+                                승인
                               </button>
                               <button
                                 className="btn btn-sm btn-danger"
                                 onClick={(e) => handleQuickApproval(application.classId, 'STA003', e)}
                                 title="반려"
                               >
-                                <i className="fas fa-times"></i>
+                                <i className="fas fa-times mr-1"></i>
+                                반려
                               </button>
                             </>
+                          ) : application.state === 'STA001' || application.state === 'STA003' ? (
+                            // 승인/반려된 강의일 때 - 삭제 버튼
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={(e) => handleDelete(application.classId, e)}
+                              title="삭제하기"
+                            >
+                              <i className="fas fa-trash mr-1"></i>
+                              삭제
+                            </button>
                           ) : (
                             // 그 외 상태일 때 - 상세보기 버튼만
                             <button
                               className="btn btn-sm btn-outline-primary"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/admin/course/detail/${application.classId}`);
+                                navigate(`/admin/class/Detail/${application.classId}`);
                               }}
                               title="상세보기"
                             >
-                              <i className="fas fa-eye"></i>
+                              <i className="fas fa-eye mr-1"></i>
+                              상세
                             </button>
                           )}
                         </div>
@@ -455,6 +496,14 @@ export default function ClassList() {
       <style jsx>{`
         .table-row-hover:hover {
           background-color: #f8f9fc !important;
+        }
+        
+        .gap-1 {
+          gap: 0.25rem;
+        }
+        
+        .btn-sm {
+          white-space: nowrap;
         }
       `}</style>
     </div>
