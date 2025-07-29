@@ -255,21 +255,21 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
 
           <li className="nav-item">
-            <a className="nav-link" href='/board/list'>
+            <a className="nav-link" href='/board/list?boardnum=BOD002'>
               <i className="fas fa-fw fa-chart-area"></i>
               <span>공지사항</span>
             </a>
           </li>
 
           <li className="nav-item">
-            <a className="nav-link" href="tables.html">
+            <a className="nav-link" href="/board/list?boardnum=BOD003">
               <i className="fas fa-fw fa-table"></i>
               <span>자유게시판</span>
             </a>
           </li>
           
           <li className="nav-item">
-              <a className="nav-link" href="charts.html">
+              <a className="nav-link" href="/board/list?boardnum=BOD001">
                 <i className="fas fa-fw fa-chart-area"></i>
                 <span>QnA</span>
               </a>
