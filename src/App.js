@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
 import { AuthProvider } from './contexts/AuthContext';
+import BoardRouters from './routes/BoardRoutes';
 
 function App() {
   return (
@@ -45,6 +46,8 @@ function App() {
           <Route path="/admin/*" element={<AdminRoutes />} />
           {/* 마이페이지 관련 라우트 */}
           <Route path="/mypage/*" element={<MypageRoutes />} />
+
+          <Route path='/board/*' element={<BoardRouters/>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
