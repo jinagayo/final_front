@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
   const [formData, setFormData] = useState({
@@ -17,7 +17,23 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
   const [preview, setPreview] = useState(
     userDetails?.img ? `/images/${userDetails.img}` : "/img/undraw_profile.svg"
   );
+  const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
+
+  // 카카오 주소 API 스크립트 로드
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // 컴포넌트 언마운트 시 스크립트 제거
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
 
   // 입력값 변경 핸들러
   const handleInputChange = (field, value) => {
@@ -35,8 +51,18 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     }
   };
 
+  // 파일을 Base64로 변환하는 함수
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   // 파일 선택 핸들러
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       // 파일 크기 체크 (5MB)
@@ -57,22 +83,28 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-      
-      setFormData(prev => ({
-        ...prev,
-        img: file
-      }));
-      
-      // 에러 메시지 제거
-      setErrors(prev => ({
-        ...prev,
-        img: ''
-      }));
+      try {
+        const base64 = await fileToBase64(file);
+        setPreview(base64);
+        setImageFile({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: base64
+        });
+        
+        // 에러 메시지 제거
+        setErrors(prev => ({
+          ...prev,
+          img: ''
+        }));
+      } catch (error) {
+        console.error('파일 변환 오류:', error);
+        setErrors(prev => ({
+          ...prev,
+          img: '파일 처리 중 오류가 발생했습니다.'
+        }));
+      }
     }
   };
 
@@ -104,11 +136,52 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // 주소 검색 (Daum 우편번호 API 사용 예시)
+  // 카카오 주소 검색
   const handleAddressSearch = () => {
-    // 실제 구현에서는 Daum 우편번호 API를 사용하거나
-    // 다른 주소 검색 서비스를 연동해야 합니다
-    alert('주소 검색 기능은 별도의 API 연동이 필요합니다.');
+    if (!window.daum || !window.daum.Postcode) {
+      alert('주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
+    new window.daum.Postcode({
+      oncomplete: function(data) {
+        
+        let addr = ''; 
+        let extraAddr = ''; 
+
+        if (data.userSelectedType === 'R') { 
+          addr = data.roadAddress;
+        } else {
+          addr = data.jibunAddress;
+        }
+
+        if (data.userSelectedType === 'R') {
+          if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+            extraAddr += data.bname;
+          }
+          if (data.buildingName !== '' && data.apartment === 'Y') {
+            extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+          }
+          if (extraAddr !== '') {
+            extraAddr = ' (' + extraAddr + ')';
+          }
+        }
+        setFormData(prev => ({
+          ...prev,
+          addressnum: data.zonecode,
+          address1: addr + extraAddr
+        }));
+
+        setTimeout(() => {
+          const detailAddressInput = document.querySelector('input[placeholder="상세 주소를 입력하세요"]');
+          if (detailAddressInput) {
+            detailAddressInput.focus();
+          }
+        }, 100);
+      },
+      width: '100%',
+      height: '100%'
+    }).open();
   };
 
   // 폼 제출
@@ -122,21 +195,19 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     setLoading(true);
 
     try {
-      const submitData = new FormData();
-      
-      // 기본 정보 추가
-      Object.keys(formData).forEach(key => {
-        if (key === 'img' && formData[key] instanceof File) {
-          submitData.append('profileImage', formData[key]);
-        } else if (key !== 'img') {
-          submitData.append(key, formData[key]);
-        }
-      });
+      // JSON 데이터 생성
+      const submitData = {
+        ...formData,
+        profileImage: imageFile // 이미지 파일 정보 (Base64 포함)
+      };
 
       const response = await fetch('http://localhost:8080/api/Mypage/ProfileUpdate', {
         method: 'POST',
         credentials: 'include',
-        body: submitData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
@@ -328,7 +399,6 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
                     type="text"
                     className="form-control"
                     value={formData.addressnum}
-                    onChange={(e) => handleInputChange('addressnum', e.target.value)}
                     placeholder="우편번호"
                     disabled={loading}
                     readOnly
@@ -339,6 +409,7 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
                       className="btn btn-outline-secondary"
                       onClick={handleAddressSearch}
                       disabled={loading}
+                      title="주소 검색"
                     >
                       <i className="fas fa-search"></i>
                     </button>
@@ -351,9 +422,9 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
                   type="text"
                   className="form-control"
                   value={formData.address1}
-                  onChange={(e) => handleInputChange('address1', e.target.value)}
-                  placeholder="기본 주소"
+                  placeholder="우편번호 검색 후 자동 입력됩니다"
                   disabled={loading}
+                  readOnly
                 />
               </div>
               <div className="col-12 mb-3">
@@ -448,6 +519,22 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
         
         .text-danger {
           color: #e74a3b !important;
+        }
+
+        .btn-outline-secondary {
+          border-color: #d1d3e2;
+          color: #858796;
+        }
+
+        .btn-outline-secondary:hover {
+          background-color: #858796;
+          border-color: #858796;
+          color: white;
+        }
+
+        .input-group-append .btn {
+          border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
         }
       `}</style>
     </div>
