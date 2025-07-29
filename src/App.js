@@ -6,6 +6,7 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
 import CourseRoutes from './routes/CourseRoutes';
 import AdminRoutes from './routes/AdminRoutes';
+import MypageRoutes from './routes/MypageRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
 import OAuthCallback from './pages/OAuthCallback';
@@ -42,6 +43,8 @@ function App() {
           <Route path="/course/*" element={<CourseRoutes />} />
           {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
+          {/* 마이페이지 관련 라우트 */}
+          <Route path="/mypage/*" element={<MypageRoutes />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
