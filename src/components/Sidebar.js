@@ -144,7 +144,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               {/* 수강 신청 - 학생 */}
               {isStudent() && (
                 <li className="nav-item">
-                  <a className="nav-link" href="charts.html">
+                  <a className="nav-link" href="course/List">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>수강신청</span>
                   </a>
@@ -232,7 +232,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
           
           <li className="nav-item">
-            <a className="nav-link" href="charts.html">
+            <a className="nav-link" href="mypage/Info">
                 <i className="fas fa-fw fa-chart-area"></i>
                 <span>마이페이지</span>
             </a>
