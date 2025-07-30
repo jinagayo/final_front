@@ -219,6 +219,8 @@ const PaymentPage = () => {
                 payment_code: rsp.imp_uid,
                 price: rsp.paid_amount,
                 user_id: user?.user_id || user?.id
+            },{
+                 withCredentials: true 
             })
             .then(res => {
                 console.log("백엔드 저장 성공:", res.data);
