@@ -15,24 +15,36 @@ export default function MyClassList() {
   const navigate = useNavigate();
 
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    
-    try {
-      const formattedDateString = dateString.replace(' ', 'T');
-      const date = new Date(formattedDateString);
+  // null, undefined 등 falsy한 값은 바로 처리
+  if (!dateString) return '-';
 
-      if (isNaN(date.getTime())) return '-';
-      
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\./g, '-').replace(/ /g, '').slice(0, -1);
-    } catch (error) {
-      console.error('날짜 변환 오류:', error);
+  // 문자열 타입인지 체크
+  if (typeof dateString !== 'string') {
+    console.warn('formatDate: 문자열이 아닌 값이 전달됨', dateString);
+    return '-';
+  }
+
+  try {
+    // '2025-07-30 10:00:00' → '2025-07-30T10:00:00' 변환
+    const formattedDateString = dateString.replace(' ', 'T');
+    const date = new Date(formattedDateString);
+
+    if (isNaN(date.getTime())) {
+      console.warn('formatDate: 유효하지 않은 날짜 형식', formattedDateString);
       return '-';
     }
-  };
+
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).replace(/\./g, '-').replace(/ /g, '').slice(0, -1); // '2025-07-30'
+    
+  } catch (error) {
+    console.error('formatDate: 날짜 변환 중 오류 발생', error);
+    return '-';
+  }
+};
 
   // 강의 클릭 시 상세 페이지로 이동
   useEffect(() => {

@@ -3,11 +3,11 @@
  import React from 'react';
  import { useNavigate } from "react-router-dom";
  
- const list = () => {
+ const List = () => {
     return(
         <h2>강의리스트</h2>
     );
 }
 
 
-export default list; 
+export default List; 

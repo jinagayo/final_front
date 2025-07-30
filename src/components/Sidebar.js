@@ -151,7 +151,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     <span>수강신청</span>
                   </a>
                 </li>
-              )}
+              
 
               {/* 내 강의실 - 학생/강사 */}
               <li className="nav-item">
