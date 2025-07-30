@@ -1,4 +1,5 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Settings, Users,
@@ -7,13 +8,16 @@ import {
 
 export default function LectureViewer() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const { meterId } = useParams(); 
+  const [classData, setClassData] = useState(null);
+  const [lectures, setLectures] = useState([]);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(70);
   const [currentTime, setCurrentTime] = useState(1530); // 25분 30초
   const [duration] = useState(5400); // 90분
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [activeTab, setActiveTab] = useState('overview');
-  const [meterial, setMeterial] = useState('');
+ const [meterial, setMeterial] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
 
   const formatTime = (seconds) => {
@@ -21,13 +25,13 @@ export default function LectureViewer() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
+  console.log("meterId:" + meterId);
    const BACKEND_URL = 'http://localhost:8080';
-
+   
    useEffect(() => {
   const fetchMaterial = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/video/material/11`, {
+      const res = await axios.get(`${BACKEND_URL}/video/material/${meterId}`, {
         withCredentials: true,
       });
       setMeterial(res.data); // 예: { id: 3, content: 'videos/abc.mp4' }
@@ -38,6 +42,37 @@ export default function LectureViewer() {
 
   fetchMaterial();
 }, []);
+
+useEffect(() => {
+  console.log('meterial:', meterial);
+  if (!meterial || !meterial.class_id) return; // 조건 강화
+
+  const fetchClassData = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.class_id}`, {
+        withCredentials: true,
+      });
+      setClassData(res.data.data);
+    } catch (err) {
+      console.error('강의 클래스 정보 로딩 실패:', err);
+    }
+  };
+
+  const fetchLectures = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.class_id}/lectures`, {
+        withCredentials: true,
+      });
+      setLectures(res.data.data || []);
+    } catch (err) {
+      console.error('강의 목록 로딩 실패:', err);
+    }
+  };
+
+  fetchClassData();
+  fetchLectures();
+}, [meterial]);
+
 
   useEffect(() => {
     if (!meterial || !meterial.content) return; // 값 없으면 실행 X
@@ -55,15 +90,7 @@ export default function LectureViewer() {
   };
 
   fetchVideoUrl();
-}, [meterial.content]);
-
-  const lectures = [
-    { id: 1, title: "React 기초 개념", duration: "45분", completed: true },
-    { id: 2, title: "컴포넌트와 Props", duration: "60분", completed: true },
-    { id: 3, title: "State와 라이프사이클", duration: "90분", completed: false, current: true },
-    { id: 4, title: "이벤트 처리", duration: "50분", completed: false },
-    { id: 5, title: "조건부 렌더링", duration: "40분", completed: false },
-  ];
+}, [meterial]);
 
   const progress = (currentTime / duration) * 100;
 
@@ -73,8 +100,8 @@ export default function LectureViewer() {
         {/* Header */}
         <header className="flex items-center justify-between border-b border-gray-700 pb-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">React 완전정복 강의</h1>
-            <p className="text-gray-400 text-sm">김강사 • 프론트엔드 개발</p>
+          <h1 className="text-2xl font-bold">{classData?.name || '강의 제목 로딩 중...'}</h1>
+          <p className="text-gray-400 text-sm">{classData?.teacherName || '강사명'}</p>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -158,21 +185,20 @@ export default function LectureViewer() {
           <aside className="bg-gray-800 rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">강의 목록</h2>
             <div className="space-y-2">
-              {lectures.map((lec) => (
-                <div key={lec.id} className={`p-4 rounded-lg ${lec.current ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}>
-                  <div className="flex justify-between">
-                    <h3 className="text-sm font-medium">{lec.title}</h3>
-                    {lec.completed && <div className="w-2 h-2 bg-green-400 rounded-full" />}
-                  </div>
-                  <div className="flex justify-between text-xs mt-1">
-                    <span>{lec.duration}</span>
-                    <Clock className="w-4 h-4 text-gray-400" />
-                  </div>
-                  {lec.current && <div className="mt-2 w-full bg-gray-600 h-1 rounded-full"><div className="bg-white h-1 rounded-full" style={{ width: '28%' }}></div></div>}
-                </div>
-              ))}
+             {lectures.map((lec) => (
+              <div key={lec.id} className={`p-4 rounded-lg ${lec.id == meterId ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}>
+              <div className="flex justify-between">
+              <h3 className="text-sm font-medium">{lec.title}</h3>
+              {lec.completed && <div className="w-2 h-2 bg-green-400 rounded-full" />}
+              </div>
+            <div className="flex justify-between text-xs mt-1">
+            <span>{lec.duration ? `${Math.floor(lec.duration / 60)}분` : '시간정보 없음'}</span>
+            <Clock className="w-4 h-4 text-gray-400" />
             </div>
-
+            {lec.id == meterId && <div className="mt-2 w-full bg-gray-600 h-1 rounded-full"><div className="bg-white h-1 rounded-full" style={{ width: '28%' }}></div></div>}
+           </div>
+            ))}
+            </div>
             <div className="mt-8 p-4 bg-gray-700 rounded-xl">
               <h3 className="text-sm font-semibold mb-2">학습 진도</h3>
               <div className="flex justify-between text-sm mb-1">

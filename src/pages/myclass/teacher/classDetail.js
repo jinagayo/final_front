@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useNavigate } from "react-router-dom";
 
 const TClassDetail = () => {
   const { classId } = useParams();
   const [classData, setClassData] = useState(null);
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const { user } = useAuth();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
   if (!classId || isNaN(Number(classId))) {
@@ -238,7 +240,12 @@ const TClassDetail = () => {
                   <tbody>
                     {lectures.length > 0 ? (
                       lectures.map((lecture, index) => (
-                        <tr key={lecture.id || index} style={{ borderBottom: '1px solid #ecf0f1' }}>
+                        <tr key={lecture.id || index} 
+                          style={{
+                             borderBottom: '1px solid #ecf0f1',
+                             cursor: 'pointer'
+                             }}
+                             onClick={()=> navigate(`/myclass/videoView/${lecture.meter_id}`)}>
                           <td style={{ padding: '15px', color: '#2c3e50', fontWeight: '500' }}>
                             {index + 1}차시
                           </td>

@@ -4,19 +4,20 @@ import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
 import CourseList from './pages/course/List';
-import TCourseList from './pages/myclass/teacher/classList';
-import TCourseDetail from './pages/myclass/teacher/classDetail';
 import CourseRoutes from './routes/CourseRoutes';
+import ClassRoutes from './routes/ClassRoutes';
 import AdminRoutes from './routes/AdminRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
-import VideoUploader from './pages/myclass/teacher/video';
 import PendingTeachers from './pages/admin/PendingTeachers'
 import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import { Import } from 'lucide-react';
 import LectureViewer from './pages/myclass/videoView';
+import VideoUploader from './pages/myclass/teacher/video';
+import TCourseList from './pages/myclass/teacher/classList';
+import TCourseDetail from './pages/myclass/teacher/classDetail';
 import BoardRouters from './routes/BoardRoutes';
 
 function App() {
@@ -63,48 +64,11 @@ function App() {
                 </div>
               </div>
             } />
-           <Route path="myclass/teacher/classList" element={
-           <div className="row">
-                <div className="col-lg-12">
-                  <div className="card shadow mb-4">
-                <TCourseList />
-            </div>
-              </div>
-              </div>
-  } />
-            <Route path="myclass/teacher/classDetail/:classId" element={
-           <div className="row">
-                <div className="col-lg-12">
-                  <div className="card shadow mb-4">
-                <TCourseDetail />
-            </div>
-              </div>
-              </div>
-  } />  
-            <Route path="myclass/teacher/video/:classId" element={
-               <div className="row">
-                <div className="col-lg-12">
-                  <div className="card shadow mb-4">
-                 <VideoUploader />
-            </div>
-              </div>
-              </div>
-   } />
-
-           <Route path="myclass/videoView" element={
-               <div className="row">
-                <div className="col-lg-12">
-                  <div className="card shadow mb-4">
-                 < LectureViewer />
-            </div>
-              </div>
-              </div>
-   } />
+            {/* 클래스 관련 라우트 */}
+           <Route path="/myclass/*" element={<ClassRoutes />} />
 
           </Route>
    
-  
-          
           {/* 강의 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
           {/* 관리자 관련 라우트 */}
