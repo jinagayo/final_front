@@ -144,7 +144,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               {/* 수강 신청 - 학생 */}
               {isStudent() && (
                 <li className="nav-item">
-                  <a className="nav-link" href="charts.html">
+                  <a className="nav-link" href="/course/List">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>수강신청</span>
                   </a>
@@ -153,18 +153,18 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
 
               {/* 내 강의실 - 학생/강사 */}
               <li className="nav-item">
-                <a className="nav-link" href="charts.html">
+                <a className="nav-link" href="/myclass/List">
                   <i className="fas fa-fw fa-chart-area"></i>
                   <span>내강의실</span>
                 </a>
               </li>
               
-              {/* 강의관리 - 강사 */}
+              {/* 강의개설 - 강사 */}
               {isTeacher() && (
                 <li className="nav-item">
-                  <a className="nav-link" href="/course/manage">
+                  <a className="nav-link" href="/course/teacher/List">
                     <i className="fas fa-fw fa-cogs"></i>
-                    <span>강의 관리</span>
+                    <span>강의 개설</span>
                   </a>
                 </li>
               )}
@@ -198,6 +198,19 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                 </a>
               </li>
               <li className="nav-item">
+
+                <a className="nav-link" href="/admin/class/ClassList">
+                  <i className="fas fa-fw fa-chart-bar"></i>
+                  <span>강의 관리</span>
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/admin/statistics">
+                  <i className="fas fa-fw fa-chart-bar"></i>
+                  <span>통계 관리</span>
+                </a>
+              </li>
+              <li className="nav-item">
                 <a className="nav-link" href="/admin/problem-upload">
                   <i className="fas fa-fw fa-upload"></i>
                   <span>문제 업로드</span>
@@ -219,21 +232,13 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
           
           <li className="nav-item">
-            <a className="nav-link" href="charts.html">
+            <a className="nav-link" href="/mypage/Info">
                 <i className="fas fa-fw fa-chart-area"></i>
                 <span>마이페이지</span>
             </a>
           </li>
           
-          {/* 취업 지원 - 학생 */}
-          {isStudent() && (
-            <li className="nav-item active">
-              <a className="nav-link" href="tables.html">
-                <i className="fas fa-fw fa-table"></i>
-                <span>취업지원</span>
-              </a>
-            </li>
-          )}
+
 
           <hr className="sidebar-divider" />
           
