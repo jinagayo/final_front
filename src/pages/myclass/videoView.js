@@ -47,11 +47,11 @@ const progressPercent = progressInfo.total > 0
 
 useEffect(() => {
   console.log('meterial:', meterial);
-  if (!meterial || !meterial.class_id) return; // 조건 강화
+  if (!meterial || !meterial.classId) return; // 조건 강화
 
   const fetchClassData = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.class_id}`, {
+      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.classId}`, {
         withCredentials: true,
       });
       setClassData(res.data.data);
@@ -65,7 +65,7 @@ useEffect(() => {
 
   const fetchLectures = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.class_id}/lectures`, {
+      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.classId}/lectures`, {
         withCredentials: true,
       });
       setLectures(res.data.data || []);
@@ -77,6 +77,10 @@ useEffect(() => {
   fetchClassData();
   fetchLectures();
 }, [meterial]);
+
+useEffect(() => {
+  fetchProgressInfo();
+}, [classData, userId]);
 
 console.log(lectures);
   useEffect(() => {
@@ -110,23 +114,40 @@ useEffect(() => {
     console.error('진도율 불러오기 실패:', err);
   });
 }, [classData, userId]);
+console.log('📦 진도율 응답:', progressInfo);
 
 const markLectureAsCompleted = async () => {
   try {
-    // API 엔드포인트 및 파라미터는 상황에 맞게 수정
-    await axios.post(
-      `${BACKEND_URL}/video/progress/complete`, // 예시 API
-      {
-        meterId,
-        userId,
-      },
-      { withCredentials: true }
-    );
-    // 필요하다면 진도율 다시 불러오기
+    console.log('진도완료 호출됨!'); // ← 이게 반드시 찍혀야 함
+    await axios.post(`${BACKEND_URL}/video/progress/complete`, {
+      meterialId: parseInt(meterId), // 백엔드 요구 필드명
+      stdId: userId
+    }, { withCredentials: true });
+
+    // 1️⃣ 완료 후 진도율 다시 불러오기
+    fetchProgressInfo();
+    setHasMarkedComplete(true); // 중복 방지
   } catch (err) {
     console.error('진도 완료 처리 실패:', err);
   }
 };
+
+const fetchProgressInfo = async () => {
+  if (!classData || !userId) return;
+  try {
+    const res = await axios.get(`${BACKEND_URL}/video/progress/class/${classData.classId}/student/${userId}`, {
+      withCredentials: true
+    });
+    setProgressInfo({
+      completed: res.data.completed,
+      total: res.data.total
+    });
+  } catch (err) {
+    console.error('진도율 불러오기 실패:', err);
+  }
+};
+
+
 
   const progress = (currentTime / duration) * 100;
 
@@ -163,15 +184,16 @@ const markLectureAsCompleted = async () => {
                 crossOrigin="anonymous"
                  controls
                   style={{ width: '100%', borderRadius: '10px', marginTop: '20px' }}
-                  onTimeUpdate={e => {
-                  const current = e.target.currentTime;
-                   const total = e.target.duration;
-                  if (!hasMarkedComplete && total && current / total >= 0.5) {
-                // 50% 넘겼을 때 서버에 완료 요청
-               markLectureAsCompleted();
-              setHasMarkedComplete(true); // 중복 요청 방지
-            }
-            }}
+                 onTimeUpdate={e => {
+  const current = e.target.currentTime;
+  const total = e.target.duration;
+  console.log('🔥 onTimeUpdate:', current, total, hasMarkedComplete);
+  if (!hasMarkedComplete) {
+    console.log('🔥 markLectureAsCompleted 실행!');
+    markLectureAsCompleted();
+    setHasMarkedComplete(true);
+  }
+}}
                />
               ) : (
                <p>동영상을 불러오는 중...</p>
@@ -198,7 +220,7 @@ const markLectureAsCompleted = async () => {
             <h2 className="text-lg font-semibold mb-4">강의 목록</h2>
             <div className="space-y-2">
              {lectures.map((lec) => (
-              <div key={lec.meter_id} className={`p-4 rounded-lg ${lec.meter_id == meterId ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}>
+              <div key={lec.meterId} className={`p-4 rounded-lg ${lec.meterId == meterId ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}>
               <div className="flex justify-between">
               <h3 className="text-sm font-medium">{lec.title}</h3>
               {lec.completed && <div className="w-2 h-2 bg-green-400 rounded-full" />}
@@ -216,7 +238,7 @@ const markLectureAsCompleted = async () => {
   <div className="flex justify-between text-sm mb-1">
     <span>완료한 강의</span>
     <span>
-      {progressInfo.completed}/{progressInfo.total}
+      {progressInfo.completed}/{lectures.length}
     </span>
   </div>
   <div className="w-full bg-gray-600 h-2 rounded-full mb-1">
