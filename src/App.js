@@ -46,7 +46,7 @@ function App() {
                 </div>
               </div>
             } />
-            <Route path="/course/list" element={
+            <Route path="/course/List" element={
               <div className="row">
                 <div className="col-lg-12">
                   <div className="card shadow mb-4">

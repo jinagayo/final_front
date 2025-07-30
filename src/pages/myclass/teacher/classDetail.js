@@ -245,7 +245,7 @@ const TClassDetail = () => {
                              borderBottom: '1px solid #ecf0f1',
                              cursor: 'pointer'
                              }}
-                             onClick={()=> navigate(`/myclass/videoView/${lecture.meter_id}`)}>
+                             onClick={()=> navigate(`/myclass/videoView/${lecture.meterId}`)}>
                           <td style={{ padding: '15px', color: '#2c3e50', fontWeight: '500' }}>
                             {index + 1}차시
                           </td>

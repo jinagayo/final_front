@@ -116,8 +116,8 @@ export default function ClassMain() {
 
   const handleMaterialClick = (material) => {
     console.log('선택된 강의 자료:', material);
-    // 실제 구현시 강의 자료 상세 페이지로 이동
-    navigate(`/myclass/material/${material.meter_id}`);
+    if(material.type='MET001')
+      navigate(`/myclass/videoView/${material.meterId}`);
   };
 
   const handleReviewClick = () => {
