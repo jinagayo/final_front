@@ -68,14 +68,15 @@ function App() {
             {/* 클래스 관련 라우트 */}
            <Route path="/myclass/*" element={<ClassRoutes />} />
 
-          </Route>
-   
-          {/* 강의 관련 라우트 */}
+          </Route>\
+          
+          {/* 수강신청 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
           {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
           {/* 마이페이지 관련 라우트 */}
           <Route path="/mypage/*" element={<MypageRoutes />} />
+
 
           <Route path='/board/*' element={<BoardRouters/>} />
         </Routes>
