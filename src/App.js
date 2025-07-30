@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import CourseRoutes from './routes/CourseRoutes';
 import AdminRoutes from './routes/AdminRoutes';
 import MypageRoutes from './routes/MypageRoutes';
+import MyClassRoutes from './routes/MyClassRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
 import OAuthCallback from './pages/OAuthCallback';
@@ -40,12 +41,15 @@ function App() {
             } />
           </Route>
           
-          {/* 강의 관련 라우트 */}
+          {/* 수강신청 관련 라우트 */}
           <Route path="/course/*" element={<CourseRoutes />} />
           {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
           {/* 마이페이지 관련 라우트 */}
           <Route path="/mypage/*" element={<MypageRoutes />} />
+          {/* 강의 관련 라우트 */}
+          <Route path="/myclass/*" element={<MyClassRoutes />} />
+
 
           <Route path='/board/*' element={<BoardRouters/>} />
         </Routes>
