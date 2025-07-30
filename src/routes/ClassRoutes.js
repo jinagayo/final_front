@@ -5,6 +5,8 @@ import LectureViewer from '../pages/myclass/videoView';
 import VideoUploader from '../pages/myclass/teacher/video';
 import TCourseList from '../pages/myclass/teacher/classList';
 import TCourseDetail from '../pages/myclass/teacher/classDetail';
+import List from '../pages/myclass/List';
+import Main from '../pages/myclass/Main';
 
 function ClassRoutes() {
   return (
@@ -46,6 +48,27 @@ function ClassRoutes() {
               </div>
               </div>
    } />
+
+        <Route path="list" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <List />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="Main" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <Main />
+              </div>
+            </div>
+          </div>
+        } />
+
+
       
     </Routes>
   );

@@ -17,6 +17,7 @@ const CourseList = () => {
     try {
       setLoading(true);
       console.log('=== API 요청 시작 ===');
+      
       console.log('요청 URL:', 'http://localhost:8080/course/List');
       
       const response = await fetch('http://localhost:8080/course/List', {
@@ -108,8 +109,6 @@ const CourseList = () => {
     });
     return Array.from(subjects).sort();
   };
-
-  const filterOptions = ['전체', '무료', '유료', '할인'];
 
   const handleSearch = (e) => {
     e.preventDefault();

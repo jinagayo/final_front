@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 
 export default function MyClassList() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,11 +11,8 @@ export default function MyClassList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Navigation handler - 실제 구현시 react-router-dom의 useNavigate 사용
-  const navigate = (path) => {
-    console.log('Navigate to:', path);
-    // window.location.href = path; // 실제 구현시 사용
-  };
+  
+  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -36,10 +34,11 @@ export default function MyClassList() {
     }
   };
 
+  // 강의 클릭 시 상세 페이지로 이동
   useEffect(() => {
     const fetchMyClasses = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/student/myclass/list', {
+        const response = await fetch('http://localhost:8080/api/myclass/List', {
           credentials: 'include'
         });
         
@@ -54,13 +53,17 @@ export default function MyClassList() {
         
         const data = await response.json();
         console.log("내 강의실 데이터:", data);
+        console.log("데이터 타입:", typeof data);
+        console.log("데이터가 배열인가?", Array.isArray(data));
 
         if (Array.isArray(data)) {
+          console.log("데이터 첫 번째 요소:", data[0]);
           setMyClasses(data);
-          const uniqueSubjects = ['all', ...new Set(data.map(cls => cls.subject))];
+          const uniqueSubjects = ['all', ...new Set(data.map(cls => cls.subject).filter(subject => subject))];
           setSubjects(uniqueSubjects);
         } else {
-          console.error("API 응답이 예상한 배열 형태가 아닙니다:", data);
+          console.error("API 응답이 예상한 List<Map<String, Object>> 형태가 아닙니다:", data);
+          console.error("실제 데이터 구조:", JSON.stringify(data, null, 2));
           setMyClasses([]);
           setSubjects(['all']);
         }
@@ -74,22 +77,22 @@ export default function MyClassList() {
     };
 
     fetchMyClasses();
-  }, [navigate]);
+  }, []);
 
   const statusOptions = [
     { value: 'all', label: '전체' },
-    { value: '수강 중', label: '수강 중' },
-    { value: '수강 완료', label: '수강 완료' },
-    { value: '일시정지', label: '일시정지' }
+    { value: '수강중', label: '수강 중' },
+    { value: '수강완료', label: '수강 완료' },
+    { value: '수강취소', label: '수강취소' }
   ];
 
   const getStatusBadge = (state) => {
     switch (state) {
-      case '수강 중':
+      case '수강중':
         return <span className="badge badge-success">수강 중</span>;
-      case '수강 완료':
+      case '수강완료':
         return <span className="badge badge-primary">수강 완료</span>;
-      case '일시정지':
+      case '수강취소':
         return <span className="badge badge-warning">일시정지</span>;
       default:
         return <span className="badge badge-secondary">{state}</span>;
@@ -97,6 +100,9 @@ export default function MyClassList() {
   };
 
   const filteredClasses = myClasses.filter(cls => {
+    // null/undefined 체크 강화
+    if (!cls) return false;
+    
     const className = cls.name || '';
     const classIntro = cls.intro || '';
     const classState = cls.state || '';
@@ -111,12 +117,18 @@ export default function MyClassList() {
   });
 
   const getStatusCount = (state) => {
-    if (state === 'all') return myClasses.length;
-    return myClasses.filter(cls => cls.state === state).length;
+    if (state === 'all') return myClasses.filter(cls => cls).length;
+    return myClasses.filter(cls => cls && cls.state === state).length;
   };
 
   const handleClassClick = (classId) => {
-    navigate(`/student/class/${classId}`);
+    console.log('Course clicked:', classId);
+    if (classId) {
+      navigate(`/myclass/Main?class_id=${classId}`);
+    } else {
+      console.error('Course ID is missing');
+      alert('강의 정보가 올바르지 않습니다.');
+    }
   };
 
   if (loading) {
@@ -130,7 +142,9 @@ export default function MyClassList() {
 
   if (error) {
     return (
-      <div className="container-fluid text-center py-5">
+      <div className="containe
+      
+      t-center py-5">
         <i className="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
         <p className="text-danger">{error}</p>
         <p className="text-gray-500">페이지를 새로고침하거나 나중에 다시 시도해주세요.</p>
@@ -186,7 +200,7 @@ export default function MyClassList() {
                   <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
                     수강 중</div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {getStatusCount('수강 중')}개
+                    {getStatusCount('수강중')}개
                   </div>
                 </div>
                 <div className="col-auto">
@@ -206,7 +220,7 @@ export default function MyClassList() {
                   <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
                     수강 완료</div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {getStatusCount('수강 완료')}개
+                    {getStatusCount('수강완료')}개
                   </div>
                 </div>
                 <div className="col-auto">
@@ -224,9 +238,9 @@ export default function MyClassList() {
               <div className="row no-gutters align-items-center">
                 <div className="col mr-2">
                   <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                    일시정지</div>
+                    수강취소</div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {getStatusCount('일시정지')}개
+                    {getStatusCount('수강취소')}개
                   </div>
                 </div>
                 <div className="col-auto">
@@ -311,8 +325,8 @@ export default function MyClassList() {
             </div>
           ) : (
             <div className="row">
-              {filteredClasses.map((classItem) => (
-                <div key={classItem.classId} className="col-lg-4 col-md-6 mb-4">
+              {filteredClasses.map((classItem, index) => (
+                <div key={classItem.classId || index} className="col-lg-4 col-md-6 mb-4">
                   <div 
                     className="card class-card shadow h-100"
                     onClick={() => handleClassClick(classItem.classId)}
@@ -322,7 +336,7 @@ export default function MyClassList() {
                       <img
                         src={classItem.img || '/default-class-image.jpg'}
                         className="card-img-top"
-                        alt={classItem.name}
+                        alt={classItem.name || '강의'}
                         onError={(e) => {
                           e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjhGOUZBIi8+CjxwYXRoIGQ9Ik0xMzAgMTAwTDE3MCA4MEwxNzAgMTIwTDEzMCAxMDBaIiBmaWxsPSIjREREREREIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5OTk5IiBmb250LXNpemU9IjE0Ij7qsJXsnZgg7J2066+47KeAPC90ZXh0Pgo8L3N2Zz4=';
                         }}
@@ -333,20 +347,20 @@ export default function MyClassList() {
                     </div>
                     <div className="card-body d-flex flex-column">
                       <div className="mb-2">
-                        <span className="badge badge-outline-secondary mr-2">{classItem.subject}</span>
+                        <span className="badge badge-outline-secondary mr-2">{classItem.subject || '과목'}</span>
                         <small className="text-muted">수강일: {formatDate(classItem.createdAt)}</small>
                       </div>
-                      <h6 className="card-title font-weight-bold mb-2">{classItem.name}</h6>
+                      <h6 className="card-title font-weight-bold mb-2">{classItem.name || '강의명'}</h6>
                       <p className="card-text text-muted small mb-3 flex-grow-1">
-                        {classItem.intro}
+                        {classItem.intro || '강의 소개'}
                       </p>
                       <div className="mt-auto">
                         <div className="d-flex justify-content-between align-items-center">
                           <div className="instructor-info d-flex align-items-center">
                             <i className="fas fa-user-tie text-gray-400 mr-1"></i>
-                            <span className="text-sm text-gray-600">{classItem.teacher}</span>
+                            <span className="text-sm text-gray-600">{classItem.teacher || '강사'}</span>
                           </div>
-                          <button className="btn btn-sm btn-outline-primary">
+                          <button className="btn btn-sm btn-outline-primary" onClick={() => handleClassClick(classItem.classId)}>
                             <i className="fas fa-play mr-1"></i>학습하기
                           </button>
                         </div>
