@@ -18,8 +18,11 @@ const fetchNotices = async () => {
     try {
         console.log('공지사항 조회 시작');
         
+
         // boardnum을 문자열로 전달 (기존 구조에 맞춤)
+
         const url = `http://localhost:8080/board/list?boardnum=${boardnum}&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;
+
         console.log('요청 URL:', url);
         
         const response = await fetch(url, {

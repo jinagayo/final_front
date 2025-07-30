@@ -5,6 +5,25 @@ import {useNavigate } from "react-router-dom";
 
 const Home = () => {
   const navigate = useNavigate();
+  const [bannerUrl, setBannerUrl] = useState(null);
+
+  useEffect(() => {
+    const fetchBanner = async() => {
+      try{
+        const res = await fetch("http://localhost:8080/api/admin/banner/latest",{
+          credentials: 'include'
+        });
+        const data = await res.json();
+          console.log("📦 받아온 banner URL:", data); // ← 여기서 확인
+        setBannerUrl(data.url);  //받아온 S3 URL 사용
+      }catch(err){
+        console.error("배너 이미지 불러오기 실패:", err);
+        setBannerUrl("/img/main.png");  //fallback
+      }
+    };
+    fetchBanner();
+  },[])
+
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
   const courses = [
     {
@@ -74,7 +93,7 @@ const Home = () => {
       >
       <img 
         style={{ height: '300px', width: '100%', marginTop:'-24px'}} 
-        src={`/img/main.png?v=${imageTimestamp}`} 
+        src={bannerUrl}
         alt="main"
         onClick={(e) => {
           e.stopPropagation();
