@@ -105,6 +105,7 @@ const BoardDetail = () => {
       if (response.ok) {
         const apiResponse = await response.json();
         if (apiResponse.success) {
+          console.log('댓글 데이터:', apiResponse.data); 
           setComments(apiResponse.data || []);
         }
       }
@@ -231,6 +232,7 @@ const BoardDetail = () => {
 
   // 댓글 수정 저장
   const handleUpdateComment = async (commentId) => {
+    console.log("handelUpdateComment 호출됨 =====" + commentId)
     if (!editContent.trim()) {
       alert('댓글 내용을 입력해주세요.');
       return;
@@ -250,6 +252,8 @@ const BoardDetail = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
+      console.log('수정 요청 - commentId:', commentId, 'content:', editContent); // 🔥 디버깅
+
       const response = await fetch(`http://localhost:8080/board/comments/${commentId}`, {
         method: 'PUT',
         headers: headers,
@@ -556,12 +560,14 @@ const BoardDetail = () => {
                           {editingComment === (comment.comment_id || comment.id) ? (
                             <div>
                               <button
-                                className="btn btn-sm btn-success me-1"
-                                onClick={() => handleUpdateComment(comment.comment_id || comment.id)}
-                              >
-                                <i className="fas fa-check"></i>
-                                수정
-                              </button>
+                              className="btn btn-sm btn-success me-1"
+                              onClick={() => {
+                                console.log('수정 버튼 클릭 - commentId:', comment.comment_id || comment.id); // 🔥 디버깅
+                                handleUpdateComment(comment.comment_id || comment.id); // 🔥 commentId 전달
+                              }}
+                            >
+                              <i className="fas fa-check"></i>
+                            </button>
                               <button
                                 className="btn btn-sm btn-secondary"
                                 onClick={handleCancelEdit}
@@ -692,12 +698,14 @@ const BoardDetail = () => {
                                         onClick={() => handleUpdateComment(reply.comment_id || reply.id)}
                                       >
                                         <i className="fas fa-check"></i>
+                                        수정
                                       </button>
                                       <button
                                         className="btn btn-sm btn-secondary"
                                         onClick={handleCancelEdit}
                                       >
                                         <i className="fas fa-times"></i>
+                                        취소
                                       </button>
                                     </div>
                                   ) : (

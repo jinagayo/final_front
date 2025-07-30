@@ -9,6 +9,8 @@ import ClassList from '../pages/admin/class/ClassList';
 import ClassDetail from '../pages/admin/class/Detail';
 // import Statistics from '../pages/admin/Statistics';
 import ProblemUpload from '../pages/admin/ProblemUpload';
+import ProblemList from "../pages/admin/coding/Codelist"
+import ProblemDetail from "../pages/admin/coding/Detail"
 
 const AdminRoutes = () => {
   return (
@@ -76,18 +78,6 @@ const AdminRoutes = () => {
           </div>
         } />
         
-        {/* 통계 관리 - 나중에 추가
-        <Route path="/statistics" element={
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="card shadow mb-4">
-                <Statistics />
-              </div>
-            </div>
-          </div>
-        } />
-        */}
-        
         {/* 문제 업로드 - 나중에 추가        */}
         <Route path="/problem-upload" element={
           <div className="row">
@@ -99,6 +89,26 @@ const AdminRoutes = () => {
           </div>
         } />
 
+        {/* 문제 조회 */}
+        <Route path="/coding/list" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <ProblemList />
+              </div>
+            </div>
+          </div>
+        } />
+        {/* 문제 조회 */}
+        <Route path="/coding/detail/:problemId" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <ProblemDetail />
+              </div>
+            </div>
+          </div>
+        } />
       </Route>
     </Routes>
   );

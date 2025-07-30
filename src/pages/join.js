@@ -71,12 +71,6 @@ const handleSubmit = async (e) => {
       ? 'http://localhost:8080/join/signup/student'
       : 'http://localhost:8080/join/signup/teacher';
 
-    console.log('=== 전송할 데이터 확인 ===');
-    console.log('user_id:', formData.user_id);
-    console.log('pw:', formData.pw ? '***있음***' : 'NULL');
-    console.log('전체 데이터:', formData);
-    console.log('전송 URL:', endpoint);
-
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -86,9 +80,6 @@ const handleSubmit = async (e) => {
       body: JSON.stringify(formData)
     });
 
-    console.log('응답 상태:', response.status);
-    console.log('응답 헤더:', [...response.headers.entries()]);
-
     // ✅ 상세한 에러 처리
     if (response.status === 403) {
       alert('접근 권한이 없습니다. 서버 설정을 확인해주세요.');
@@ -97,17 +88,14 @@ const handleSubmit = async (e) => {
 
     // ✅ JSON 응답 확인
     const contentType = response.headers.get('content-type');
-    console.log('Content-Type:', contentType);
 
     if (!contentType || !contentType.includes('application/json')) {
       const textResponse = await response.text();
-      console.log('서버 응답 (텍스트):', textResponse);
       alert('서버에서 예상하지 못한 응답을 받았습니다.');
       return;
     }
 
     const data = await response.json();
-    console.log('서버 응답 데이터:', data);
 
     if (response.ok) {
       alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);
