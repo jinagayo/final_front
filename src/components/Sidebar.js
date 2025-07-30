@@ -146,13 +146,17 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               {isStudent() && (
                 <>
                 <li className="nav-item">
-                  <a className="nav-link" href="charts.html">
+                  <a className="nav-link" href="/course/List">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>수강신청</span>
                   </a>
                 </li>
-                <li className="nav-item">
-                <a className="nav-link" href="charts.html">
+              )}
+
+              {/* 내 강의실 - 학생/강사 */}
+              <li className="nav-item">
+                <a className="nav-link" href="/myclass/List">
+                
                   <i className="fas fa-fw fa-chart-area"></i>
                   <span>내강의실</span>
                 </a>
@@ -243,21 +247,13 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
           
           <li className="nav-item">
-            <a className="nav-link" href="charts.html">
+            <a className="nav-link" href="/mypage/Info">
                 <i className="fas fa-fw fa-chart-area"></i>
                 <span>마이페이지</span>
             </a>
           </li>
           
-          {/* 취업 지원 - 학생 */}
-          {isStudent() && (
-            <li className="nav-item active">
-              <a className="nav-link" href="tables.html">
-                <i className="fas fa-fw fa-table"></i>
-                <span>취업지원</span>
-              </a>
-            </li>
-          )}
+
 
           <hr className="sidebar-divider" />
           
@@ -266,21 +262,21 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           </div>
 
           <li className="nav-item">
-            <a className="nav-link" href='/board/list'>
+            <a className="nav-link" href='/board/list?boardnum=BOD002'>
               <i className="fas fa-fw fa-chart-area"></i>
               <span>공지사항</span>
             </a>
           </li>
 
           <li className="nav-item">
-            <a className="nav-link" href="tables.html">
+            <a className="nav-link" href="/board/list?boardnum=BOD003">
               <i className="fas fa-fw fa-table"></i>
               <span>자유게시판</span>
             </a>
           </li>
           
           <li className="nav-item">
-              <a className="nav-link" href="charts.html">
+              <a className="nav-link" href="/board/list?boardnum=BOD001">
                 <i className="fas fa-fw fa-chart-area"></i>
                 <span>QnA</span>
               </a>

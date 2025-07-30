@@ -7,6 +7,7 @@ import CourseList from './pages/course/List';
 import CourseRoutes from './routes/CourseRoutes';
 import ClassRoutes from './routes/ClassRoutes';
 import AdminRoutes from './routes/AdminRoutes';
+import MypageRoutes from './routes/MypageRoutes';
 import Join from "./pages/Join";
 import Login from './pages/Login';
 import PendingTeachers from './pages/admin/PendingTeachers'
@@ -73,6 +74,9 @@ function App() {
           <Route path="/course/*" element={<CourseRoutes />} />
           {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
+          {/* 마이페이지 관련 라우트 */}
+          <Route path="/mypage/*" element={<MypageRoutes />} />
+
           <Route path='/board/*' element={<BoardRouters/>} />
         </Routes>
       </BrowserRouter>
