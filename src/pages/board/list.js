@@ -14,10 +14,10 @@ const List = () => {
   
   const [userInfo, setUserInfo] = useState(null);
   const [canCreatePost, setCanCreatePost] = useState(false);
-  
+
   const boardnum = searchParams.get('boardnum') || 'BOD002';
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
-
+  const boardtitle = "";
   const checkUserPermissions = async () => {
     try {
       const response = await fetch('http://localhost:8080/auth/api/user/info', {
@@ -59,6 +59,16 @@ const List = () => {
       setCanCreatePost(false);
     }
   };
+
+  const getBoardTitle = (boardnum) => {
+    switch(boardnum) {
+      case "BOD001": return "QnA";
+      case "BOD002": return "공지사항";
+      case "BOD003": return "자유게시판";
+      default: return "게시판";
+    }
+  };
+  const boardTitle = getBoardTitle(currentBoardnum);
 
   const fetchNotices = async () => {
     try {
@@ -267,7 +277,7 @@ const List = () => {
           {/* 헤더 섹션 */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="h3 mb-0 text-gray-800 font-weight-bold">공지사항</h2>
+              <h2 className="h3 mb-0 text-gray-800 font-weight-bold">{boardTitle}</h2>
               {/* 🔥 사용자 정보 표시 (디버깅용) */}
               {userInfo && (
                 <small className="text-muted">
