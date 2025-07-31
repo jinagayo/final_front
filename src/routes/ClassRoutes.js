@@ -20,7 +20,7 @@ function ClassRoutes() {
               </div>
               </div>
   } />
-            <Route path="teacher/classDetail/:classId" element={
+            <Route path="teacher/classDetail" element={
            <div className="row">
                 <div className="col-lg-12">
                   <div className="card shadow mb-4">
