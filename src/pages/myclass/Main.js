@@ -12,6 +12,7 @@ export default function ClassMain() {
     content: ''
   });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   // URL에서 class_id 파라미터 추출 (실제 구현시 useParams 또는 URLSearchParams 사용)
   const getClassIdFromUrl = () => {
@@ -95,10 +96,16 @@ export default function ClassMain() {
         
         const data = await response.json();
         console.log("강의 메인 데이터:", data);
+        console.log("review 값:", data.review, "타입:", typeof data.review);
         
         if (data && data.class) {
           setClassData(data.class);
           setMaterials(data.material || []);
+          const reviewStatus = data.review === true;
+          console.log("hasReviewed 설정값:", reviewStatus);
+          console.log("data.review === true 결과:", data.review === true);
+          console.log("data.review 원본값:", data.review);
+          setHasReviewed(reviewStatus);
         } else {
           setError("강의 정보를 찾을 수 없습니다.");
         }
@@ -198,7 +205,9 @@ export default function ClassMain() {
   };
 
   if (loading) {
-    return (
+    console.log("컴포넌트 렌더링 - hasReviewed:", hasReviewed);
+
+  return (
       <div className="container-fluid text-center py-5">
         <i className="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
         <p className="text-gray-500">강의 정보를 불러오는 중입니다...</p>
@@ -308,7 +317,17 @@ export default function ClassMain() {
         <div className="col-md-3 mb-2">
           <button 
             className="btn btn-primary btn-block"
-            onClick={handleReviewClick}
+            onClick={() => {
+              console.log("버튼 클릭됨!");
+              console.log("hasReviewed 현재값:", hasReviewed);
+              if (hasReviewed) {
+                console.log("이미 평가함 - alert 표시");
+                alert('이미 평가하셨습니다.');
+                return;
+              }
+              console.log("평가 폼 토글");
+              setShowReviewForm(!showReviewForm);
+            }}
           >
             <i className="fas fa-star mr-2"></i>강의 평가하기
           </button>
@@ -493,7 +512,7 @@ export default function ClassMain() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .class-main-img {
           max-height: 200px;
           width: 100%;

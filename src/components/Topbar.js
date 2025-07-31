@@ -32,7 +32,7 @@ const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
             </a>
           </li>
           <li className="nav-item mx-4"> {/* Increased mx from 3 to 4 for more space */}
-            <a className="nav-link" href="#">
+            <a className="nav-link" href="/admin/coding/list">
               <i className="fas fa-users mr-1"></i>
               코딩문제
             </a>
