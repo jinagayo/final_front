@@ -59,6 +59,7 @@ const TClassDetail = () => {
       setLoading(false);
     }
   };
+  console.log(classData)
 
   // 강좌 목록 가져오기
   const fetchLectures = async () => {
@@ -111,16 +112,16 @@ const TClassDetail = () => {
             <div style={{ marginBottom: '20px' }}>
               {classData?.img ? (
                 <img 
-                  src={classData?.img?.startsWith('/img/') ? classData.img : `/img/${classData.img}`}
+                 src={classData.img}
                   alt="강의 이미지"
-                  style={{
-                    width: '100%',
-                    height: '250px',
-                    borderRadius: '10px',
-                    objectFit: 'cover',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-                  }}
-                />
+                style={{
+                   width: '100%',
+                   height: '250px',
+                   borderRadius: '10px',
+                   objectFit: 'cover',
+                   boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+               }}
+              />
               ) : (
                 // 이미지 없을 때 임시 아이콘/색상 대체
                 <div style={{

@@ -5,7 +5,25 @@ import { Link } from "react-router-dom";
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const { user, isLoading } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
 
+function getImageUrl(img) {
+  if (!img) return "/img/undraw_profile.svg";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+}
+
+useEffect(() => {
+  async function fetchProfile() {
+    const res = await fetch("http://localhost:8080/api/Mypage/Profile", { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      setProfile(data);
+    }
+  }
+  fetchProfile();
+}, []);
   // 디버깅을 위한 useEffect 추가
   useEffect(() => {
     console.log('=== Sidebar 렌더링 ===');
@@ -98,17 +116,17 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
             }}
           >
             <div className="profile-image-container">
-              <img 
-                src="/img/undraw_profile.svg" 
+             <img 
+               src={getImageUrl(profile?.img)}
                 alt="Profile" 
-                className="rounded-circle"
+                 className="rounded-circle"
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  objectFit: 'cover',
-                  border: '3px solid rgba(255,255,255,0.2)'
-                }}
-              />
+                width: '100px',
+                height: '100px',
+                objectFit: 'cover',
+                border: '3px solid rgba(255,255,255,0.2)'
+              }}
+               />
             </div>
             
             <div className="profile-info ml-3">

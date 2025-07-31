@@ -18,6 +18,12 @@ export default function Info() {
   const [isEditingTeacher, setIsEditingTeacher] = useState(false);
   const [studentEditData, setStudentEditData] = useState({});
   const [teacherEditData, setTeacherEditData] = useState({});
+  const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
+  const getImageUrl = (img) => {
+  if (!img) return "/img/undraw_profile.svg";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+};
 
   // 권한 확인 함수들
   const isStudent = () => user?.position === '1';
@@ -137,6 +143,8 @@ export default function Info() {
       fetchUserData();
     }
   }, [user, isLoading]);
+
+  console.log(userDetails)
 
   // 학생 정보 저장/업데이트
   const handleStudentInfoUpdate = async () => {
@@ -283,17 +291,17 @@ export default function Info() {
             </div>
             <div className="card-body text-center">
               <div className="profile-image-container mb-3">
-                <img 
-                  src={userDetails?.img ? `/images/${userDetails.img}` : "/img/undraw_profile.svg"}
-                  alt="Profile" 
-                  className="rounded-circle shadow"
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    objectFit: 'cover',
-                    border: '4px solid #f8f9fc'
-                  }}
-                />
+              <img 
+            src={getImageUrl(userDetails?.img)}
+             alt="Profile" 
+             className="rounded-circle shadow"
+            style={{
+             width: '120px',
+            height: '120px',
+           objectFit: 'cover',
+           border: '4px solid #f8f9fc'
+           }}
+            />
               </div>
               <h5 className="font-weight-bold text-gray-800 mb-1">
                 {userDetails?.name || 'Unknown'}
@@ -336,7 +344,36 @@ export default function Info() {
                 <div className="col-md-6 mb-3">
                   <label className="form-label font-weight-bold">생년월일</label>
                   <p className="form-control-static">
-                    {userDetails?.birthday ? new Date(userDetails.birthday).toLocaleDateString('ko-KR') : '-'}
+                     {userDetails?.birthday
+    ? (() => {
+        const b = userDetails.birthday;
+        if (b instanceof Date && !isNaN(b)) {
+          // Date 객체
+          return b.toLocaleDateString('ko-KR');
+        }
+        if (typeof b === 'number') {
+          // 숫자(timestamp)
+          return new Date(b).toLocaleDateString('ko-KR');
+        }
+        if (typeof b === 'string') {
+          // 문자열(YYYY-MM-DD 또는 ISO)
+          // 'YYYY-MM-DD' 포맷도 파싱 가능하게 변경
+          let dateObj;
+          if (b.includes('T')) {
+            dateObj = new Date(b);
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(b)) {
+            // YYYY-MM-DD → YYYY-MM-DDT00:00:00
+            dateObj = new Date(b + 'T00:00:00');
+          } else {
+            dateObj = new Date(b);
+          }
+          if (!isNaN(dateObj)) {
+            return dateObj.toLocaleDateString('ko-KR');
+          }
+        }
+        return '-';
+      })()
+    : '-'}
                   </p>
                 </div>
                 <div className="col-12 mb-3">

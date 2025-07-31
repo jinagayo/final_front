@@ -37,22 +37,28 @@ export default function CourseCreationForm() {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        img: file
+  const handleImageChange = async (e) => {
+   const file = e.target.files[0];
+  if (!file) return;
 
+  const folderName = 'course-images'; // or 강의ID 등
 
-      }));
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folderName', folderName);
+
+  try {
+    const res = await axios.post(
+      'http://localhost:3000/course/teacher/upload-image',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    setFormData(prev => ({ ...prev, img: res.data.url }));
+    setImagePreview(URL.createObjectURL(file));
+  } catch (err) {
+    alert('이미지 업로드 실패');
+    console.error(err);
+  }
   };
 
     const handleSubmit = () => {
@@ -69,10 +75,10 @@ export default function CourseCreationForm() {
     sendData.append('price', formData.price);
     sendData.append('subId', formData.subId); // 여기도 수정됨
 
-    //////////////////////////////////////////////////////이미지 보내는 거 : 서치용 키워드: 떡볶이//////////////////////////////////////
-    // if (formData.img) {
-    //     sendData.append('img', formData.img);
-    // }
+    
+    if (formData.img) {
+         sendData.append('img', formData.img);
+     }
 
     axios.post('http://localhost:3000/course/teacher/formsubmit', sendData, {
         headers: {
