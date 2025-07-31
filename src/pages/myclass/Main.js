@@ -123,8 +123,21 @@ export default function ClassMain() {
 
   const handleMaterialClick = (material) => {
     console.log('선택된 강의 자료:', material);
-    if(material.type='MET001')
-      navigate(`/myclass/videoView/${material.meterId}`);
+    
+    switch (material.type) {
+      case 'MET001': // 영상
+        navigate(`/myclass/videoView/${material.meterId}`);
+        break;
+      case 'MET002': // 과제
+        navigate(`/myclass/assignment?meterial_id=${material.meterId}`);
+        break;
+      case 'MET003': // 시험
+        navigate(`/myclass/test?meterial_id=${material.meterId}`);
+        break;
+      default:
+        console.log('알 수 없는 자료 타입:', material.type);
+        alert('지원하지 않는 자료 타입입니다.');
+    }
   };
 
   const handleReviewClick = () => {

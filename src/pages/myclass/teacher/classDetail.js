@@ -258,7 +258,7 @@ const TClassDetail = () => {
             className="btn btn-warning btn-block"
             onClick={() => {
               const classId = getClassIdFromUrl();
-              navigate(`/myclass/teacher/assignment/${classId}`);
+              navigate(`/myclass/teacher/assignment?class_id=${classId}`);
             }}
           >
             <i className="fas fa-clipboard-list mr-2"></i>과제 업로드
@@ -269,7 +269,7 @@ const TClassDetail = () => {
             className="btn btn-danger btn-block"
             onClick={() => {
               const classId = getClassIdFromUrl();
-              navigate(`/myclass/teacher/test/${classId}`);
+              navigate(`/myclass/teacher/test?class_id=${classId}`);
             }}
           >
             <i className="fas fa-file-alt mr-2"></i>테스트 업로드
