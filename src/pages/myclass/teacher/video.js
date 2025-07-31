@@ -18,6 +18,13 @@ function VideoUploader() {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState(null); // ✅ 미리보기 URL
   const { user } = useAuth();
   const { classId } = useParams();
+   const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
+
+function getImageUrl(img) {
+  if (!img) return "";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+}
 
   const BACKEND_URL = 'http://localhost:8080';
 
@@ -70,6 +77,7 @@ function VideoUploader() {
       setLoading(false);
     }
   };
+  console.log(classData)
 
   const fetchLectures = async () => {
     try {
@@ -242,7 +250,7 @@ function VideoUploader() {
       }}>
         {classData?.img ? (
           <img
-            src={classData?.img?.startsWith('/img/') ? classData.img : `/img/${classData.img}`}
+             src={getImageUrl(classData?.img)}
             alt="강의 이미지"
             style={{ width: '100%', height: '250px', borderRadius: '10px', objectFit: 'cover' }}
           />

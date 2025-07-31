@@ -79,14 +79,26 @@ const Home = () => {
                 onClick={() => handleCourseClick(course.id)}
               >
                 {/* Card Image */}
-                <div className="card-img-top bg-gray-200 d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
-                  <img
-                    src={course.image || "/placeholder.svg"}
-                    alt={course.title}
-                    className="img-fluid rounded-top"
-                    style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover' }}
-                  />
-                </div>
+               <div className="card-img-top bg-gray-200"
+     style={{
+       height: '150px',
+       width: '100%',
+       overflow: 'hidden',
+       display: 'flex',
+       alignItems: 'center',
+       justifyContent: 'center'
+     }}>
+  <img
+    src={course.image || "/placeholder.svg"}
+    alt={course.title}
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      display: 'block'
+    }}
+  />
+</div>
                 
                 {/* Card Body */}
                 <div className="card-body p-4">
