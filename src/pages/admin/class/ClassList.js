@@ -37,20 +37,35 @@ export default function ClassList() {
   const getReviewDate = (createdAt, updatedAt) => {
     if (!updatedAt) return '-';
 
-    const createdDate = new Date(createdAt.replace(' ', 'T'));
-    const updatedDate = new Date(updatedAt.replace(' ', 'T'));
-    
-    if (isNaN(createdDate.getTime()) || isNaN(updatedDate.getTime())) {
-      return '-';
+  // 타입 체크 및 변환
+  const toDate = (val) => {
+    if (!val) return null;
+    if (typeof val === 'string') {
+      // 문자열 안에 'T'가 없으면 변환
+      const str = val.includes('T') ? val : val.replace(' ', 'T');
+      return new Date(str);
     }
-    
-    if (createdDate.getFullYear() !== updatedDate.getFullYear() ||
-        createdDate.getMonth() !== updatedDate.getMonth() ||
-        createdDate.getDate() !== updatedDate.getDate()) {
-      return formatDate(updatedAt);
-    }
-    
+    if (typeof val === 'number') return new Date(val);
+    if (val instanceof Date) return val;
+    return null;
+  };
+
+  const createdDate = toDate(createdAt);
+  const updatedDate = toDate(updatedAt);
+
+  if (!createdDate || !updatedDate || isNaN(createdDate.getTime()) || isNaN(updatedDate.getTime())) {
     return '-';
+  }
+
+  if (
+    createdDate.getFullYear() !== updatedDate.getFullYear() ||
+    createdDate.getMonth() !== updatedDate.getMonth() ||
+    createdDate.getDate() !== updatedDate.getDate()
+  ) {
+    return formatDate(updatedAt); // 이 함수는 기존대로 사용
+  }
+
+  return '-';
   };
 
   useEffect(() => {

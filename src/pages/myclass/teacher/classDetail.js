@@ -49,6 +49,7 @@ const TClassDetail = () => {
       setLoading(false);
     }
   };
+  console.log(classData)
 
   const fetchMaterials = async () => {
     try {
@@ -173,11 +174,18 @@ const TClassDetail = () => {
           <div className="row">
             <div className="col-md-3">
               {classData?.img ? (
-                <img
-                  src={classData?.img?.startsWith('/img/') ? classData.img : `/img/${classData?.img}`}
-                  className="img-fluid rounded class-main-img"
-                  alt={classData?.name}
-                />
+                <img 
+                 src={classData.img}
+                  alt="강의 이미지"
+                style={{
+                   width: '100%',
+                   height: '250px',
+                   borderRadius: '10px',
+                   objectFit: 'cover',
+                   boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+               }}
+              />
+
               ) : (
                 <div className="default-image-placeholder">
                   <div className="icon-container">
