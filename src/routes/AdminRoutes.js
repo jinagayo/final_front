@@ -100,7 +100,7 @@ const AdminRoutes = () => {
           </div>
         } />
         {/* 문제 조회 */}
-        <Route path="/coding/detail/:problemId" element={
+        <Route path=" /coding/detail/:problemId" element={
           <div className="row">
             <div className="col-lg-12">
               <div className="card shadow mb-4">
