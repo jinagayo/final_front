@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,7 +11,7 @@ const TeacherManagement = () => {
   const itemsPerPage = 10; // 고정값
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-
+  const [pendingTotal, setPendingTotal] = useState(0);
   // 관리자 권한 확인
   const isAdmin = () => user?.position === '3' || user?.position === 'admin';
 
@@ -125,10 +124,27 @@ const TeacherManagement = () => {
     return pages;
   };
 
+useEffect(() => {
+  fetch(`http://localhost:8080/api/admin/teachers?page=1&size=10&search=`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("받은 pendingTotal:", data.pendingTotal);
+      setPendingTotal(data.pendingTotal);
+    });
+}, []);
+
+
   // 컴포넌트 마운트 시 및 페이징 상태 변경 시 데이터 로드
   useEffect(() => {
     fetchTeachers();
   }, [currentPage, searchTerm]);
+
 
   // 관리자 권한 확인
   if (!isAdmin()) {
@@ -203,7 +219,7 @@ const TeacherManagement = () => {
                     승인 대기
                   </div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {teachers.filter(teacher => teacher.state === 'PENDING').length}명
+                    {pendingTotal}명
                   </div>
                 </div>
                 <div className="col-auto">
