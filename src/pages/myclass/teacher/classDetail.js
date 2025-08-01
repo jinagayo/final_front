@@ -7,11 +7,16 @@ const TClassDetail = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('materials');
   
+  // 편집 모드 관련 상태
+  const [editMode, setEditMode] = useState(false);
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [editedMaterials, setEditedMaterials] = useState([]);
 
   // URL에서 classId 추출 (실제 구현시 useParams 사용)
   const getClassIdFromUrl = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('class_id') || '1';
+    return urlParams.get('class_id');
   };
 
   const navigate = (path) => {
@@ -24,6 +29,10 @@ const TClassDetail = () => {
     fetchMaterials();
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    setEditedMaterials([...materials]);
+  }, [materials]);
 
   // 백엔드 데이터 가져오기
   const fetchClassDetail = async () => {
@@ -97,6 +106,142 @@ const TClassDetail = () => {
     }
   };
 
+  // 편집 모드 토글
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+    setSelectedMaterials([]);
+    if (!editMode) {
+      setEditedMaterials([...materials]);
+    }
+  };
+
+  // 체크박스 선택 처리
+  const handleCheckboxChange = (meterId) => {
+    console.log('체크박스 변경:', meterId); // 디버깅용
+    console.log('현재 선택된 항목들:', selectedMaterials); // 디버깅용
+    
+    setSelectedMaterials(prev => {
+      if (prev.includes(meterId)) {
+        const newSelected = prev.filter(id => id !== meterId);
+        console.log('제거 후:', newSelected); // 디버깅용
+        return newSelected;
+      } else {
+        const newSelected = [...prev, meterId];
+        console.log('추가 후:', newSelected); // 디버깅용
+        return newSelected;
+      }
+    });
+  };
+
+  // 선택된 자료 삭제
+  const handleDeleteSelected = async () => {
+    if (selectedMaterials.length === 0) {
+      alert('삭제할 자료를 선택해주세요.');
+      return;
+    }
+
+    if (!window.confirm(`선택한 ${selectedMaterials.length}개의 자료를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const deleteData = selectedMaterials.map(meterId => {
+        const material = materials.find(m => m.meterId === meterId);
+        return {
+          meterId: meterId,
+          seq: material?.seq,
+          title: material?.title,
+          type: material?.type
+        };
+      });
+
+      const classId = getClassIdFromUrl();
+      const response = await fetch(`http://localhost:8080/api/myclass/teacher/materials/delete?classId=${classId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deleteData)
+      });
+
+      if (response.ok) {
+        alert('선택한 자료가 삭제되었습니다.');
+        fetchMaterials();
+        setSelectedMaterials([]);
+        setEditMode(false);
+      } else {
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 순서 변경 저장
+  const handleSaveOrder = async () => {
+    try {
+      const orderData = editedMaterials.map((material, index) => ({
+        meterId: material.meterId,
+        seq: index + 1,
+        title: material.title,
+        type: material.type
+      }));
+
+      const classId = getClassIdFromUrl();
+      const response = await fetch(`http://localhost:8080/api/myclass/teacher/materials/reorder?classId=${classId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (response.ok) {
+        alert('순서가 저장되었습니다.');
+        fetchMaterials();
+        setEditMode(false);
+      } else {
+        alert('저장 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('저장 오류:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 드래그 시작
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // 드래그 오버
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // 드롭 처리
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    
+    if (draggedItem === null || draggedItem === targetIndex) {
+      return;
+    }
+
+    const newMaterials = [...editedMaterials];
+    const draggedElement = newMaterials[draggedItem];
+    
+    newMaterials.splice(draggedItem, 1);
+    newMaterials.splice(targetIndex, 0, draggedElement);
+    
+    setEditedMaterials(newMaterials);
+    setDraggedItem(null);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
@@ -120,11 +265,11 @@ const TClassDetail = () => {
 
   const getMaterialIcon = (type) => {
     switch (type) {
-      case 'MET001': // 영상
+      case 'MET001':
         return { icon: 'fas fa-play-circle', color: 'text-primary', label: '영상' };
-      case 'MET002': // 과제
+      case 'MET002':
         return { icon: 'fas fa-clipboard-list', color: 'text-warning', label: '과제' };
-      case 'MET003': // 시험
+      case 'MET003':
         return { icon: 'fas fa-file-alt', color: 'text-danger', label: '시험' };
       default:
         return { icon: 'fas fa-file', color: 'text-secondary', label: '자료' };
@@ -132,6 +277,7 @@ const TClassDetail = () => {
   };
 
   const handleMaterialClick = (material) => {
+
     if(material.type=='MET002'){
     // 학생들이 제출한 것들이 나오는 페이지로 이동
     navigate(`/myclass/teacher/material/${material.meter_id}/submissions`);
@@ -146,7 +292,6 @@ const TClassDetail = () => {
   };
 
   const handleStudentListClick = () => {
-    // 수강생 리스트 페이지로 이동
     const classId = getClassIdFromUrl();
     navigate(`/myclass/teacher/class/${classId}/students`);
   };
@@ -168,7 +313,6 @@ const TClassDetail = () => {
 
   return (
     <div className="container-fluid">
-      {/* 뒤로가기 버튼 */}
       <div className="mb-3">
         <button 
           className="btn btn-outline-secondary btn-sm"
@@ -178,7 +322,6 @@ const TClassDetail = () => {
         </button>
       </div>
 
-      {/* 강의 정보 헤더 */}
       <div className="card shadow mb-4">
         <div className="card-body">
           <div className="row">
@@ -258,7 +401,6 @@ const TClassDetail = () => {
         </div>
       </div>
 
-      {/* 액션 버튼들 */}
       <div className="row mb-4">
         <div className="col-md-2 mb-2">
           <button
@@ -325,39 +467,79 @@ const TClassDetail = () => {
         </div>
       </div>
 
-      {/* 탭 메뉴 */}
       <div className="card shadow mb-4">
         <div className="card-header">
-          <ul className="nav nav-tabs card-header-tabs">
-            <li className="nav-item">
+          <div className="d-flex justify-content-between align-items-center">
+            <ul className="nav nav-tabs card-header-tabs mb-0">
+              <li className="nav-item">
+                <button 
+                  className={`nav-link ${activeTab === 'materials' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('materials')}
+                >
+                  <i className="fas fa-folder-open mr-2"></i>강의 자료 ({materials.length})
+                </button>
+              </li>
+              <li className="nav-item">
+                <button 
+                  className={`nav-link ${activeTab === 'reviews' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('reviews')}
+                >
+                  <i className="fas fa-star mr-2"></i>강의 평가 ({reviews.length})
+                </button>
+              </li>
+              <li className="nav-item">
+                <button 
+                  className={`nav-link ${activeTab === 'detail' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('detail')}
+                >
+                  <i className="fas fa-info-circle mr-2"></i>강의 상세
+                </button>
+              </li>
+            </ul>
+            
+            {activeTab === 'materials' && materials.length > 0 && (
               <button 
-                className={`nav-link ${activeTab === 'materials' ? 'active' : ''}`}
-                onClick={() => setActiveTab('materials')}
+                className={`btn btn-sm ${editMode ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                onClick={toggleEditMode}
               >
-                <i className="fas fa-folder-open mr-2"></i>강의 자료 ({materials.length})
+                <i className={`fas ${editMode ? 'fa-times' : 'fa-edit'} mr-1`}></i>
+                {editMode ? '취소' : '편집'}
               </button>
-            </li>
-            <li className="nav-item">
-              <button 
-                className={`nav-link ${activeTab === 'reviews' ? 'active' : ''}`}
-                onClick={() => setActiveTab('reviews')}
-              >
-                <i className="fas fa-star mr-2"></i>강의 평가 ({reviews.length})
-              </button>
-            </li>
-            <li className="nav-item">
-              <button 
-                className={`nav-link ${activeTab === 'detail' ? 'active' : ''}`}
-                onClick={() => setActiveTab('detail')}
-              >
-                <i className="fas fa-info-circle mr-2"></i>강의 상세
-              </button>
-            </li>
-          </ul>
+            )}
+          </div>
         </div>
         
+        {editMode && activeTab === 'materials' && (
+          <div className="card-header border-top bg-light">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <span className="text-muted">
+                  {selectedMaterials.length > 0 
+                    ? `${selectedMaterials.length}개 선택됨` 
+                    : '편집할 항목을 선택하거나 드래그하여 순서를 변경하세요'
+                  }
+                </span>
+              </div>
+              <div>
+                <button 
+                  className="btn btn-danger btn-sm mr-2"
+                  onClick={handleDeleteSelected}
+                  disabled={selectedMaterials.length === 0}
+                >
+                  <i className="fas fa-trash mr-1"></i>삭제
+                </button>
+                <button 
+                  className="btn btn-success btn-sm"
+                  onClick={handleSaveOrder}
+                >
+                  <i className="fas fa-save mr-1"></i>저장
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="card-body">
-          {/* 강의 자료 탭 */}
           {activeTab === 'materials' && (
             <div className="materials-tab">
               {materials.length === 0 ? (
@@ -367,15 +549,40 @@ const TClassDetail = () => {
                 </div>
               ) : (
                 <div className="materials-list">
-                  {materials.map((material, index) => {
+                  {(editMode ? editedMaterials : materials).map((material, index) => {
                     const iconInfo = getMaterialIcon(material.type);
+                    const materialId = material.meterId || `material-${index}`;
+                    
                     return (
                       <div 
-                        key={material.meter_id || index}
-                        className="material-item d-flex align-items-center p-3 mb-2 border rounded"
+                        key={materialId}
+                        className={`material-item d-flex align-items-center p-3 mb-2 border rounded ${
+                          editMode ? 'edit-mode' : ''
+                        } ${
+                          selectedMaterials.includes(materialId) ? 'selected' : ''
+                        }`}
                         onClick={() => handleMaterialClick(material)}
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: editMode ? 'default' : 'pointer' }}
+                        draggable={editMode}
+                        onDragStart={(e) => editMode && handleDragStart(e, index)}
+                        onDragOver={editMode ? handleDragOver : undefined}
+                        onDrop={(e) => editMode && handleDrop(e, index)}
                       >
+                        {editMode && (
+                          <div className="mr-3">
+                            <input
+                              type="checkbox"
+                              className="form-check-input material-checkbox"
+                              checked={selectedMaterials.includes(materialId)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleCheckboxChange(materialId);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        )}
+                        
                         <div className="material-number mr-3">
                           <span className="badge badge-light">{material.seq || index + 1}</span>
                         </div>
@@ -396,8 +603,16 @@ const TClassDetail = () => {
                               </small>
                             </div>
                             <div className="material-actions">
-                              <span className="badge badge-info mr-2">제출현황 보기</span>
-                              <i className="fas fa-chevron-right text-gray-300"></i>
+                              {editMode ? (
+                                <div className="drag-handle" style={{ cursor: 'grab' }}>
+                                  <i className="fas fa-bars text-gray-400"></i>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="badge badge-info mr-2">제출현황 보기</span>
+                                  <i className="fas fa-chevron-right text-gray-300"></i>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -409,7 +624,6 @@ const TClassDetail = () => {
             </div>
           )}
 
-          {/* 강의 평가 탭 */}
           {activeTab === 'reviews' && (
             <div className="reviews-tab">
               {reviews.length === 0 ? (
@@ -466,7 +680,6 @@ const TClassDetail = () => {
             </div>
           )}
 
-          {/* 강의 상세 탭 */}
           {activeTab === 'detail' && (
             <div className="detail-tab">
               {classData?.detail ? (
@@ -549,12 +762,33 @@ const TClassDetail = () => {
         .material-item {
           transition: all 0.2s ease-in-out;
           background-color: #fff;
+          user-select: none;
         }
         
-        .material-item:hover {
+        .material-item:not(.edit-mode):hover {
           background-color: #f8f9fc !important;
           border-color: #007bff !important;
           transform: translateX(5px);
+        }
+        
+        .material-item.edit-mode {
+          cursor: default !important;
+        }
+        
+        .material-item.selected {
+          background-color: #e3f2fd !important;
+          border-color: #2196f3 !important;
+        }
+        
+        .material-item.edit-mode:hover {
+          transform: none;
+          background-color: #f8f9fa !important;
+        }
+        
+        .material-checkbox {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
         }
         
         .material-number .badge {
@@ -570,6 +804,15 @@ const TClassDetail = () => {
         .material-icon {
           width: 40px;
           text-align: center;
+        }
+        
+        .drag-handle {
+          padding: 8px;
+          color: #6c757d;
+        }
+        
+        .drag-handle:hover {
+          color: #495057;
         }
         
         .text-sm {
@@ -625,6 +868,98 @@ const TClassDetail = () => {
         
         .text-gray-800 {
           color: #1f2937 !important;
+        }
+        
+        .material-item[draggable="true"] {
+          opacity: 1;
+        }
+        
+        .material-item[draggable="true"]:hover .drag-handle {
+          cursor: grab;
+        }
+        
+        .material-item[draggable="true"]:active .drag-handle {
+          cursor: grabbing;
+        }
+        
+        .edit-mode-actions {
+          background-color: #f8f9fa;
+          border-bottom: 1px solid #dee2e6;
+        }
+        
+        .edit-mode .material-actions {
+          min-width: 40px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        
+        .material-checkbox {
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border: 2px solid #dee2e6;
+          border-radius: 3px;
+          background-color: #fff;
+          position: relative;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .material-checkbox:checked {
+          background-color: #007bff;
+          border-color: #007bff;
+        }
+        
+        .material-checkbox:checked::after {
+          content: '✓';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: white;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        
+        .material-checkbox:hover {
+          border-color: #007bff;
+        }
+        
+        .material-item.selected {
+          animation: selectPulse 0.3s ease-in-out;
+        }
+        
+        @keyframes selectPulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.02); }
+          100% { transform: scale(1); }
+        }
+        
+        .material-item:dragging {
+          opacity: 0.5;
+          transform: rotate(2deg);
+        }
+        
+        @media (max-width: 768px) {
+          .material-item {
+            flex-direction: column;
+            align-items: flex-start !important;
+          }
+          
+          .material-info {
+            width: 100%;
+            margin-top: 10px;
+          }
+          
+          .edit-mode-actions .d-flex {
+            flex-direction: column;
+            gap: 10px;
+          }
+          
+          .edit-mode-actions .btn {
+            width: 100%;
+          }
         }
       `}</style>
     </div>

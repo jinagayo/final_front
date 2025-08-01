@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-
+import { useParams, useSearchParams,useNavigate  } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 const BoardDetail = () => {
   const { boardId } = useParams();
+  const { boardnum } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +15,7 @@ const BoardDetail = () => {
   const [replyingToComment, setReplyingToComment] = useState(null);
   const [replyContent, setReplyContent] = useState('');
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPostDetail();
@@ -318,7 +320,7 @@ const BoardDetail = () => {
   };
 
   const handleEdit = () => {
-    window.location.href = `/board/edit/${boardId}`;
+    navigate(`/board/edit/${boardId}?boardnum=${currentBoardnum}`);
   };
 
   const handleDelete = async () => {
@@ -356,7 +358,6 @@ const BoardDetail = () => {
       <div className="container-fluid px-4">
         <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -395,7 +396,7 @@ const BoardDetail = () => {
           <a href="/dashboard">Dashboard</a>
         </li>
         <li className="breadcrumb-item">
-          <a href="/board/list">게시판</a>
+          <a href={`/board/list?boardnum=${currentBoardnum}`}>게시판</a>
         </li>
         <li className="breadcrumb-item active">상세보기</li>
       </ol>
@@ -441,15 +442,17 @@ const BoardDetail = () => {
           <div className="row mb-4">
             <div className="col-12">
               <div className="content-area" style={{ minHeight: '200px', lineHeight: '1.6' }}>
-                {post.content ? post.content.split('\n').map((line, index) => (
-                  <p key={index} className="mb-2">
-                    {line || '\u00A0'}
-                  </p>
-                )) : <p>내용이 없습니다.</p>}
+                {post.content ? (
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                    className="post-content"
+                  />
+                ) : (
+                  <p>내용이 없습니다.</p>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
         {/* 버튼 그룹 */}
         <div className="card-footer">
@@ -756,6 +759,7 @@ const BoardDetail = () => {
         </div>
       </div>
     </div>
+        </div>
   );
 };
 
