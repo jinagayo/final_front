@@ -44,7 +44,6 @@ const TCourseList = () => {
       });
 
       // endpoint를 강사용으로 고정
-
       const response = await fetch(`http://localhost:8080/api/myclass/teacher/classList?${params}`, {
         method: 'GET',
         credentials: 'include',

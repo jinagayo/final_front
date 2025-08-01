@@ -6,6 +6,7 @@ const TClassDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('materials');
+  
 
   // URL에서 classId 추출 (실제 구현시 useParams 사용)
   const getClassIdFromUrl = () => {

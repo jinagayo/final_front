@@ -38,7 +38,7 @@ function getImageUrl(img) {
   useEffect(() => {
     if (isUploaded) {
       alert('✅ 업로드가 완료되었습니다!');
-      navigate(`/myclass/teacher/classDetail/${classId}`);
+      navigate(`/myclass/teacher/classDetail?class_id=${classId}`);
     }
   }, [isUploaded, navigate]);
 
