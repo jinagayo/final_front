@@ -13,6 +13,7 @@ import OAuthCallback from './pages/OAuthCallback';
 import KakaoCallback from './pages/KakaoCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import BoardRouters from './routes/BoardRoutes';
+import SearchResults from './components/SearchResult';
 
 function App() {
   return (
@@ -48,6 +49,9 @@ function App() {
           <Route path="/mypage/*" element={<MypageRoutes />} />
 
           <Route path='/board/*' element={<BoardRouters/>} />
+
+          {/* 🔥 검색 결과 라우트 추가 */}
+          <Route path="/search" element={<SearchResults />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

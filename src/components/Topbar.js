@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Logo from './Logo';
+import SearchComponent from "../components/SearchComponent"
 
 const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -9,7 +10,22 @@ const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
   };
 
   const actualLoginState = !!(isLoggedIn || (user && (user.user_id || user.userId)));
-
+const handleSearchResultSelect = (item) => {
+  switch (item.type) {
+    case 'course':
+      window.location.href = `/board/list?boardnum=${item.boardType}&search=${encodeURIComponent(item.title)}`;
+      break;
+    case 'board':
+      window.location.href = `/board/detail/${item.id}?boardnum=${item.boardType}`;
+      break;
+    case 'fullSearch':
+      // 🔥 전체 검색은 강의 목록으로 이동
+      window.location.href = `/course/List?search=${encodeURIComponent(item.query)}`;
+      break;
+    default:
+      console.log('검색 결과 선택:', item);
+  }
+};
   return (
     <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
@@ -40,30 +56,15 @@ const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
         </ul>
       </div>
 
-      {/* 오른쪽 컨텐츠 영역 */}
       <div className="d-flex align-items-center">
-        <form className="d-none d-sm-inline-block form-inline mr-3 navbar-search">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control bg-light border-0 small"
-              placeholder="Search for..."
-              aria-label="Search"
-              aria-describedby="basic-addon2"
+          {/* 오른쪽 컨텐츠 영역 */}
+          <div className="d-flex align-items-center">
+            <SearchComponent
+              onResultSelect={handleSearchResultSelect}
+              placeholder="강의, 강사, 게시글 검색..."
+              maxResults={6}
             />
-            <div className="input-group-append">
-              <button className="btn btn-primary" type="button">
-                <i className="fas fa-search fa-sm">
-                  <img
-                    src="/img/searchIcon.png"
-                    alt="Search"
-                    style={{ width: '20px', height: '20px', filter: 'brightness(0) invert(1)' }}
-                  />
-                </i>
-              </button>
-            </div>
           </div>
-        </form>
 
         <ul className="navbar-nav">
           {/* 알림 */}

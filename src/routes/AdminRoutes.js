@@ -11,7 +11,6 @@ import ClassDetail from '../pages/admin/class/Detail';
 import ProblemUpload from '../pages/admin/ProblemUpload';
 import ProblemList from "../pages/admin/coding/Codelist"
 import ProblemDetail from "../pages/admin/coding/Detail"
-
 const AdminRoutes = () => {
   return (
     <Routes>
