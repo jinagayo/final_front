@@ -77,6 +77,9 @@ export default function Login() {
         // AuthContext에 사용자 정보 저장
         login(data.user);
         
+         // ⭐ userId 따로 저장 (항상!)
+  localStorage.setItem('userId', data.user.userId); // user_id 또는 userId는 응답 필드명 확인!
+
         // Remember Me 처리
         if (form.rememberMe) {
           localStorage.setItem('rememberedUserId', form.user_id);

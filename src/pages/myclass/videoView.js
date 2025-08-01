@@ -29,6 +29,56 @@ const progressPercent = progressInfo.total > 0
   };
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
    const BACKEND_URL = 'http://localhost:8080';
+   // 👇 추가!
+const [note, setNote] = useState('');
+const [isNoteLoading, setIsNoteLoading] = useState(false);
+const [noteSaved, setNoteSaved] = useState(false);
+const [isEditMode, setIsEditMode] = useState(false); // 👈 추가
+const [originalNote, setOriginalNote] = useState(''); // 👈 추가
+
+console.log("userId: " + userId)
+
+// 노트 불러오기
+useEffect(() => {
+  if (!meterId || !userId) return;
+  setIsNoteLoading(true);
+  axios.get(`${BACKEND_URL}/video/${meterId}/note`, {
+    params: { stdId: userId },
+    withCredentials: true,
+  })
+    .then(res => {
+      const content = res.data.content || '';
+      setNote(content);
+      setOriginalNote(content);  // 👈 최초 값 저장
+    })
+    .catch(() => setNote(''))
+    .finally(() => setIsNoteLoading(false));
+}, [meterId, userId]);
+
+// 노트 저장
+const handleNoteSave = async () => {
+  try {
+    await axios.post(`${BACKEND_URL}/video/${meterId}/note`, {
+      stdId: userId,
+      content: note
+    }, { withCredentials: true });
+    setNoteSaved(true);
+    setIsEditMode(false);     // 👈 저장 후 읽기모드
+    setOriginalNote(note);    // 👈 원본값 갱신
+    setTimeout(() => setNoteSaved(false), 1500);
+  } catch (err) {
+    alert('저장 실패!');
+  }
+};
+
+const handleEditClick = () => {
+  setIsEditMode(true);
+};
+
+const handleCancelEdit = () => {
+  setNote(originalNote);
+  setIsEditMode(false);
+};
    
    useEffect(() => {
   const fetchMaterial = async () => {
@@ -54,13 +104,14 @@ useEffect(() => {
       const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.classId}`, {
         withCredentials: true,
       });
-      setClassData(res.data.data);
+      console.log('📦 classData 응답:', res.data);
+      setClassData(res.data);
     
     } catch (err) {
       console.error('강의 클래스 정보 로딩 실패:', err);
     }
   };
-  console.log(classData);
+  console.log("classData:" + classData);
   console.log("📌 meterial.detail:", meterial.detail);
 
   const fetchLectures = async () => {
@@ -158,7 +209,7 @@ const fetchProgressInfo = async () => {
         <header className="flex items-center justify-between border-b border-gray-700 pb-4 mb-6">
           <div>
           <h1 className="text-2xl font-bold">{classData?.name || '강의 제목 로딩 중...'}</h1>
-          <p className="text-gray-400 text-sm">{classData?.teachId || '강사명'}</p>
+          <p className="text-gray-400 text-sm">{classData?.teacher || '강사명'}</p>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -209,7 +260,48 @@ const fetchProgressInfo = async () => {
               </div>
               <div className="p-6 text-sm text-gray-300">
                 {activeTab === 'overview' && meterial?.detail}
-                {activeTab === 'notes' && <p>노트 내용이 여기에 표시됩니다.</p>}
+          {activeTab === 'notes' && (
+              <div>
+              {isNoteLoading ? (
+               <div className="text-gray-400">노트 불러오는 중...</div>
+               ) : (
+                <>
+              {isEditMode ? (
+                  <>
+                 <textarea
+                 className="w-full h-40 p-2 rounded bg-gray-900 text-white border border-gray-700 resize-none"
+                 value={note}
+                  onChange={e => setNote(e.target.value)}
+                />
+            <div className="flex items-center mt-2">
+              <button
+                onClick={handleNoteSave}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white text-sm font-medium"
+              >저장</button>
+              <button
+                onClick={handleCancelEdit}
+                className="ml-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white text-sm font-medium"
+              >취소</button>
+            </div>
+          </>
+             ) : (
+            <div>
+            <div className="min-h-28 whitespace-pre-line text-white bg-gray-900 border border-gray-700 rounded p-3">
+              {note || <span className="text-gray-500">아직 작성된 노트가 없습니다.</span>}
+            </div>
+            <div className="flex items-center mt-2">
+              <button
+                onClick={handleEditClick}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white text-sm font-medium"
+              >수정</button>
+              {noteSaved && <span className="ml-3 text-green-400 text-xs">저장됨!</span>}
+            </div>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
                 {activeTab === 'resources' && <p>자료 다운로드 링크 등이 여기에 표시됩니다.</p>}
               </div>
             </div>

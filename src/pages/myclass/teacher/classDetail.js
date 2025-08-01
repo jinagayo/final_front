@@ -277,24 +277,17 @@ const TClassDetail = () => {
   };
 
   const handleMaterialClick = (material) => {
-    if (editMode) return;
-    
-    const classId = getClassIdFromUrl();
-    
-    switch (material.type) {
-      case 'MET001': // 영상
-        navigate(`/myclass/teacher/video/${material.meterId}/detail`);
-        break;
-      case 'MET002': // 과제
-        navigate(`/myclass/teacher/assignmentList?meterial_id=${material.meterId}`);
-        break;
-      case 'MET003': // 시험/테스트
-        navigate(`/myclass/teacher/test/${material.meterId}/results`);
-        break;
-      default:
-        // 기본적으로 자료 상세 페이지로 이동
-        navigate(`/myclass/teacher/material/${material.meterId}/detail`);
-        break;
+
+    if(material.type=='MET002'){
+    // 학생들이 제출한 것들이 나오는 페이지로 이동
+    navigate(`/myclass/teacher/material/${material.meter_id}/submissions`);
+    }else if(material.type=='MET001'){
+      navigate(`/myclass/videoView/${material.meterId}`);
+    }else if(material.type=='MET003'){
+      navigate(`/myclass/test?meterial_id=${material.meterId}`);
+    }else {
+      console.log('알 수 없는 자료 타입:', material.type);
+        alert('지원하지 않는 자료 타입입니다.');
     }
   };
 

@@ -103,7 +103,7 @@ const StudentAssignmentView = () => {
       formData.append('file', selectedFile);
       formData.append('meterial_id', getMeterialIdFromUrl());
 
-      const response = await fetch('http://localhost:8080/api/myclass/student/assignment/submit', {
+      const response = await fetch('http://localhost:8080/api/myclass/assignment/submit', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -132,61 +132,24 @@ const StudentAssignmentView = () => {
   };
 
   // 재제출 처리
-  const handleResubmit = async () => {
-    if (!selectedFile) {
-      alert('재제출할 파일을 선택해주세요.');
-      return;
+ const handleResubmit = handleSubmitAssignment;
+
+// 파일 다운로드 (S3 경로면 그대로 사용)
+const handleDownloadSubmission = () => {
+  if (submissionData?.content) {
+    const s3BaseUrl = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
+    let fileUrl = submissionData.content;
+    if (!fileUrl.startsWith('http')) {
+      fileUrl = s3BaseUrl + fileUrl;
     }
-
-    if (!window.confirm('기존 제출물을 새로운 파일로 교체하시겠습니까?')) {
-      return;
-    }
-
-    try {
-      setSubmitLoading(true);
-
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('meterial_id', getMeterialIdFromUrl());
-
-      const response = await fetch(`http://localhost:8080/api/myclass/student/assignment/resubmit`, {
-        method: 'PUT',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (response.ok) {
-        alert('과제가 성공적으로 재제출되었습니다.');
-        setSelectedFile(null);
-        const fileInput = document.getElementById('assignmentFile');
-        if (fileInput) fileInput.value = '';
-        
-        await fetchSubmissionData();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || '과제 재제출에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('과제 재제출 오류:', error);
-      alert(error.message || '과제 재제출 중 오류가 발생했습니다.');
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  // 파일 다운로드
-  const handleDownloadSubmission = () => {
-    if (submissionData?.content) {
-      const link = document.createElement('a');
-      link.href = submissionData.content.startsWith('/uploads/') 
-        ? submissionData.content 
-        : `/uploads/${submissionData.content}`;
-      link.download = submissionData.content.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileUrl.split('/').pop();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
