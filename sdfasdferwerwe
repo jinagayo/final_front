@@ -1,0 +1,1939 @@
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 70b49cc..5cd01d6 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -16,7 +16,6 @@[m
+         "axios": "^1.10.0",[m
+         "lucide-react": "^0.525.0",[m
+         "react": "^19.1.0",[m
+[31m-        "react-daum-postcode": "^3.2.0",[m
+         "react-dom": "^19.1.0",[m
+         "react-router-dom": "^6.30.1",[m
+         "react-scripts": "5.0.1",[m
+[36m@@ -18028,15 +18027,6 @@[m
+         "node": ">=14"[m
+       }[m
+     },[m
+[31m-    "node_modules/react-daum-postcode": {[m
+[31m-      "version": "3.2.0",[m
+[31m-      "resolved": "https://registry.npmjs.org/react-daum-postcode/-/react-daum-postcode-3.2.0.tgz",[m
+[31m-      "integrity": "sha512-NHY8TUicZXMqykbKYT8kUo2PEU7xu1DFsdRmyWJrLEUY93Xhd3rEdoJ7vFqrvs+Grl9wIm9Byxh3bI+eZxepMQ==",[m
+[31m-      "license": "MIT",[m
+[31m-      "peerDependencies": {[m
+[31m-        "react": ">=16.8.0"[m
+[31m-      }[m
+[31m-    },[m
+     "node_modules/react-dev-utils": {[m
+       "version": "12.0.1",[m
+       "resolved": "https://registry.npmjs.org/react-dev-utils/-/react-dev-utils-12.0.1.tgz",[m
+[36m@@ -21131,9 +21121,9 @@[m
+       }[m
+     },[m
+     "node_modules/typescript": {[m
+[31m-      "version": "4.9.5",[m
+[31m-      "resolved": "https://registry.npmjs.org/typescript/-/typescript-4.9.5.tgz",[m
+[31m-      "integrity": "sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==",[m
+[32m+[m[32m      "version": "5.8.3",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz",[m
+[32m+[m[32m      "integrity": "sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==",[m
+       "license": "Apache-2.0",[m
+       "peer": true,[m
+       "bin": {[m
+[36m@@ -21141,7 +21131,7 @@[m
+         "tsserver": "bin/tsserver"[m
+       },[m
+       "engines": {[m
+[31m-        "node": ">=4.2.0"[m
+[32m+[m[32m        "node": ">=14.17"[m
+       }[m
+     },[m
+     "node_modules/unbox-primitive": {[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 2b1e7cb..60d91a7 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -12,7 +12,6 @@[m
+     "axios": "^1.10.0",[m
+     "lucide-react": "^0.525.0",[m
+     "react": "^19.1.0",[m
+[31m-    "react-daum-postcode": "^3.2.0",[m
+     "react-dom": "^19.1.0",[m
+     "react-router-dom": "^6.30.1",[m
+     "react-scripts": "5.0.1",[m
+[36m@@ -43,4 +42,4 @@[m
+       "last 1 safari version"[m
+     ][m
+   }[m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/components/Sidebar.js b/src/components/Sidebar.js[m
+[1mindex 97e268a..6f42f27 100644[m
+[1m--- a/src/components/Sidebar.js[m
+[1m+++ b/src/components/Sidebar.js[m
+[36m@@ -255,21 +255,21 @@[m [mconst Sidebar = ({ isCollapsed, onToggle }) => {[m
+           </div>[m
+ [m
+           <li className="nav-item">[m
+[31m-            <a className="nav-link" href='/board/list?boardnum=BOD002'>[m
+[32m+[m[32m            <a className="nav-link" href='/board/list'>[m
+               <i className="fas fa-fw fa-chart-area"></i>[m
+               <span>공지사항</span>[m
+             </a>[m
+           </li>[m
+ [m
+           <li className="nav-item">[m
+[31m-            <a className="nav-link" href="/board/list?boardnum=BOD003">[m
+[32m+[m[32m            <a className="nav-link" href="tables.html">[m
+               <i className="fas fa-fw fa-table"></i>[m
+               <span>자유게시판</span>[m
+             </a>[m
+           </li>[m
+           [m
+           <li className="nav-item">[m
+[31m-              <a className="nav-link" href="/board/list?boardnum=BOD001">[m
+[32m+[m[32m              <a className="nav-link" href="charts.html">[m
+                 <i className="fas fa-fw fa-chart-area"></i>[m
+                 <span>QnA</span>[m
+               </a>[m
+[1mdiff --git a/src/pages/board/Detail.js b/src/pages/board/Detail.js[m
+[1mdeleted file mode 100644[m
+[1mindex 3e4a900..0000000[m
+[1m--- a/src/pages/board/Detail.js[m
+[1m+++ /dev/null[m
+[36m@@ -1,754 +0,0 @@[m
+[31m-import React, { useState, useEffect } from 'react';[m
+[31m-import { useParams, useSearchParams } from 'react-router-dom';[m
+[31m-[m
+[31m-const BoardDetail = () => {[m
+[31m-  const { boardId } = useParams();[m
+[31m-  const [post, setPost] = useState(null);[m
+[31m-  const [comments, setComments] = useState([]);[m
+[31m-  const [loading, setLoading] = useState(true);[m
+[31m-  const [error, setError] = useState(null);[m
+[31m-  const [commentLoading, setCommentLoading] = useState(false);[m
+[31m-  const [newComment, setNewComment] = useState('');[m
+[31m-  const [editingComment, setEditingComment] = useState(null);[m
+[31m-  const [editContent, setEditContent] = useState('');[m
+[31m-  const [replyingToComment, setReplyingToComment] = useState(null);[m
+[31m-  const [replyContent, setReplyContent] = useState('');[m
+[31m-  const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';[m
+[31m-[m
+[31m-  useEffect(() => {[m
+[31m-    fetchPostDetail();[m
+[31m-    fetchComments();[m
+[31m-  }, [boardId]);[m
+[31m-[m
+[31m-  const fetchPostDetail = async () => {[m
+[31m-    try {[m
+[31m-      setLoading(true);[m
+[31m-      [m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      console.log('사용할 토큰:', token ? '토큰 존재' : '토큰 없음');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      console.log('요청 헤더:', headers);[m
+[31m-      console.log('요청 URL:', `http://localhost:8080/detail/${boardId}`);[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/detail/${boardId}`, {[m
+[31m-        method: 'GET',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include'[m
+[31m-      });[m
+[31m-      [m
+[31m-      console.log('응답 상태:', response.status);[m
+[31m-      [m
+[31m-      if (!response.ok) {[m
+[31m-        if (response.status === 403) {[m
+[31m-          throw new Error('접근 권한이 없습니다. 로그인 상태를 확인해주세요.');[m
+[31m-        } else if (response.status === 401) {[m
+[31m-          throw new Error('로그인이 필요합니다.');[m
+[31m-        } else if (response.status === 404) {[m
+[31m-          throw new Error('게시글을 찾을 수 없습니다.');[m
+[31m-        } else {[m
+[31m-          throw new Error(`서버 오류: ${response.status}`);[m
+[31m-        }[m
+[31m-      }[m
+[31m-      [m
+[31m-      const apiResponse = await response.json();[m
+[31m-      console.log('API 응답:', apiResponse);[m
+[31m-      [m
+[31m-      if (apiResponse.success) {[m
+[31m-        setPost(apiResponse.data);[m
+[31m-      } else {[m
+[31m-        throw new Error(apiResponse.message || '데이터를 불러올 수 없습니다.');[m
+[31m-      }[m
+[31m-      [m
+[31m-      setLoading(false);[m
+[31m-      [m
+[31m-    } catch (err) {[m
+[31m-      setError(err.message);[m
+[31m-      setLoading(false);[m
+[31m-      console.error('API 호출 오류:', err);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 목록 가져오기[m
+[31m-  const fetchComments = async () => {[m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/${boardId}/comments`, {[m
+[31m-        method: 'GET',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include'[m
+[31m-      });[m
+[31m-      [m
+[31m-      if (response.ok) {[m
+[31m-        const apiResponse = await response.json();[m
+[31m-        if (apiResponse.success) {[m
+[31m-          setComments(apiResponse.data || []);[m
+[31m-        }[m
+[31m-      }[m
+[31m-    } catch (err) {[m
+[31m-      console.error('댓글 조회 오류:', err);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 작성[m
+[31m-  const handleCommentSubmit = async (e) => {[m
+[31m-    e.preventDefault();[m
+[31m-    [m
+[31m-    if (!newComment.trim()) {[m
+[31m-      alert('댓글 내용을 입력해주세요.');[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    [m
+[31m-    setCommentLoading(true);[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/${boardId}/comments`, {[m
+[31m-        method: 'POST',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include',[m
+[31m-        body: JSON.stringify({[m
+[31m-          content: newComment[m
+[31m-        })[m
+[31m-      });[m
+[31m-      [m
+[31m-      if (response.ok) {[m
+[31m-        setNewComment('');[m
+[31m-        await fetchComments(); // 댓글 목록 새로고침[m
+[31m-        alert('댓글이 등록되었습니다.');[m
+[31m-      } else {[m
+[31m-        throw new Error('댓글 등록에 실패했습니다.');[m
+[31m-      }[m
+[31m-    } catch (err) {[m
+[31m-      alert(err.message);[m
+[31m-    } finally {[m
+[31m-      setCommentLoading(false);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 수정 시작[m
+[31m-  const handleEditComment = (comment) => {[m
+[31m-    setEditingComment(comment.comment_id || comment.id);[m
+[31m-    setEditContent(comment.content);[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 수정 취소[m
+[31m-  const handleCancelEdit = () => {[m
+[31m-    setEditingComment(null);[m
+[31m-    setEditContent('');[m
+[31m-  };[m
+[31m-[m
+[31m-  // 대댓글 작성 시작[m
+[31m-  const handleReplyComment = (comment) => {[m
+[31m-    setReplyingToComment(comment.comment_id);[m
+[31m-    setReplyContent('');[m
+[31m-  };[m
+[31m-[m
+[31m-  // 대댓글 작성 취소[m
+[31m-  const handleCancelReply = () => {[m
+[31m-    setReplyingToComment(null);[m
+[31m-    setReplyContent('');[m
+[31m-  };[m
+[31m-[m
+[31m-  // 대댓글 작성 제출[m
+[31m-  const handleReplySubmit = async (parentCommentId) => {[m
+[31m-    if (!replyContent.trim()) {[m
+[31m-      alert('댓글 내용을 입력해주세요.');[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/${boardId}/comments`, {[m
+[31m-        method: 'POST',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include',[m
+[31m-        body: JSON.stringify({[m
+[31m-          content: replyContent,[m
+[31m-          parentCommentId: parentCommentId[m
+[31m-        })[m
+[31m-      });[m
+[31m-      [m
+[31m-      if (response.ok) {[m
+[31m-        setReplyingToComment(null);[m
+[31m-        setReplyContent('');[m
+[31m-        await fetchComments();[m
+[31m-        alert('답글이 등록되었습니다.');[m
+[31m-      } else {[m
+[31m-        throw new Error('답글 등록에 실패했습니다.');[m
+[31m-      }[m
+[31m-    } catch (err) {[m
+[31m-      alert(err.message);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 수정 저장[m
+[31m-  const handleUpdateComment = async (commentId) => {[m
+[31m-    if (!editContent.trim()) {[m
+[31m-      alert('댓글 내용을 입력해주세요.');[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/comments/${commentId}`, {[m
+[31m-        method: 'PUT',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include',[m
+[31m-        body: JSON.stringify({[m
+[31m-          content: editContent[m
+[31m-        })[m
+[31m-      });[m
+[31m-      [m
+[31m-      if (response.ok) {[m
+[31m-        setEditingComment(null);[m
+[31m-        setEditContent('');[m
+[31m-        await fetchComments();[m
+[31m-        alert('댓글이 수정되었습니다.');[m
+[31m-      } else {[m
+[31m-        throw new Error('댓글 수정에 실패했습니다.');[m
+[31m-      }[m
+[31m-    } catch (err) {[m
+[31m-      alert(err.message);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  // 댓글 삭제[m
+[31m-  const handleDeleteComment = async (commentId) => {[m
+[31m-    if (!window.confirm('정말로 댓글을 삭제하시겠습니까?')) {[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-      [m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-      [m
+[31m-      const response = await fetch(`http://localhost:8080/board/comments/${commentId}`, {[m
+[31m-        method: 'DELETE',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include'[m
+[31m-      });[m
+[31m-      [m
+[31m-      if (response.ok) {[m
+[31m-        await fetchComments();[m
+[31m-        alert('댓글이 삭제되었습니다.');[m
+[31m-      } else {[m
+[31m-        throw new Error('댓글 삭제에 실패했습니다.');[m
+[31m-      }[m
+[31m-    } catch (err) {[m
+[31m-      alert(err.message);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleList = () => {[m
+[31m-    window.location.href = `/board/list?boardnum=${currentBoardnum}`;[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleEdit = () => {[m
+[31m-    window.location.href = `/board/edit/${boardId}`;[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleDelete = async () => {[m
+[31m-    if (window.confirm('정말로 삭제하시겠습니까?')) {[m
+[31m-      try {[m
+[31m-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');[m
+[31m-        const headers = {[m
+[31m-          'Content-Type': 'application/json',[m
+[31m-        };[m
+[31m-        [m
+[31m-        if (token) {[m
+[31m-          headers['Authorization'] = `Bearer ${token}`;[m
+[31m-        }[m
+[31m-        [m
+[31m-        const response = await fetch(`http://localhost:8080/board/${boardId}`, { [m
+[31m-          method: 'DELETE',[m
+[31m-          headers: headers,[m
+[31m-          credentials: 'include'[m
+[31m-        });[m
+[31m-        [m
+[31m-        if (response.ok) {[m
+[31m-          alert('삭제되었습니다.');[m
+[31m-          window.location.href = `/board/list?boardnum=${currentBoardnum}`;[m
+[31m-        } else {[m
+[31m-          throw new Error('삭제에 실패했습니다.');[m
+[31m-        }[m
+[31m-      } catch (err) {[m
+[31m-        alert('삭제에 실패했습니다.');[m
+[31m-      }[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  if (loading) {[m
+[31m-    return ([m
+[31m-      <div className="container-fluid px-4">[m
+[31m-        <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>[m
+[31m-          <div className="spinner-border text-primary" role="status">[m
+[31m-            <span className="visually-hidden">Loading...</span>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-    );[m
+[31m-  }[m
+[31m-[m
+[31m-  if (error) {[m
+[31m-    return ([m
+[31m-      <div className="container-fluid px-4">[m
+[31m-        <div className="alert alert-danger" role="alert">[m
+[31m-          {error}[m
+[31m-          <br />[m
+[31m-          <button className="btn btn-secondary mt-2" onClick={handleList}>[m
+[31m-            목록으로 돌아가기[m
+[31m-          </button>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-    );[m
+[31m-  }[m
+[31m-[m
+[31m-  if (!post) {[m
+[31m-    return ([m
+[31m-      <div className="container-fluid px-4">[m
+[31m-        <div className="alert alert-warning" role="alert">[m
+[31m-          게시물을 찾을 수 없습니다.[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-    );[m
+[31m-  }[m
+[31m-[m
+[31m-  return ([m
+[31m-    <div className="container-fluid px-4">[m
+[31m-      <h1 className="mt-4">게시물 상세</h1>[m
+[31m-      <ol className="breadcrumb mb-4">[m
+[31m-        <li className="breadcrumb-item">[m
+[31m-          <a href="/dashboard">Dashboard</a>[m
+[31m-        </li>[m
+[31m-        <li className="breadcrumb-item">[m
+[31m-          <a href="/board/list">게시판</a>[m
+[31m-        </li>[m
+[31m-        <li className="breadcrumb-item active">상세보기</li>[m
+[31m-      </ol>[m
+[31m-[m
+[31m-      {/* 게시물 상세 */}[m
+[31m-      <div className="card mb-4">[m
+[31m-        <div className="card-header d-flex justify-content-between align-items-center">[m
+[31m-          <div>[m
+[31m-            <i className="fas fa-file-alt me-1"></i>[m
+[31m-            게시물 정보[m
+[31m-          </div>[m
+[31m-          <div>[m
+[31m-            <small className="text-muted">조회수: {post.views || 0}</small>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-        <div className="card-body">[m
+[31m-          {/* 게시물 제목 */}[m
+[31m-          <div className="row mb-3">[m
+[31m-            <div className="col-12">[m
+[31m-              <h3 className="mb-0">{post.title || post.subject}</h3>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-[m
+[31m-          {/* 게시물 메타 정보 */}[m
+[31m-          <div className="row mb-4">[m
+[31m-            <div className="col-md-6">[m
+[31m-              <small className="text-muted">[m
+[31m-                <i className="fas fa-user me-1"></i>[m
+[31m-                작성자: {post.author || post.writer}[m
+[31m-              </small>[m
+[31m-            </div>[m
+[31m-            <div className="col-md-6 text-md-end">[m
+[31m-              <small className="text-muted">[m
+[31m-                <i className="fas fa-calendar me-1"></i>[m
+[31m-                작성일: {post.createdAt || post.regdate}[m
+[31m-              </small>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-[m
+[31m-          <hr />[m
+[31m-[m
+[31m-          {/* 게시물 내용 */}[m
+[31m-          <div className="row mb-4">[m
+[31m-            <div className="col-12">[m
+[31m-              <div className="content-area" style={{ minHeight: '200px', lineHeight: '1.6' }}>[m
+[31m-                {post.content ? post.content.split('\n').map((line, index) => ([m
+[31m-                  <p key={index} className="mb-2">[m
+[31m-                    {line || '\u00A0'}[m
+[31m-                  </p>[m
+[31m-                )) : <p>내용이 없습니다.</p>}[m
+[31m-              </div>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-[m
+[31m-        {/* 버튼 그룹 */}[m
+[31m-        <div className="card-footer">[m
+[31m-          <div className="d-flex justify-content-between">[m
+[31m-            <button [m
+[31m-              className="btn btn-secondary"[m
+[31m-              onClick={handleList}[m
+[31m-            >[m
+[31m-              <i className="fas fa-list me-1"></i>[m
+[31m-              목록[m
+[31m-            </button>[m
+[31m-            [m
+[31m-            <div>[m
+[31m-              <button [m
+[31m-                className="btn btn-primary me-2"[m
+[31m-                onClick={handleEdit}[m
+[31m-              >[m
+[31m-                <i className="fas fa-edit me-1"></i>[m
+[31m-                수정[m
+[31m-              </button>[m
+[31m-              &nbsp;&nbsp;&nbsp;[m
+[31m-              <button [m
+[31m-                className="btn btn-danger"[m
+[31m-                onClick={handleDelete}[m
+[31m-              >[m
+[31m-                <i className="fas fa-trash me-1"></i>[m
+[31m-                삭제[m
+[31m-              </button>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-[m
+[31m-      {/* 댓글 섹션 */}[m
+[31m-      <div className="card mb-4">[m
+[31m-        <div className="card-header">[m
+[31m-          <i className="fas fa-comments me-1"></i>[m
+[31m-          댓글 ({comments.length})[m
+[31m-        </div>[m
+[31m-        <div className="card-body">[m
+[31m-          {/* 댓글 작성 폼 */}[m
+[31m-          <form onSubmit={handleCommentSubmit} className="mb-4">[m
+[31m-            <div className="mb-3">[m
+[31m-              <label htmlFor="newComment" className="form-label">댓글 작성</label>[m
+[31m-              <textarea[m
+[31m-                id="newComment"[m
+[31m-                className="form-control"[m
+[31m-                rows="3"[m
+[31m-                value={newComment}[m
+[31m-                onChange={(e) => setNewComment(e.target.value)}[m
+[31m-                placeholder="댓글을 입력해주세요..."[m
+[31m-                disabled={commentLoading}[m
+[31m-              />[m
+[31m-            </div>[m
+[31m-            <div className="d-flex justify-content-end">[m
+[31m-              <button [m
+[31m-                type="submit" [m
+[31m-                className="btn btn-primary"[m
+[31m-                disabled={commentLoading}[m
+[31m-              >[m
+[31m-                {commentLoading ? ([m
+[31m-                  <>[m
+[31m-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>[m
+[31m-                    등록 중...[m
+[31m-                  </>[m
+[31m-                ) : ([m
+[31m-                  <>[m
+[31m-                    <i className="fas fa-paper-plane me-1"></i>[m
+[31m-                    댓글 등록[m
+[31m-                  </>[m
+[31m-                )}[m
+[31m-              </button>[m
+[31m-            </div>[m
+[31m-          </form>[m
+[31m-[m
+[31m-          <hr />[m
+[31m-[m
+[31m-          {/* 댓글 목록 */}[m
+[31m-          <div className="comments-list">[m
+[31m-            {comments.length === 0 ? ([m
+[31m-              <div className="text-center py-4 text-muted">[m
+[31m-                <i className="fas fa-comment-slash fa-2x mb-2"></i>[m
+[31m-                <p>등록된 댓글이 없습니다.</p>[m
+[31m-              </div>[m
+[31m-            ) : ([m
+[31m-              comments.map((comment) => ([m
+[31m-                <div key={comment.comment_id || comment.id} className="comment-item mb-4">[m
+[31m-                  {/* 부모 댓글 전체를 감싸는 박스 */}[m
+[31m-                  <div className="border rounded p-3 bg-white shadow-sm">[m
+[31m-                    {/* 최상위 댓글 */}[m
+[31m-                    <div className="main-comment mb-3">[m
+[31m-                      <div className="d-flex justify-content-between align-items-start mb-2">[m
+[31m-                        <div className="comment-meta">[m
+[31m-                          <strong className="me-2">{comment.created_by || comment.author || '익명'}</strong>[m
+[31m-                          <small className="text-muted">[m
+[31m-                            <i className="fas fa-clock me-1"></i>[m
+[31m-                            {comment.formattedCreatedAt || [m
+[31m-                             (comment.created_at ? new Date(comment.created_at).toLocaleString() : '')}[m
+[31m-                          </small>[m
+[31m-                          {comment.updated_at && comment.updated_at !== comment.created_at && ([m
+[31m-                            <small className="text-muted ms-2">[m
+[31m-                              <i className="fas fa-edit me-1"></i>[m
+[31m-                              수정됨[m
+[31m-                            </small>[m
+[31m-                          )}[m
+[31m-                        </div>[m
+[31m-                        <div className="comment-actions">[m
+[31m-                          {editingComment === (comment.comment_id || comment.id) ? ([m
+[31m-                            <div>[m
+[31m-                              <button[m
+[31m-                                className="btn btn-sm btn-success me-1"[m
+[31m-                                onClick={() => handleUpdateComment(comment.comment_id || comment.id)}[m
+[31m-                              >[m
+[31m-                                <i className="fas fa-check"></i>[m
+[31m-                                수정[m
+[31m-                              </button>[m
+[31m-                              <button[m
+[31m-                                className="btn btn-sm btn-secondary"[m
+[31m-                                onClick={handleCancelEdit}[m
+[31m-                              >[m
+[31m-                                <i className="fas fa-times"></i>[m
+[31m-                                취소[m
+[31m-                              </button>[m
+[31m-                            </div>[m
+[31m-                          ) : ([m
+[31m-                            <div>[m
+[31m-                              <button[m
+[31m-                                className="btn btn-sm btn-outline-secondary me-1"[m
+[31m-                                onClick={() => handleReplyComment(comment)}[m
+[31m-                              >[m
+[31m-                                <i className="fas fa-reply me-1"></i>[m
+[31m-                                답글[m
+[31m-                              </button>[m
+[31m-                              &nbsp;&nbsp;[m
+[31m-                              <button[m
+[31m-                                className="btn btn-sm btn-outline-primary me-1"[m
+[31m-                                onClick={() => handleEditComment(comment)}[m
+[31m-                              >[m
+[31m-                                <i className="fas fa-edit me-1"></i>[m
+[31m-                                수정[m
+[31m-                              </button>[m
+[31m-                              &nbsp;&nbsp;[m
+[31m-                              <button[m
+[31m-                                className="btn btn-sm btn-outline-danger"[m
+[31m-                                onClick={() => handleDeleteComment(comment.comment_id || comment.id)}[m
+[31m-                              >[m
+[31m-                                <i className="fas fa-trash me-1"></i>[m
+[31m-                                삭제[m
+[31m-                              </button>[m
+[31m-                            </div>[m
+[31m-                          )}[m
+[31m-                        </div>[m
+[31m-                      </div>[m
+[31m-                      [m
+[31m-                      <div className="comment-content">[m
+[31m-                        {editingComment === (comment.comment_id || comment.id) ? ([m
+[31m-                          <textarea[m
+[31m-                            className="form-control"[m
+[31m-                            rows="3"[m
+[31m-                            value={editContent}[m
+[31m-                            onChange={(e) => setEditContent(e.target.value)}[m
+[31m-                          />[m
+[31m-                        ) : ([m
+[31m-                          <div style={{ whiteSpace: 'pre-wrap' }}>[m
+[31m-                            {comment.content}[m
+[31m-                          </div>[m
+[31m-                        )}[m
+[31m-                      </div>[m
+[31m-                    </div>[m
+[31m-[m
+[31m-                    {/* 대댓글 작성 폼 */}[m
+[31m-                    {replyingToComment === (comment.comment_id || comment.id) && ([m
+[31m-                      <div className="reply-form mb-3 ps-3 border-start border-3 border-primary">[m
+[31m-                        <div className="bg-light rounded p-3">[m
+[31m-                          <div className="mb-2">[m
+[31m-                            <small className="text-muted">[m
+[31m-                              <i className="fas fa-reply me-1"></i>[m
+[31m-                              <strong>{comment.created_by || comment.author || '익명'}</strong>님에게 답글 작성[m
+[31m-                            </small>[m
+[31m-                          </div>[m
+[31m-                          <textarea[m
+[31m-                            className="form-control mb-2"[m
+[31m-                            rows="2"[m
+[31m-                            value={replyContent}[m
+[31m-                            onChange={(e) => setReplyContent(e.target.value)}[m
+[31m-                            placeholder="답글을 입력해주세요..."[m
+[31m-                          />[m
+[31m-                          <div className="d-flex justify-content-end">[m
+[31m-                            <button[m
+[31m-                              className="btn btn-sm btn-secondary me-2"[m
+[31m-                              onClick={handleCancelReply}[m
+[31m-                            >[m
+[31m-                              취소[m
+[31m-                            </button>[m
+[31m-                            <button[m
+[31m-                              className="btn btn-sm btn-primary"[m
+[31m-                              onClick={() => handleReplySubmit(comment.comment_id || comment.id)}[m
+[31m-                            >[m
+[31m-                              <i className="fas fa-paper-plane me-1"></i>[m
+[31m-                              답글 등록[m
+[31m-                            </button>[m
+[31m-                          </div>[m
+[31m-                        </div>[m
+[31m-                      </div>[m
+[31m-                    )}[m
+[31m-[m
+[31m-                    {/* 대댓글 목록 - 부모 댓글 박스 안에 포함 */}[m
+[31m-                    {comment.replies && comment.replies.length > 0 && ([m
+[31m-                      <div className="replies-section">[m
+[31m-                        <hr className="my-3" />[m
+[31m-                        <div className="replies-header mb-2">[m
+[31m-                          <small className="text-muted">[m
+[31m-                            <i className="fas fa-comments me-1"></i>[m
+[31m-                            답글 {comment.replies.length}개[m
+[31m-                          </small>[m
+[31m-                        </div>[m
+[31m-                        {comment.replies.map((reply, index) => ([m
+[31m-                          <div key={reply.comment_id || reply.id} [m
+[31m-                               className={`reply-item ps-3 border-start border-2 border-secondary ${[m
+[31m-                                 index < comment.replies.length - 1 ? 'mb-3' : ''[m
+[31m-                               }`}>[m
+[31m-                            <div className="bg-light rounded p-3">[m
+[31m-                              <div className="d-flex justify-content-between align-items-start mb-2">[m
+[31m-                                <div className="reply-meta">[m
+[31m-                                  <i className="fas fa-reply text-primary me-2"></i>[m
+[31m-                                  <strong className="me-2">{reply.created_by || reply.author || '익명'}</strong>[m
+[31m-                                  <small className="text-muted">[m
+[31m-                                    <i className="fas fa-clock me-1"></i>[m
+[31m-                                    {reply.formattedCreatedAt || [m
+[31m-                                     (reply.created_at ? new Date(reply.created_at).toLocaleString() : '')}[m
+[31m-                                  </small>[m
+[31m-                                  {reply.updated_at && reply.updated_at !== reply.created_at && ([m
+[31m-                                    <small className="text-muted ms-2">[m
+[31m-                                      <i className="fas fa-edit me-1"></i>[m
+[31m-                                      수정됨[m
+[31m-                                    </small>[m
+[31m-                                  )}[m
+[31m-                                </div>[m
+[31m-                                <div className="reply-actions">[m
+[31m-                                  {editingComment === (reply.comment_id || reply.id) ? ([m
+[31m-                                    <div>[m
+[31m-                                      <button[m
+[31m-                                        className="btn btn-sm btn-success me-1"[m
+[31m-                                        onClick={() => handleUpdateComment(reply.comment_id || reply.id)}[m
+[31m-                                      >[m
+[31m-                                        <i className="fas fa-check"></i>[m
+[31m-                                      </button>[m
+[31m-                                      <button[m
+[31m-                                        className="btn btn-sm btn-secondary"[m
+[31m-                                        onClick={handleCancelEdit}[m
+[31m-                                      >[m
+[31m-                                        <i className="fas fa-times"></i>[m
+[31m-                                      </button>[m
+[31m-                                    </div>[m
+[31m-                                  ) : ([m
+[31m-                                    <div>[m
+[31m-                                      <button[m
+[31m-                                        className="btn btn-sm btn-outline-primary me-1"[m
+[31m-                                        onClick={() => handleEditComment(reply)}[m
+[31m-                                      >[m
+[31m-                                        <i className="fas fa-edit"></i>[m
+[31m-                                        수정[m
+[31m-                                      </button>[m
+[31m-                                      &nbsp;&nbsp;[m
+[31m-                                      <button[m
+[31m-                                        className="btn btn-sm btn-outline-danger"[m
+[31m-                                        onClick={() => handleDeleteComment(reply.comment_id || reply.id)}[m
+[31m-                                      >[m
+[31m-                                        <i className="fas fa-trash"></i>[m
+[31m-                                        삭제[m
+[31m-                                      </button>[m
+[31m-                                    </div>[m
+[31m-                                  )}[m
+[31m-                                </div>[m
+[31m-                              </div>[m
+[31m-                              <div className="reply-content">[m
+[31m-                                {editingComment === (reply.comment_id || reply.id) ? ([m
+[31m-                                  <textarea[m
+[31m-                                    className="form-control"[m
+[31m-                                    rows="2"[m
+[31m-                                    value={editContent}[m
+[31m-                                    onChange={(e) => setEditContent(e.target.value)}[m
+[31m-                                  />[m
+[31m-                                ) : ([m
+[31m-                                  <div style={{ whiteSpace: 'pre-wrap' }}>[m
+[31m-                                    {reply.content}[m
+[31m-                                  </div>[m
+[31m-                                )}[m
+[31m-                              </div>[m
+[31m-                            </div>[m
+[31m-                          </div>[m
+[31m-                        ))}[m
+[31m-                      </div>[m
+[31m-                    )}[m
+[31m-                  </div>[m
+[31m-                </div>[m
+[31m-              ))[m
+[31m-            )}[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-    </div>[m
+[31m-  );[m
+[31m-};[m
+[31m-[m
+[31m-export default BoardDetail;[m
+\ No newline at end of file[m
+[1mdiff --git a/src/pages/board/detal.js b/src/pages/board/detal.js[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e69de29[m
+[1mdiff --git a/src/pages/board/list.js b/src/pages/board/list.js[m
+[1mindex 8123bcb..b6eabf9 100644[m
+[1m--- a/src/pages/board/list.js[m
+[1m+++ b/src/pages/board/list.js[m
+[36m@@ -1,5 +1,4 @@[m
+ import React, { useState, useEffect } from 'react';[m
+[31m-import { useSearchParams } from 'react-router-dom';[m
+ [m
+ const List = () => {[m
+   const [notices, setNotices] = useState([]);[m
+[36m@@ -10,16 +9,14 @@[m [mconst List = () => {[m
+   const [totalPages, setTotalPages] = useState(1);[m
+   const [loading, setLoading] = useState(true);[m
+   const [error, setError] = useState(null);[m
+[31m-  const [searchParams] = useSearchParams();[m
+[31m-  const boardnum = searchParams.get('boardnum') || 'BOD002';[m
+[31m-  const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';[m
+[32m+[m
+   // 실제 API에서 공지사항 데이터 가져오기[m
+ const fetchNotices = async () => {[m
+     try {[m
+         console.log('공지사항 조회 시작');[m
+         [m
+         // boardnum을 문자열로 전달 (기존 구조에 맞춤)[m
+[31m-        const url = `http://localhost:8080/board/list?boardnum=${boardnum}&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;[m
+[32m+[m[32m        const url = `http://localhost:8080/board/list?boardnum=BOD002&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;[m
+         console.log('요청 URL:', url);[m
+         [m
+         const response = await fetch(url, {[m
+[36m@@ -94,25 +91,27 @@[m [mconst fetchNotices = async () => {[m
+   // handleNoticeClick 함수도 수정:[m
+ const handleNoticeClick = async (noticeId) => {[m
+     try {[m
+[31m-        // 조회수 증가 API 호출[m
+[31m-        await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {[m
+[32m+[m[32m        // 조회수 증가 API 호출 (boardId 사용)[m
+[32m+[m[32m        await fetch(`http://localhost:8080/board/api/notices/${noticeId}/view`, {[m
+             method: 'POST',[m
+             credentials: 'include'[m
+         });[m
+         [m
+[31m-        // 상세 페이지로 이동 (noticeId 사용)[m
+[31m-        window.location.href = `/board/detail/${noticeId}?boardnum=${currentBoardnum}`;[m
+[32m+[m[32m        // 상세 페이지로 이동[m
+[32m+[m[32m        window.location.href = `/notices/${noticeId}`;[m
+     } catch (error) {[m
+         console.error('조회수 증가 오류:', error);[m
+         // 오류가 있어도 상세 페이지로 이동[m
+[31m-        window.location.href = `/board/detail/${noticeId}?boardnum=${currentBoardnum}`;[m
+[32m+[m[32m        window.location.href = `/notices/${noticeId}`;[m
+     }[m
+ };[m
+ [m
+[31m-const handleCreateNotice = () => {[m
+[31m-  // 현재 게시판의 boardnum을 가져와서 작성 페이지로 이동[m
+[31m-  window.location.href = `/board/write?boardnum=${currentBoardnum}`;[m
+[31m-};[m
+[32m+[m[32m  // 새 공지사항 작성[m
+[32m+[m[32m  const handleCreateNotice = () => {[m
+[32m+[m[32m    window.location.href = '/notices/create';[m
+[32m+[m[32m    // 또는 React Router 사용 시:[m
+[32m+[m[32m    // navigate('/notices/create');[m
+[32m+[m[32m  };[m
+ [m
+   // 날짜 포맷팅 함수[m
+   const formatDate = (dateString) => {[m
+[36m@@ -132,8 +131,6 @@[m [mconst handleCreateNotice = () => {[m
+     }[m
+   };[m
+ [m
+[31m-  [m
+[31m-[m
+   const pinnedNotices = notices.filter(notice => notice.isPinned || notice.pinned);[m
+   const regularNotices = notices.filter(notice => !notice.isPinned && !notice.pinned);[m
+ [m
+[36m@@ -183,19 +180,18 @@[m [mconst handleCreateNotice = () => {[m
+           {/* 헤더 섹션 */}[m
+           <div className="d-flex justify-content-between align-items-center mb-4">[m
+             <h2 className="h3 mb-0 text-gray-800 font-weight-bold">공지사항</h2>[m
+[31m-              <button [m
+[31m-                className="btn btn-primary"[m
+[31m-                onClick={handleCreateNotice}[m
+[31m-                style={{[m
+[31m-                  backgroundColor: '#4e73df',[m
+[31m-                  borderColor: '#4e73df',[m
+[31m-                  borderRadius: '0.35rem',[m
+[31m-                  marginTop : '1.5rem',[m
+[31m-                  padding: '0.5rem 1.5rem'[m
+[31m-                }}[m
+[31m-              >[m
+[31m-                게시글 작성[m
+[31m-              </button>[m
+[32m+[m[32m            <button[m[41m [m
+[32m+[m[32m              className="btn btn-primary"[m
+[32m+[m[32m              onClick={handleCreateNotice}[m
+[32m+[m[32m              style={{[m
+[32m+[m[32m                backgroundColor: '#4e73df',[m
+[32m+[m[32m                borderColor: '#4e73df',[m
+[32m+[m[32m                borderRadius: '0.35rem',[m
+[32m+[m[32m                padding: '0.5rem 1rem'[m
+[32m+[m[32m              }}[m
+[32m+[m[32m            >[m
+[32m+[m[32m              게시글 작성[m
+[32m+[m[32m            </button>[m
+           </div>[m
+ [m
+           {/* 검색 및 필터 섹션 */}[m
+[36m@@ -219,7 +215,7 @@[m [mconst handleCreateNotice = () => {[m
+                         <option value="views">조회수순</option>[m
+                       </select>[m
+                     </div>[m
+[31m-                    <div className="col-md-8">[m
+[32m+[m[32m                    <div className="col-md-5">[m
+                       <input[m
+                         type="text"[m
+                         className="form-control form-control-sm"[m
+[36m@@ -229,7 +225,6 @@[m [mconst handleCreateNotice = () => {[m
+                         style={{ fontSize: '14px' }}[m
+                       />[m
+                     </div>[m
+[31m-                    {/*[m
+                     <div className="col-md-3">[m
+                       <select [m
+                         className="form-control form-control-sm"[m
+[36m@@ -242,7 +237,7 @@[m [mconst handleCreateNotice = () => {[m
+                         <option value="공지">공지</option>[m
+                         <option value="일반">일반</option>[m
+                       </select>[m
+[31m-                    </div>*/}[m
+[32m+[m[32m                    </div>[m
+                   </div>[m
+                 </div>[m
+               </div>[m
+[36m@@ -301,49 +296,60 @@[m [mconst handleCreateNotice = () => {[m
+                 </div>[m
+               ))}[m
+ [m
+[31m-            {/* 일반 공지사항 */}[m
+[31m-            {regularNotices.map((notice) => ([m
+[31m-            <div [m
+[31m-              key={notice.id} [m
+[31m-              className="notice-item border-bottom"[m
+[31m-              style={{[m
+[31m-                padding: '1rem 1.5rem',[m
+[31m-                cursor: 'pointer',[m
+[31m-                transition: 'background-color 0.2s'[m
+[31m-              }}[m
+[31m-              onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fc'}[m
+[31m-              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}[m
+[31m-              onClick={() => handleNoticeClick(notice.id)}[m
+[31m-            >[m
+[31m-              <div className="d-flex justify-content-between align-items-center">[m
+[31m-                <div className="flex-grow-1">[m
+[31m-                  <div className="d-flex align-items-center mb-2">[m
+[31m-                    <h6 className="mb-0 text-dark" style={{ fontSize: '15px' }}>[m
+[31m-                      {notice.title}[m
+[31m-                    </h6>[m
+[31m-                  </div>[m
+[31m-                  <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>[m
+[31m-                    <span className="mr-3">[m
+[31m-                      <i className="fas fa-user mr-1"></i>[m
+[31m-                      {notice.author || notice.createdBy}[m
+[31m-                    </span>[m
+[31m-                    <span className="mr-3">[m
+[31m-                      <i className="fas fa-clock mr-1"></i>[m
+[31m-                      {formatDate(notice.createdAt || notice.date)}[m
+[31m-                    </span>[m
+[31m-                  </div>[m
+[31m-                </div>[m
+[31m-                <div className="text-center">[m
+[31m-                  <div className="text-primary font-weight-bold" style={{ fontSize: '16px' }}>[m
+[31m-                    {(notice.views || notice.viewCount || 0).toLocaleString()}[m
+[31m-                  </div>[m
+[31m-                  <div className="text-muted" style={{ fontSize: '12px' }}>[m
+[31m-                    조회수[m
+[32m+[m[32m              {/* 일반 공지사항 */}[m
+[32m+[m[32m              {regularNotices.map((notice) => ([m
+[32m+[m[32m                <div[m[41m [m
+[32m+[m[32m                  key={notice.id}[m[41m [m
+[32m+[m[32m                  className="notice-item border-bottom"[m
+[32m+[m[32m                  style={{[m
+[32m+[m[32m                    padding: '1rem 1.5rem',[m
+[32m+[m[32m                    cursor: 'pointer',[m
+[32m+[m[32m                    transition: 'background-color 0.2s'[m
+[32m+[m[32m                  }}[m
+[32m+[m[32m                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fc'}[m
+[32m+[m[32m                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}[m
+[32m+[m[32m                  onClick={() => handleNoticeClick(notice.id)}[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <div className="d-flex justify-content-between align-items-center">[m
+[32m+[m[32m                    <div className="flex-grow-1">[m
+[32m+[m[32m                      <div className="d-flex align-items-center mb-2">[m
+[32m+[m[32m                        <span[m[41m [m
+[32m+[m[32m                          className={`badge mr-2`}[m
+[32m+[m[32m                          style={{[m[41m [m
+[32m+[m[32m                            fontSize: '11px',[m
+[32m+[m[32m                            backgroundColor: notice.category === '중요' ? '#dc3545' :[m[41m [m
+[32m+[m[32m                                           notice.category === '공지' ? '#007bff' : '#6c757d',[m
+[32m+[m[32m                            color: 'white'[m
+[32m+[m[32m                          }}[m
+[32m+[m[32m                        >[m
+[32m+[m[32m                          {notice.category || notice.type || '일반'}[m
+[32m+[m[32m                        </span>[m
+[32m+[m[32m                        <h6 className="mb-0 text-dark" style={{ fontSize: '15px' }}>[m
+[32m+[m[32m                          {notice.title}[m
+[32m+[m[32m                        </h6>[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                      <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>[m
+[32m+[m[32m                        <span className="mr-3">[m
+[32m+[m[32m                          <i className="fas fa-user mr-1"></i>[m
+[32m+[m[32m                          {notice.author || notice.createdBy}[m
+[32m+[m[32m                        </span>[m
+[32m+[m[32m                        <span className="mr-3">[m
+[32m+[m[32m                          <i className="fas fa-clock mr-1"></i>[m
+[32m+[m[32m                          {formatDate(notice.createdAt || notice.date)}[m
+[32m+[m[32m                        </span>[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                    <div className="text-center">[m
+[32m+[m[32m                      <div className="text-primary font-weight-bold" style={{ fontSize: '16px' }}>[m
+[32m+[m[32m                        {(notice.views || notice.viewCount || 0).toLocaleString()}[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                      <div className="text-muted" style={{ fontSize: '12px' }}>[m
+[32m+[m[32m                        조회수[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                    </div>[m
+                   </div>[m
+                 </div>[m
+[31m-              </div>[m
+[31m-            </div>[m
+[31m-            ))}[m
+[32m+[m[32m              ))}[m
+ [m
+               {notices.length === 0 && ([m
+                 <div className="text-center py-5">[m
+[36m@@ -357,63 +363,65 @@[m [mconst handleCreateNotice = () => {[m
+           </div>[m
+ [m
+           {/* 페이지네이션 */}[m
+[31m-<div className="d-flex justify-content-center mt-4">[m
+[31m-  <nav>[m
+[31m-    <ul className="pagination">[m
+[31m-      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>[m
+[31m-        <button [m
+[31m-          className="page-link" [m
+[31m-          onClick={() => handlePageChange(currentPage - 1)}[m
+[31m-          disabled={currentPage === 1}[m
+[31m-          style={{ color: '#4e73df' }}[m
+[31m-        >[m
+[31m-          이전[m
+[31m-        </button>[m
+[31m-      </li>[m
+[31m-      [m
+[31m-      {/* 페이지 번호들 - 최소 1페이지는 항상 표시 */}[m
+[31m-      {Array.from({ length: Math.max(1, Math.min(5, totalPages)) }, (_, i) => {[m
+[31m-        let pageNum;[m
+[31m-        if (totalPages <= 5) {[m
+[31m-          pageNum = i + 1;[m
+[31m-        } else if (currentPage <= 3) {[m
+[31m-          pageNum = i + 1;[m
+[31m-        } else if (currentPage >= totalPages - 2) {[m
+[31m-          pageNum = totalPages - 4 + i;[m
+[31m-        } else {[m
+[31m-          pageNum = currentPage - 2 + i;[m
+[31m-        }[m
+[31m-        [m
+[31m-        return ([m
+[31m-                <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>[m
+[31m-                  <button [m
+[31m-                    className="page-link" [m
+[31m-                    onClick={() => handlePageChange(pageNum)}[m
+[31m-                    style={{ [m
+[31m-                      backgroundColor: currentPage === pageNum ? '#4e73df' : 'transparent',[m
+[31m-                      borderColor: '#4e73df',[m
+[31m-                      color: currentPage === pageNum ? 'white' : '#4e73df'[m
+[31m-                    }}[m
+[31m-                  >[m
+[31m-                    {pageNum}[m
+[31m-                  </button>[m
+[31m-                </li>[m
+[31m-              );[m
+[31m-            })}[m
+[31m-            [m
+[31m-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>[m
+[31m-              <button [m
+[31m-                className="page-link" [m
+[31m-                onClick={() => handlePageChange(currentPage + 1)}[m
+[31m-                disabled={currentPage === totalPages}[m
+[31m-                style={{ color: '#4e73df' }}[m
+[31m-              >[m
+[31m-                다음[m
+[31m-              </button>[m
+[31m-            </li>[m
+[31m-          </ul>[m
+[31m-        </nav>[m
+[31m-      </div>[m
+[32m+[m[32m          {totalPages > 1 && ([m
+[32m+[m[32m            <div className="d-flex justify-content-center mt-4">[m
+[32m+[m[32m              <nav>[m
+[32m+[m[32m                <ul className="pagination">[m
+[32m+[m[32m                  <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>[m
+[32m+[m[32m                    <button[m[41m [m
+[32m+[m[32m                      className="page-link"[m[41m [m
+[32m+[m[32m                      onClick={() => handlePageChange(currentPage - 1)}[m
+[32m+[m[32m                      disabled={currentPage === 1}[m
+[32m+[m[32m                      style={{ color: '#4e73df' }}[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                      이전[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                  </li>[m
+[32m+[m[41m                  [m
+[32m+[m[32m                  {/* 페이지 번호들 */}[m
+[32m+[m[32m                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {[m
+[32m+[m[32m                    let pageNum;[m
+[32m+[m[32m                    if (totalPages <= 5) {[m
+[32m+[m[32m                      pageNum = i + 1;[m
+[32m+[m[32m                    } else if (currentPage <= 3) {[m
+[32m+[m[32m                      pageNum = i + 1;[m
+[32m+[m[32m                    } else if (currentPage >= totalPages - 2) {[m
+[32m+[m[32m                      pageNum = totalPages - 4 + i;[m
+[32m+[m[32m                    } else {[m
+[32m+[m[32m                      pageNum = currentPage - 2 + i;[m
+[32m+[m[32m                    }[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    return ([m
+[32m+[m[32m                      <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>[m
+[32m+[m[32m                        <button[m[41m [m
+[32m+[m[32m                          className="page-link"[m[41m [m
+[32m+[m[32m                          onClick={() => handlePageChange(pageNum)}[m
+[32m+[m[32m                          style={{[m[41m [m
+[32m+[m[32m                            backgroundColor: currentPage === pageNum ? '#4e73df' : 'transparent',[m
+[32m+[m[32m                            borderColor: '#4e73df',[m
+[32m+[m[32m                            color: currentPage === pageNum ? 'white' : '#4e73df'[m
+[32m+[m[32m                          }}[m
+[32m+[m[32m                        >[m
+[32m+[m[32m                          {pageNum}[m
+[32m+[m[32m                        </button>[m
+[32m+[m[32m                      </li>[m
+[32m+[m[32m                    );[m
+[32m+[m[32m                  })}[m
+[32m+[m[41m                  [m
+[32m+[m[32m                  <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>[m
+[32m+[m[32m                    <button[m[41m [m
+[32m+[m[32m                      className="page-link"[m[41m [m
+[32m+[m[32m                      onClick={() => handlePageChange(currentPage + 1)}[m
+[32m+[m[32m                      disabled={currentPage === totalPages}[m
+[32m+[m[32m                      style={{ color: '#4e73df' }}[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                      다음[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                  </li>[m
+[32m+[m[32m                </ul>[m
+[32m+[m[32m              </nav>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          )}[m
+         </div>[m
+       </div>[m
+     </div>[m
+[1mdiff --git a/src/pages/board/write.js b/src/pages/board/write.js[m
+[1mindex 63216f0..e69de29 100644[m
+[1m--- a/src/pages/board/write.js[m
+[1m+++ b/src/pages/board/write.js[m
+[36m@@ -1,334 +0,0 @@[m
+[31m-import React, { useState, useRef } from 'react';[m
+[31m-[m
+[31m-const BoardWrite = () => {[m
+[31m-  const [formData, setFormData] = useState({[m
+[31m-    title: '',[m
+[31m-    content: '',[m
+[31m-    boardnum: 'BOD001', // 기본값: 공지사항[m
+[31m-    class_id: '',[m
+[31m-    file: null[m
+[31m-  });[m
+[31m-  const [loading, setLoading] = useState(false);[m
+[31m-  const [error, setError] = useState('');[m
+[31m-  const fileInputRef = useRef(null);[m
+[31m-[m
+[31m-  // URL에서 boardnum 파라미터 가져오기[m
+[31m-  const urlParams = new URLSearchParams(window.location.search);[m
+[31m-  const boardnumFromUrl = urlParams.get('boardnum') || 'BOD001';[m
+[31m-  React.useEffect(() => {[m
+[31m-    console.log('URL에서 가져온 boardnum:', boardnumFromUrl); // 디버깅 추가[m
+[31m-    console.log('현재 formData.boardnum:', formData.boardnum); // 디버깅 추가[m
+[31m-    setFormData(prev => ({ ...prev, boardnum: boardnumFromUrl }));[m
+[31m-  }, [boardnumFromUrl]);[m
+[31m-[m
+[31m-  const handleInputChange = (e) => {[m
+[31m-    const { name, value } = e.target;[m
+[31m-    setFormData(prev => ({[m
+[31m-      ...prev,[m
+[31m-      [name]: value[m
+[31m-    }));[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleFileChange = (e) => {[m
+[31m-    const file = e.target.files[0];[m
+[31m-    setFormData(prev => ({[m
+[31m-      ...prev,[m
+[31m-      file: file[m
+[31m-    }));[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleSubmit = async (e) => {[m
+[31m-    e.preventDefault();[m
+[31m-    setError('');[m
+[31m-[m
+[31m-    // 유효성 검사[m
+[31m-    if (!formData.title.trim()) {[m
+[31m-      setError('제목을 입력해주세요.');[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    if (!formData.content.trim()) {[m
+[31m-      setError('내용을 입력해주세요.');[m
+[31m-      return;[m
+[31m-    }[m
+[31m-[m
+[31m-    try {[m
+[31m-      setLoading(true);[m
+[31m-[m
+[31m-      // 인증 토큰 가져오기[m
+[31m-      const token = localStorage.getItem('token') || [m
+[31m-                   localStorage.getItem('authToken') || [m
+[31m-                   sessionStorage.getItem('token') ||[m
+[31m-                   sessionStorage.getItem('authToken');[m
+[31m-[m
+[31m-      const headers = {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      };[m
+[31m-[m
+[31m-      if (token) {[m
+[31m-        headers['Authorization'] = `Bearer ${token}`;[m
+[31m-      }[m
+[31m-[m
+[31m-      // 서버로 전송할 데이터 준비[m
+[31m-      const submitData = {[m
+[31m-        title: formData.title.trim(),[m
+[31m-        content: formData.content.trim(),[m
+[31m-        boardnum: formData.boardnum,[m
+[31m-        class_id: formData.class_id || null,[m
+[31m-        file: formData.file ? formData.file.name : null // 파일은 일단 이름만 전송[m
+[31m-      };[m
+[31m-[m
+[31m-        console.log('전송 데이터:', submitData);[m
+[31m-        console.log('요청 URL:', `http://localhost:8080/board/write/${formData.boardnum}`);[m
+[31m-[m
+[31m-      const response = await fetch(`http://localhost:8080/board/write/${formData.boardnum}`, {[m
+[31m-        method: 'POST',[m
+[31m-        headers: headers,[m
+[31m-        credentials: 'include',[m
+[31m-        body: JSON.stringify(submitData)[m
+[31m-      });[m
+[31m-[m
+[31m-      console.log('응답 상태:', response.status);[m
+[31m-[m
+[31m-      if (!response.ok) {[m
+[31m-        if (response.status === 403) {[m
+[31m-          throw new Error('권한이 없습니다. 로그인 상태를 확인해주세요.');[m
+[31m-        } else if (response.status === 401) {[m
+[31m-          throw new Error('로그인이 필요합니다.');[m
+[31m-        } else {[m
+[31m-          throw new Error('게시글 작성에 실패했습니다.');[m
+[31m-        }[m
+[31m-      }[m
+[31m-[m
+[31m-      const result = await response.json();[m
+[31m-      console.log('서버 응답:', result);[m
+[31m-[m
+[31m-      if (result.success) {[m
+[31m-        alert('게시글이 성공적으로 작성되었습니다.');[m
+[31m-        // 게시판 목록으로 이동[m
+[31m-        window.location.href = `/board/list?boardnum=${formData.boardnum}`;[m
+[31m-      } else {[m
+[31m-        throw new Error(result.message || '게시글 작성에 실패했습니다.');[m
+[31m-      }[m
+[31m-[m
+[31m-    } catch (err) {[m
+[31m-      console.error('게시글 작성 오류:', err);[m
+[31m-      setError(err.message);[m
+[31m-    } finally {[m
+[31m-      setLoading(false);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const handleCancel = () => {[m
+[31m-    if (window.confirm('작성을 취소하시겠습니까? 입력한 내용이 삭제됩니다.')) {[m
+[31m-      window.location.href = `/board/list?boardnum=${formData.boardnum}`;[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const getBoardTitle = (boardnum) => {[m
+[31m-    console.log("getBoardTitle + " + boardnum)[m
+[31m-    switch (boardnum) {[m
+[31m-      case 'BOD002': return '공지사항';[m
+[31m-      case 'BOD003': return '자유게시판';[m
+[31m-      case 'BOD001': return 'Q&A';[m
+[31m-      default: return '게시판';[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  return ([m
+[31m-    <div className="container-fluid px-4 m-3">[m
+[31m-      <h1 className="mt-4">{getBoardTitle(formData.boardnum)} 작성</h1>[m
+[31m-      <ol className="breadcrumb mb-4">[m
+[31m-        <li className="breadcrumb-item">[m
+[31m-          <a href="/dashboard">Dashboard</a>[m
+[31m-        </li>[m
+[31m-        <li className="breadcrumb-item">[m
+[31m-          <a href={`/board/list?boardnum=${formData.boardnum}`}>게시판</a>[m
+[31m-        </li>[m
+[31m-        <li className="breadcrumb-item active">게시글 작성</li>[m
+[31m-      </ol>[m
+[31m-[m
+[31m-      {error && ([m
+[31m-        <div className="alert alert-danger" role="alert">[m
+[31m-          {error}[m
+[31m-        </div>[m
+[31m-      )}[m
+[31m-[m
+[31m-      <div className="card mb-4">[m
+[31m-        <div className="card-header">[m
+[31m-          <i className="fas fa-pen me-1"></i>[m
+[31m-          새 게시글 작성[m
+[31m-        </div>[m
+[31m-        <div className="card-body">[m
+[31m-          <div onSubmit={handleSubmit}>[m
+[31m-            {/* 게시판 선택 [m
+[31m-            <div className="row mb-3">[m
+[31m-              <div className="col-md-6">[m
+[31m-                <label htmlFor="boardnum" className="form-label">게시판 분류</label>[m
+[31m-                <select[m
+[31m-                  className="form-select"[m
+[31m-                  id="boardnum"[m
+[31m-                  name="boardnum"[m
+[31m-                  value={formData.boardnum}[m
+[31m-                  onChange={handleInputChange}[m
+[31m-                >[m
+[31m-                  <option value="BOD002">공지사항</option>[m
+[31m-                  <option value="BOD003">자유게시판</option>[m
+[31m-                  <option value="BOD001">Q&A</option>[m
+[31m-                </select>[m
+[31m-              </div>[m
+[31m-            </div>*/}[m
+[31m-[m
+[31m-            {/* 제목 */}[m
+[31m-            <div className="mb-3">[m
+[31m-              <label htmlFor="title" className="form-label">제목 <span className="text-danger">*</span></label>[m
+[31m-              <input[m
+[31m-                type="text"[m
+[31m-                className="form-control"[m
+[31m-                id="title"[m
+[31m-                name="title"[m
+[31m-                value={formData.title}[m
+[31m-                onChange={handleInputChange}[m
+[31m-                placeholder="게시글 제목을 입력하세요"[m
+[31m-                required[m
+[31m-              />[m
+[31m-            </div>[m
+[31m-[m
+[31m-            {/* 내용 */}[m
+[31m-            <div className="mb-3">[m
+[31m-              <label htmlFor="content" className="form-label">내용 <span className="text-danger">*</span></label>[m
+[31m-              <textarea[m
+[31m-                className="form-control"[m
+[31m-                id="content"[m
+[31m-                name="content"[m
+[31m-                rows="12"[m
+[31m-                value={formData.content}[m
+[31m-                onChange={handleInputChange}[m
+[31m-                placeholder="게시글 내용을 입력하세요"[m
+[31m-                style={{ resize: 'vertical', minHeight: '300px' }}[m
+[31m-                required[m
+[31m-              />[m
+[31m-              <div className="form-text">[m
+[31m-                마크다운 문법을 사용할 수 있습니다. (예: **굵게**, *기울임*, `코드`)[m
+[31m-              </div>[m
+[31m-            </div>[m
+[31m-[m
+[31m-            {/* 파일 첨부 */}[m
+[31m-            <div className="mb-4">[m
+[31m-              <label htmlFor="file" className="form-label">파일 첨부</label>[m
+[31m-              <input[m
+[31m-                type="file"[m
+[31m-                className="form-control"[m
+[31m-                id="file"[m
+[31m-                ref={fileInputRef}[m
+[31m-                onChange={handleFileChange}[m
+[31m-                accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.hwp,.zip"[m
+[31m-              />[m
+[31m-              <div className="form-text">[m
+[31m-                최대 10MB까지 업로드 가능합니다. (jpg, png, pdf, doc, hwp, zip 등)[m
+[31m-              </div>[m
+[31m-              {formData.file && ([m
+[31m-                <div className="mt-2">[m
+[31m-                  <small className="text-success">[m
+[31m-                    <i className="fas fa-file me-1"></i>[m
+[31m-                    선택된 파일: {formData.file.name} ({Math.round(formData.file.size / 1024)}KB)[m
+[31m-                  </small>[m
+[31m-                  <button[m
+[31m-                    type="button"[m
+[31m-                    className="btn btn-sm btn-outline-danger ms-2"[m
+[31m-                    onClick={() => {[m
+[31m-                      setFormData(prev => ({ ...prev, file: null }));[m
+[31m-                      fileInputRef.current.value = '';[m
+[31m-                    }}[m
+[31m-                  >[m
+[31m-                    삭제[m
+[31m-                  </button>[m
+[31m-                </div>[m
+[31m-              )}[m
+[31m-            </div>[m
+[31m-[m
+[31m-            {/* 버튼 그룹 */}[m
+[31m-            <div className="d-flex justify-content-between">[m
+[31m-              <button[m
+[31m-                type="button"[m
+[31m-                className="btn btn-secondary"[m
+[31m-                onClick={handleCancel}[m
+[31m-                disabled={loading}[m
+[31m-              >[m
+[31m-                <i className="fas fa-times me-1"></i>[m
+[31m-                취소[m
+[31m-              </button>[m
+[31m-              [m
+[31m-              <div>[m
+[31m-                <button[m
+[31m-                  type="button"[m
+[31m-                  className="btn btn-outline-primary me-2"[m
+[31m-                  disabled={loading}[m
+[31m-                  onClick={() => {[m
+[31m-                    // 임시저장 기능 (추후 구현)[m
+[31m-                    alert('임시저장 기능은 추후 구현 예정입니다.');[m
+[31m-                  }}[m
+[31m-                >[m
+[31m-                  <i className="fas fa-save me-1"></i>[m
+[31m-                  임시저장[m
+[31m-                </button>[m
+[31m-                &nbsp;&nbsp;&nbsp;[m
+[31m-                <button[m
+[31m-                  type="button"[m
+[31m-                  className="btn btn-primary"[m
+[31m-                  disabled={loading || !formData.title.trim() || !formData.content.trim()}[m
+[31m-                  onClick={handleSubmit}[m
+[31m-                >[m
+[31m-                  {loading ? ([m
+[31m-                    <>[m
+[31m-                      <div className="spinner-border spinner-border-sm me-2" role="status">[m
+[31m-                        <span className="visually-hidden">Loading...</span>[m
+[31m-                      </div>[m
+[31m-                      등록 중...[m
+[31m-                    </>[m
+[31m-                  ) : ([m
+[31m-                    <>[m
+[31m-                      <i className="fas fa-check me-1"></i>[m
+[31m-                      등록[m
+[31m-                    </>[m
+[31m-                  )}[m
+[31m-                </button>[m
+[31m-              </div>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-[m
+[31m-      {/* 작성 가이드 */}[m
+[31m-      <div className="card">[m
+[31m-        <div className="card-header">[m
+[31m-          <i className="fas fa-info-circle me-1"></i>[m
+[31m-          작성 가이드[m
+[31m-        </div>[m
+[31m-        <div className="card-body">[m
+[31m-          <div className="row">[m
+[31m-            <div className="col-md-6">[m
+[31m-              <h6>게시글 작성 시 주의사항</h6>[m
+[31m-              <ul className="small text-muted">[m
+[31m-                <li>제목과 내용은 필수 입력 항목입니다.</li>[m
+[31m-                <li>상대방을 배려하는 언어를 사용해주세요.</li>[m
+[31m-                <li>광고성 게시글은 삭제될 수 있습니다.</li>[m
+[31m-                <li>저작권을 침해하는 내용은 금지됩니다.</li>[m
+[31m-              </ul>[m
+[31m-            </div>[m
+[31m-            <div className="col-md-6">[m
+[31m-              <h6>마크다운 문법 예시</h6>[m
+[31m-              <ul className="small text-muted">[m
+[31m-                <li><code>**굵은 글씨**</code> → <strong>굵은 글씨</strong></li>[m
+[31m-                <li><code>*기울임*</code> → <em>기울임</em></li>[m
+[31m-                <li><code>`코드`</code> → <code>코드</code></li>[m
+[31m-                <li><code>- 목록 항목</code> → 불릿 목록</li>[m
+[31m-              </ul>[m
+[31m-            </div>[m
+[31m-          </div>[m
+[31m-        </div>[m
+[31m-      </div>[m
+[31m-    </div>[m
+[31m-  );[m
+[31m-};[m
+[31m-[m
+[31m-export default BoardWrite;[m
+\ No newline at end of file[m
+[1mdiff --git a/src/pages/join.js b/src/pages/join.js[m
+[1mindex 250fe4c..e8e6b1e 100644[m
+[1m--- a/src/pages/join.js[m
+[1m+++ b/src/pages/join.js[m
+[36m@@ -1,25 +1,25 @@[m
+ import React, { useState, useEffect } from 'react';[m
+ import { User, BookOpen } from 'lucide-react';[m
+ import { useParams, useNavigate } from 'react-router-dom';[m
+[31m-import DaumPostcode from 'react-daum-postcode';[m
+ [m
+ export default function Join() {[m
+   const { role } = useParams();[m
+   const navigate = useNavigate();[m
+[31m-  const [openPostcode, setOpenPostcode] = useState(false);[m
+[32m+[m[41m  [m
+   const [selectedRole, setSelectedRole] = useState('');[m
+   [m
+[32m+[m[32m  // ✅ DTO 필드명과 정확히 일치하도록 수정[m
+   const [formData, setFormData] = useState({[m
+[31m-    user_id: '',[m
+[31m-    name: '',[m
+[31m-    email: '',[m
+[31m-    pw: '',[m
+[31m-    confirmPassword: '',[m
+[31m-    phone: '',[m
+[31m-    birthday: '',[m
+[31m-    address1: '',       // 기본주소[m
+[31m-    address2: '',       // 상세주소[m
+[31m-    addressnum: ''      // 우편번호[m
+[32m+[m[32m    user_id: '',        // DTO: getUser_id()[m
+[32m+[m[32m    name: '',           // DTO: getName()[m
+[32m+[m[32m    email: '',          // DTO: getEmail()[m
+[32m+[m[32m    pw: '',            // DTO: getPw()[m
+[32m+[m[32m    confirmPassword: '', // DTO: getConfirmPassword()[m
+[32m+[m[32m    phone: '',          // DTO: getPhone()[m
+[32m+[m[32m    birthday: '',       // DTO: getBirthday()[m
+[32m+[m[32m    address1: '',       // DTO: getAddress1()[m
+[32m+[m[32m    address2: '',       // DTO: getAddress2()[m
+[32m+[m[32m    addressnum: ''       // DTO: getAdressnum() (DB 컬럼명과 일치)[m
+   });[m
+ [m
+   useEffect(() => {[m
+[36m@@ -43,115 +43,87 @@[m [mexport default function Join() {[m
+     });[m
+   };[m
+ [m
+[31m-const handleSubmit = async (e) => {[m
+[31m-  e.preventDefault();[m
+[31m-  [m
+[31m-  // 비밀번호 검증[m
+[31m-  if (formData.pw !== formData.confirmPassword) {[m
+[31m-    alert('비밀번호가 일치하지 않습니다.');[m
+[31m-    return;[m
+[31m-  }[m
+[31m-[m
+[31m-  if (formData.pw.length < 8) {[m
+[31m-    alert('비밀번호는 8자리 이상이어야 합니다.');[m
+[31m-    return;[m
+[31m-  }[m
+[31m-[m
+[31m-  // ✅ 필수 필드 수정 (address2 제외)[m
+[31m-  const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];[m
+[31m-  for (let field of requiredFields) {[m
+[31m-    if (!formData[field] || !formData[field].toString().trim()) {[m
+[31m-      alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);[m
+[32m+[m[32m  const handleSubmit = async (e) => {[m
+[32m+[m[32m    e.preventDefault();[m
+[32m+[m[41m    [m
+[32m+[m[32m    // ✅ 올바른 필드명으로 검증[m
+[32m+[m[32m    if (formData.pw !== formData.confirmPassword) {[m
+[32m+[m[32m      alert('비밀번호가 일치하지 않습니다.');[m
+       return;[m
+     }[m
+[31m-  }[m
+[31m-[m
+[31m-  try {[m
+[31m-    const endpoint = selectedRole === 'student' [m
+[31m-      ? 'http://localhost:8080/join/signup/student'[m
+[31m-      : 'http://localhost:8080/join/signup/teacher';[m
+[31m-[m
+[31m-    console.log('=== 전송할 데이터 확인 ===');[m
+[31m-    console.log('user_id:', formData.user_id);[m
+[31m-    console.log('pw:', formData.pw ? '***있음***' : 'NULL');[m
+[31m-    console.log('전체 데이터:', formData);[m
+[31m-    console.log('전송 URL:', endpoint);[m
+[31m-[m
+[31m-    const response = await fetch(endpoint, {[m
+[31m-      method: 'POST',[m
+[31m-      headers: {[m
+[31m-        'Content-Type': 'application/json',[m
+[31m-      },[m
+[31m-      credentials: 'include',[m
+[31m-      body: JSON.stringify(formData)[m
+[31m-    });[m
+[31m-[m
+[31m-    console.log('응답 상태:', response.status);[m
+[31m-    console.log('응답 헤더:', [...response.headers.entries()]);[m
+ [m
+[31m-    // ✅ 상세한 에러 처리[m
+[31m-    if (response.status === 403) {[m
+[31m-      alert('접근 권한이 없습니다. 서버 설정을 확인해주세요.');[m
+[32m+[m[32m    if (formData.pw.length < 8) {[m
+[32m+[m[32m      alert('비밀번호는 8자리 이상이어야 합니다.');[m
+       return;[m
+     }[m
+ [m
+[31m-    // ✅ JSON 응답 확인[m
+[31m-    const contentType = response.headers.get('content-type');[m
+[31m-    console.log('Content-Type:', contentType);[m
+[31m-[m
+[31m-    if (!contentType || !contentType.includes('application/json')) {[m
+[31m-      const textResponse = await response.text();[m
+[31m-      console.log('서버 응답 (텍스트):', textResponse);[m
+[31m-      alert('서버에서 예상하지 못한 응답을 받았습니다.');[m
+[31m-      return;[m
+[32m+[m[32m    // ✅ 올바른 필드명으로 필수 검사[m
+[32m+[m[32m    const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'addressnum', 'address1'];[m
+[32m+[m[32m    for (let field of requiredFields) {[m
+[32m+[m[32m      if (!formData[field] || !formData[field].toString().trim()) {[m
+[32m+[m[32m        alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);[m
+[32m+[m[32m        return;[m
+[32m+[m[32m      }[m
+     }[m
+ [m
+[31m-    const data = await response.json();[m
+[31m-    console.log('서버 응답 데이터:', data);[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const endpoint = selectedRole === 'student'[m[41m [m
+[32m+[m[32m        ? 'http://localhost:8080/join/signup/student'[m
+[32m+[m[32m        : 'http://localhost:8080/join/signup/teacher';[m
+ [m
+[31m-    if (response.ok) {[m
+[31m-      alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);[m
+[31m-      navigate('/');[m
+[31m-    } else {[m
+[31m-      if (data.message) {[m
+[31m-        alert(data.message);[m
+[32m+[m[32m      console.log('=== 전송할 데이터 확인 ===');[m
+[32m+[m[32m      console.log('user_id:', formData.user_id);[m
+[32m+[m[32m      console.log('pw:', formData.pw ? '***있음***' : 'NULL');[m
+[32m+[m[32m      console.log('전체 데이터:', formData);[m
+[32m+[m[32m      console.log('전송 URL:', endpoint);[m
+[32m+[m
+[32m+[m[32m      const response = await fetch(endpoint, {[m
+[32m+[m[32m        method: 'POST',[m
+[32m+[m[32m        headers: {[m
+[32m+[m[32m          'Content-Type': 'application/json',[m
+[32m+[m[32m        },[m
+[32m+[m[32m        credentials: 'include',[m
+[32m+[m[32m        body: JSON.stringify(formData)[m
+[32m+[m[32m      });[m
+[32m+[m
+[32m+[m[32m      console.log('응답 상태:', response.status);[m
+[32m+[m
+[32m+[m[32m      if (response.ok) {[m
+[32m+[m[32m        const data = await response.json();[m
+[32m+[m[32m        alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);[m
+[32m+[m[32m        console.log('회원가입 성공:', data);[m
+[32m+[m[32m        navigate('/');[m
+       } else {[m
+[31m-        alert('회원가입에 실패했습니다.');[m
+[32m+[m[32m        const errorData = await response.json();[m
+[32m+[m[32m        console.error('회원가입 실패:', errorData);[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (errorData.message) {[m
+[32m+[m[32m          alert(errorData.message);[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m          alert('회원가입에 실패했습니다.');[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (errorData.errors) {[m
+[32m+[m[32m          console.log('유효성 검사 에러:', errorData.errors);[m
+[32m+[m[32m        }[m
+       }[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      console.error('네트워크 에러:', error);[m
+[32m+[m[32m      alert('서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.');[m
+     }[m
+[31m-  } catch (error) {[m
+[31m-    console.error('상세 오류:', error);[m
+[31m-    alert(`오류 발생: ${error.message}`);[m
+[31m-  }[m
+[31m-};[m
+[31m-const getFieldName = (field) => {[m
+[31m-  const fieldNames = {[m
+[31m-    'user_id': '아이디',[m
+[31m-    'name': '이름',[m
+[31m-    'email': '이메일',[m
+[31m-    'phone': '전화번호',[m
+[31m-    'birthday': '생년월일',[m
+[31m-    'addressnum': '우편번호',[m
+[31m-    'address1': '기본주소',[m
+[31m-    'address2': '상세주소'  // 추가[m
+[31m-  };[m
+[31m-  return fieldNames[field] || field;[m
+[31m-};[m
+[31m-[m
+[31m-  const handleAddressSearch = () => {[m
+[31m-    setOpenPostcode(true);[m
+   };[m
+ [m
+[31m-  const handleAddressComplete = (data) => {[m
+[31m-    console.log('선택된 주소:', data);[m
+[31m-    [m
+[31m-    setFormData(prev => ({[m
+[31m-      ...prev,[m
+[31m-      addressnum: data.zonecode,     // 우편번호[m
+[31m-      address1: data.address         // 기본주소 (도로명주소 또는 지번주소)[m
+[31m-    }));[m
+[31m-    [m
+[31m-    setOpenPostcode(false);[m
+[32m+[m[32m  const getFieldName = (field) => {[m
+[32m+[m[32m    const fieldNames = {[m
+[32m+[m[32m      'user_id': '아이디',[m
+[32m+[m[32m      'name': '이름',[m
+[32m+[m[32m      'email': '이메일',[m
+[32m+[m[32m      'phone': '전화번호',[m
+[32m+[m[32m      'birthday': '생년월일',[m
+[32m+[m[32m      'addressnum': '우편번호',[m
+[32m+[m[32m      'address1': '기본주소'[m
+[32m+[m[32m    };[m
+[32m+[m[32m    return fieldNames[field] || field;[m
+   };[m
+ [m
+   return ([m
+[36m@@ -160,11 +132,11 @@[m [mconst getFieldName = (field) => {[m
+         <div className="card-body p-4 d-flex flex-column justify-content-center">[m
+           <div className="text-center mb-5">[m
+             {!selectedRole && ([m
+[31m-              <div className="text-center mb-4">[m
+[31m-                <h2>회원가입</h2>[m
+[31m-                <p>가입하실 유형을 선택해주세요</p>[m
+[32m+[m[32m                  <div className="text-center mb-4">[m
+[32m+[m[32m                  <h2>회원가입</h2>[m
+[32m+[m[32m                  <p>가입하실 유형을 선택해주세요</p>[m
+               </div>[m
+[31m-            )}[m
+[32m+[m[32m              )}[m
+           </div>[m
+ [m
+           {!selectedRole ? ([m
+[36m@@ -281,7 +253,7 @@[m [mconst getFieldName = (field) => {[m
+                 </button>[m
+               </div>[m
+ [m
+[31m-              {/* 기본 정보 */}[m
+[32m+[m[32m              {/* ✅ 기본 정보 - 필드명 수정 */}[m
+               <div className="row">[m
+                 <div className="col-md-6">[m
+                   <div className="mb-2">[m
+[36m@@ -373,13 +345,14 @@[m [mconst getFieldName = (field) => {[m
+                         id="addressnum"[m
+                         name="addressnum"[m
+                         value={formData.addressnum}[m
+[31m-                        readOnly[m
+[32m+[m[32m                        onChange={handleInputChange}[m
+[32m+[m[32m                        required[m
+                         placeholder="우편번호"[m
+                       />[m
+                       <button [m
+                         type="button" [m
+                         className="btn btn-outline-secondary"[m
+[31m-                        onClick={handleAddressSearch}[m
+[32m+[m[32m                        onClick={() => alert('우편번호 검색 기능')}[m
+                       >[m
+                         검색[m
+                       </button>[m
+[36m@@ -398,8 +371,9 @@[m [mconst getFieldName = (field) => {[m
+                       id="address1"[m
+                       name="address1"[m
+                       value={formData.address1}[m
+[31m-                      readOnly[m
+[31m-                      placeholder="주소 검색 버튼을 클릭하세요"[m
+[32m+[m[32m                      onChange={handleInputChange}[m
+[32m+[m[32m                      required[m
+[32m+[m[32m                      placeholder="기본주소를 입력하세요"[m
+                     />[m
+                   </div>[m
+                 </div>[m
+[36m@@ -416,7 +390,7 @@[m [mconst getFieldName = (field) => {[m
+                       name="address2"[m
+                       value={formData.address2}[m
+                       onChange={handleInputChange}[m
+[31m-                      placeholder="상세주소를 입력하세요 (예: 아파트동호수, 건물명 등)"[m
+[32m+[m[32m                      placeholder="상세주소를 입력하세요"[m
+                     />[m
+                   </div>[m
+                 </div>[m
+[36m@@ -478,7 +452,7 @@[m [mconst getFieldName = (field) => {[m
+                     className="btn btn-outline-secondary w-100"[m
+                     onClick={() => {[m
+                       setSelectedRole('');[m
+[31m-                      navigate('');[m
+[32m+[m[32m                      navigate('/join');[m
+                     }}[m
+                   >[m
+                     이전으로[m
+[36m@@ -488,39 +462,6 @@[m [mconst getFieldName = (field) => {[m
+             </div>[m
+           )}[m
+ [m
+[31m-          {/* 카카오 주소 API 모달 */}[m
+[31m-          {openPostcode && ([m
+[31m-            <div [m
+[31m-              className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"[m
+[31m-              style={{ [m
+[31m-                backgroundColor: 'rgba(0,0,0,0.5)', [m
+[31m-                zIndex: 9999 [m
+[31m-              }}[m
+[31m-              onClick={() => setOpenPostcode(false)}[m
+[31m-            >[m
+[31m-              <div [m
+[31m-                className="bg-white rounded shadow-lg"[m
+[31m-                style={{ width: '500px', height: '600px' }}[m
+[31m-                onClick={(e) => e.stopPropagation()}[m
+[31m-              >[m
+[31m-                <div className="d-flex justify-content-between align-items-center p-3 border-bottom">[m
+[31m-                  <h5 className="mb-0">주소 검색</h5>[m
+[31m-                  <button [m
+[31m-                    type="button" [m
+[31m-                    className="btn-close"[m
+[31m-                    onClick={() => setOpenPostcode(false)}[m
+[31m-                  ></button>[m
+[31m-                </div>[m
+[31m-                <div style={{ height: '550px' }}>[m
+[31m-                  <DaumPostcode[m
+[31m-                    onComplete={handleAddressComplete}[m
+[31m-                    style={{ width: '100%', height: '100%' }}[m
+[31m-                  />[m
+[31m-                </div>[m
+[31m-              </div>[m
+[31m-            </div>[m
+[31m-          )}[m
+[31m-[m
+           <div className="text-center mt-4">[m
+             <p className="text-muted fs-6 mb-0">[m
+               이미 계정이 있으신가요? [m
+[1mdiff --git a/src/routes/BoardRoutes.js b/src/routes/BoardRoutes.js[m
+[1mindex a34607f..73bfba8 100644[m
+[1m--- a/src/routes/BoardRoutes.js[m
+[1m+++ b/src/routes/BoardRoutes.js[m
+[36m@@ -1,8 +1,6 @@[m
+ import { Routes, Route } from 'react-router-dom';[m
+ import Layout from '../layout/Layout';[m
+ import BoardList from '../pages/board/List';[m
+[31m-import BoardDetail from '../pages/board/Detail'[m
+[31m-import BoardWrite from "../pages/board/Write"[m
+ [m
+ const BoardRouters = () => {[m
+     return ([m
+[36m@@ -18,28 +16,7 @@[m [mconst BoardRouters = () => {[m
+                         </div>[m
+                     </div>[m
+                 }/>[m
+[31m-            {/* 게시물 상세 */}[m
+[31m-            <Route path='/detail/:boardId' element={[m
+[31m-                <div className="row">[m
+[31m-                    <div className="col-lg-12">[m
+[31m-                        <div className="card shadow mb-4">[m
+[31m-                            <BoardDetail />[m
+[31m-                        </div>[m
+[31m-                    </div>[m
+[31m-                </div>[m
+[31m-            }/>[m
+[31m-            {/* 게시글 작성 */}[m
+[31m-            <Route path='/write' element={[m
+[31m-                <div className="row">[m
+[31m-                    <div className="col-lg-12">[m
+[31m-                        <div className="card shadow mb-4">[m
+[31m-                            <BoardWrite />[m
+[31m-                        </div>[m
+[31m-                    </div>[m
+[31m-                </div>[m
+[31m-            }/>[m
+             </Route>[m
+[31m-[m
+         </Routes>[m
+     )[m
+ };  [m

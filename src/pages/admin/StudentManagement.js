@@ -9,18 +9,30 @@ const StudentManagement = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const { user } = useAuth();
 
-  // 페이징 관련 상태
+  // 페이징 관련 상태 (10개 고정)
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPage = 10; // 고정값
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   // 관리자 권한 확인
   const isAdmin = () => user?.position === '3' || user?.position === 'admin';
 
-  // 학생 목록 가져오기
+  // 학생 목록 가져오기 (서버 페이징)
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/admin/students', {
+      
+      // 페이징 파라미터를 URL에 추가
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        size: itemsPerPage.toString(),
+        search: searchTerm || ''
+      });
+      
+      console.log('API 요청 URL:', `http://localhost:8080/api/admin/students?${params}`);
+      
+      const response = await fetch(`http://localhost:8080/api/admin/students?${params}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -30,9 +42,14 @@ const StudentManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('API 응답 데이터:', data);
+        
         setStudents(data.data || []);
+        setCurrentPage(data.currentPage || 1);
+        setTotalPages(data.totalPages || 0);
+        setTotalElements(data.totalElements || 0);
       } else {
-        console.error('학생 목록 가져오기 실패');
+        console.error('학생 목록 가져오기 실패:', response.status);
         setStudents([]);
       }
     } catch (error) {
@@ -40,36 +57,6 @@ const StudentManagement = () => {
       setStudents([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 학생 상태 변경
-  const toggleStudentStatus = async (userId, currentStatus) => {
-    if (!window.confirm(`이 학생을 ${currentStatus === 'ACTIVE' ? '비활성화' : '활성화'}하시겠습니까?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:8080/api/admin/users/${userId}/toggle-status`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
-        })
-      });
-
-      if (response.ok) {
-        fetchStudents();
-        alert('학생 상태가 변경되었습니다.');
-      } else {
-        alert('상태 변경에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('상태 변경 오류:', error);
-      alert('상태 변경 중 오류가 발생했습니다.');
     }
   };
 
@@ -89,8 +76,8 @@ const StudentManagement = () => {
       });
 
       if (response.ok) {
-        fetchStudents();
         alert('학생이 삭제되었습니다.');
+        fetchStudents(); // 현재 페이지 다시 로드
       } else {
         alert('학생 삭제에 실패했습니다.');
       }
@@ -100,78 +87,52 @@ const StudentManagement = () => {
     }
   };
 
-  // 데이터 필터링
-  const filterData = (data) => {
-    return data.filter(item =>
-      item.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // 검색어 변경 시 첫 페이지로 이동
+  const handleSearchChange = (term) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
   };
 
-  // 데이터 정렬
-  const sortData = (data) => {
-    return [...data].sort((a, b) => {
-      const aValue = a[sortBy] || '';
-      const bValue = b[sortBy] || '';
-      
-      if (sortOrder === 'asc') {
-        return aValue.toString().localeCompare(bValue.toString());
-      } else {
-        return bValue.toString().localeCompare(aValue.toString());
-      }
-    });
+  // 페이지 크기 변경 함수 제거 (10개 고정이므로 불필요)
+  
+  // 페이지 변경
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
-  // 정렬 변경
-  const handleSort = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-   // 페이징 계산
-  const filteredData = filterData(students);
-  const sortedData = sortData(filteredData);
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
-
-  // 페이지 번호 배열 생성 (최대 5개 페이지만 표시)
+  // 페이지 번호 배열 생성 (최대 5개 페이지 표시, 현재 페이지 중심)
   const getPageNumbers = () => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-
-    for (let i = Math.max(2, currentPage - delta); 
-         i <= Math.min(totalPages - 1, currentPage + delta); 
-         i++) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
+    const maxVisiblePages = 5;
+    const pages = [];
+    
+    if (totalPages <= maxVisiblePages) {
+      // 총 페이지가 5개 이하면 모두 표시
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
     } else {
-      rangeWithDots.push(1);
+      // 총 페이지가 5개 초과면 현재 페이지 기준으로 조정
+      const half = Math.floor(maxVisiblePages / 2);
+      let start = Math.max(1, currentPage - half);
+      let end = Math.min(totalPages, start + maxVisiblePages - 1);
+      
+      // 끝에서 조정이 필요한 경우
+      if (end - start + 1 < maxVisiblePages) {
+        start = Math.max(1, end - maxVisiblePages + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
     }
-
-    rangeWithDots.push(...range);
-
-    if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
-    } else {
-      rangeWithDots.push(totalPages);
-    }
-
-    return rangeWithDots;
+    
+    return pages;
   };
 
-  // 컴포넌트 마운트 시 데이터 로드
+  // 컴포넌트 마운트 시 및 페이징 상태 변경 시 데이터 로드
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [currentPage, searchTerm]); // itemsPerPage 제거
 
   // 관리자 권한 확인
   if (!isAdmin()) {
@@ -197,7 +158,7 @@ const StudentManagement = () => {
 
       {/* 학생 통계 카드 */}
       <div className="row mb-4">
-        <div className="col-xl-3 col-md-6 mb-4">
+        <div className="col-xl-4 col-md-6 mb-4">
           <div className="card border-left-primary shadow h-100 py-2">
             <div className="card-body">
               <div className="row no-gutters align-items-center">
@@ -206,11 +167,51 @@ const StudentManagement = () => {
                     전체 학생
                   </div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {students.length}명
+                    {totalElements}명
                   </div>
                 </div>
                 <div className="col-auto">
                   <i className="fas fa-user-graduate fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-xl-4 col-md-6 mb-4">
+          <div className="card border-left-info shadow h-100 py-2">
+            <div className="card-body">
+              <div className="row no-gutters align-items-center">
+                <div className="col mr-2">
+                  <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                    현재 페이지
+                  </div>
+                  <div className="h5 mb-0 font-weight-bold text-gray-800">
+                    {students.length}명
+                  </div>
+                </div>
+                <div className="col-auto">
+                  <i className="fas fa-list fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-xl-4 col-md-6 mb-4">
+          <div className="card border-left-success shadow h-100 py-2">
+            <div className="card-body">
+              <div className="row no-gutters align-items-center">
+                <div className="col mr-2">
+                  <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                    총 페이지
+                  </div>
+                  <div className="h5 mb-0 font-weight-bold text-gray-800">
+                    {totalPages}페이지
+                  </div>
+                </div>
+                <div className="col-auto">
+                  <i className="fas fa-file-alt fa-2x text-gray-300"></i>
                 </div>
               </div>
             </div>
@@ -239,7 +240,7 @@ const StudentManagement = () => {
                   className="form-control"
                   placeholder="학생 ID, 이름, 이메일로 검색..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
             </div>
@@ -269,7 +270,8 @@ const StudentManagement = () => {
               <div className="row mb-3">
                 <div className="col-md-6">
                   <small className="text-muted">
-                    총 {students.length}명 중 {filteredData.length}명 표시
+                    총 {totalElements}명 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalElements)}명 표시 
+                    (페이지 {currentPage}/{totalPages})
                   </small>
                 </div>
               </div>
@@ -279,41 +281,17 @@ const StudentManagement = () => {
                 <table className="table table-bordered table-hover">
                   <thead className="thead-light">
                     <tr>
-                      <th 
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleSort('userId')}
-                      >
-                        학생 ID
-                        {sortBy === 'userId' && (
-                          <i className={`fas fa-sort-${sortOrder === 'asc' ? 'up' : 'down'} ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleSort('name')}
-                      >
-                        이름
-                        {sortBy === 'name' && (
-                          <i className={`fas fa-sort-${sortOrder === 'asc' ? 'up' : 'down'} ml-1`}></i>
-                        )}
-                      </th>
-                      <th 
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleSort('email')}
-                      >
-                        이메일
-                        {sortBy === 'email' && (
-                          <i className={`fas fa-sort-${sortOrder === 'asc' ? 'up' : 'down'} ml-1`}></i>
-                        )}
-                      </th>
+                      <th>학생 ID</th>
+                      <th>이름</th>
+                      <th>이메일</th>
                       <th>전화번호</th>
                       <th>생년월일</th>
                       <th>관리</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedData.length > 0 ? (
-                      sortedData.map((student, index) => (
+                    {students.length > 0 ? (
+                      students.map((student, index) => (
                         <tr key={student.userId || index}>
                           <td className="font-weight-bold">{student.userId}</td>
                           <td>{student.name}</td>
@@ -321,21 +299,20 @@ const StudentManagement = () => {
                           <td>{student.phone || '-'}</td>
                           <td>{student.birthday ? new Date(student.birthday).toLocaleDateString() : '-'}</td>
                           <td>
-                            <div className="btn-group" role="group">
-                              <button
-                                className="btn btn-sm btn-danger"
-                                onClick={() => deleteStudent(student.userId)}
-                                title="삭제"
-                              >삭제
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </div>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => deleteStudent(student.userId)}
+                              title="삭제"
+                            >
+                              <i className="fas fa-trash mr-1"></i>
+                              삭제
+                            </button>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="text-center py-4">
+                        <td colSpan="6" className="text-center py-4">
                           {searchTerm ? '검색 결과가 없습니다.' : '등록된 학생이 없습니다.'}
                         </td>
                       </tr>
@@ -343,52 +320,69 @@ const StudentManagement = () => {
                   </tbody>
                 </table>
               </div>
-            {/* 페이징 */}
-              {totalPages > 1 && (
-                <nav aria-label="Page navigation">
-                  <ul className="pagination justify-content-center">
-                    {/* 이전 페이지 */}
-                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                      <button
-                        className="page-link"
-                        onClick={() => setCurrentPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        <i className="fas fa-chevron-left"></i>
-                      </button>
-                    </li>
 
-                    {/* 페이지 번호들 */}
-                    {getPageNumbers().map((pageNumber, index) => (
-                      <li 
-                        key={index} 
-                        className={`page-item ${pageNumber === '...' ? 'disabled' : ''} ${pageNumber === currentPage ? 'active' : ''}`}
-                      >
-                        {pageNumber === '...' ? (
-                          <span className="page-link">...</span>
-                        ) : (
+              {/* 페이징 */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center align-items-center mt-4">
+                  <nav aria-label="Page navigation">
+                    <ul className="pagination mb-0">
+                      {/* 이전 페이지 */}
+                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                        <button
+                          className="page-link border-0 bg-transparent"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          style={{ 
+                            color: currentPage === 1 ? '#6c757d' : '#007bff',
+                            fontSize: '18px',
+                            padding: '8px 12px'
+                          }}
+                        >
+                          <i className="fas fa-chevron-left"></i>
+                        </button>
+                      </li>
+
+                      {/* 페이지 번호들 (최대 5개) */}
+                      {getPageNumbers().map((pageNumber) => (
+                        <li key={pageNumber} className="page-item mx-1">
                           <button
-                            className="page-link"
-                            onClick={() => setCurrentPage(pageNumber)}
+                            className={`page-link border-0 ${
+                              pageNumber === currentPage 
+                                ? 'bg-primary text-white' 
+                                : 'bg-transparent text-primary'
+                            }`}
+                            onClick={() => handlePageChange(pageNumber)}
+                            style={{
+                              minWidth: '40px',
+                              height: '40px',
+                              borderRadius: '6px',
+                              fontWeight: pageNumber === currentPage ? 'bold' : 'normal',
+                              boxShadow: pageNumber === currentPage ? '0 2px 4px rgba(0,123,255,0.3)' : 'none'
+                            }}
                           >
                             {pageNumber}
                           </button>
-                        )}
-                      </li>
-                    ))}
+                        </li>
+                      ))}
 
-                    {/* 다음 페이지 */}
-                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                      <button
-                        className="page-link"
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        <i className="fas fa-chevron-right"></i>
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
+                      {/* 다음 페이지 */}
+                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                        <button
+                          className="page-link border-0 bg-transparent"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          style={{ 
+                            color: currentPage === totalPages ? '#6c757d' : '#007bff',
+                            fontSize: '18px',
+                            padding: '8px 12px'
+                          }}
+                        >
+                          <i className="fas fa-chevron-right"></i>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
               )}
             </>
           )}

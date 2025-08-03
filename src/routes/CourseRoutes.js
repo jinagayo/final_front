@@ -5,6 +5,8 @@ import CourseList from '../pages/course/List';
 import CourseDetail from '../pages/course/Detail';
 import CoursePayment from '../pages/course/Payment';
 import CoursePaymentEnd from '../pages/course/PaymentEnd';
+import CourseApplicationList from '../pages/course/teacher/List';
+import CourseApplication from '../pages/course/teacher/Application';
 
 function CourseRoutes() {
   return (
@@ -46,8 +48,29 @@ function CourseRoutes() {
             </div>
           </div>
         } />
+        <Route path="/teacher/List" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CourseApplicationList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="/teacher/Application" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <CourseApplication />
+              </div>
+            </div>
+          </div>
+        } />
       </Route>
 
+
+      
+      
       
     </Routes>
   );

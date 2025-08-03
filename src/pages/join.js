@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { User, BookOpen } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import DaumPostcode from 'react-daum-postcode';
 
 export default function Join() {
   const { role } = useParams();
   const navigate = useNavigate();
-  
+  const [openPostcode, setOpenPostcode] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   
-  // ✅ DTO 필드명과 정확히 일치하도록 수정
   const [formData, setFormData] = useState({
-    user_id: '',        // DTO: getUser_id()
-    name: '',           // DTO: getName()
-    email: '',          // DTO: getEmail()
-    pw: '',            // DTO: getPw()
-    confirmPassword: '', // DTO: getConfirmPassword()
-    phone: '',          // DTO: getPhone()
-    birthday: '',       // DTO: getBirthday()
-    address1: '',       // DTO: getAddress1()
-    address2: '',       // DTO: getAddress2()
-    addressnum: ''       // DTO: getAdressnum() (DB 컬럼명과 일치)
+    user_id: '',
+    name: '',
+    email: '',
+    pw: '',
+    confirmPassword: '',
+    phone: '',
+    birthday: '',
+    address1: '',       // 기본주소
+    address2: '',       // 상세주소
+    addressnum: ''      // 우편번호
   });
 
   useEffect(() => {
@@ -43,87 +43,103 @@ export default function Join() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // ✅ 올바른 필드명으로 검증
-    if (formData.pw !== formData.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // 비밀번호 검증
+  if (formData.pw !== formData.confirmPassword) {
+    alert('비밀번호가 일치하지 않습니다.');
+    return;
+  }
+
+  if (formData.pw.length < 8) {
+    alert('비밀번호는 8자리 이상이어야 합니다.');
+    return;
+  }
+
+  // ✅ 필수 필드 수정 (address2 제외)
+  const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];
+  for (let field of requiredFields) {
+    if (!formData[field] || !formData[field].toString().trim()) {
+      alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
+      return;
+    }
+  }
+
+  try {
+    const endpoint = selectedRole === 'student' 
+      ? 'http://localhost:8080/join/signup/student'
+      : 'http://localhost:8080/join/signup/teacher';
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(formData)
+    });
+
+    // ✅ 상세한 에러 처리
+    if (response.status === 403) {
+      alert('접근 권한이 없습니다. 서버 설정을 확인해주세요.');
       return;
     }
 
-    if (formData.pw.length < 8) {
-      alert('비밀번호는 8자리 이상이어야 합니다.');
+    // ✅ JSON 응답 확인
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await response.text();
+      alert('서버에서 예상하지 못한 응답을 받았습니다.');
       return;
     }
 
-    // ✅ 올바른 필드명으로 필수 검사
-    const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'addressnum', 'address1'];
-    for (let field of requiredFields) {
-      if (!formData[field] || !formData[field].toString().trim()) {
-        alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
-        return;
-      }
-    }
+    const data = await response.json();
 
-    try {
-      const endpoint = selectedRole === 'student' 
-        ? 'http://localhost:8080/join/signup/student'
-        : 'http://localhost:8080/join/signup/teacher';
-
-      console.log('=== 전송할 데이터 확인 ===');
-      console.log('user_id:', formData.user_id);
-      console.log('pw:', formData.pw ? '***있음***' : 'NULL');
-      console.log('전체 데이터:', formData);
-      console.log('전송 URL:', endpoint);
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      });
-
-      console.log('응답 상태:', response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);
-        console.log('회원가입 성공:', data);
-        navigate('/');
+    if (response.ok) {
+      alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);
+      navigate('/');
+    } else {
+      if (data.message) {
+        alert(data.message);
       } else {
-        const errorData = await response.json();
-        console.error('회원가입 실패:', errorData);
-        
-        if (errorData.message) {
-          alert(errorData.message);
-        } else {
-          alert('회원가입에 실패했습니다.');
-        }
-        
-        if (errorData.errors) {
-          console.log('유효성 검사 에러:', errorData.errors);
-        }
+        alert('회원가입에 실패했습니다.');
       }
-    } catch (error) {
-      console.error('네트워크 에러:', error);
-      alert('서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.');
     }
+  } catch (error) {
+    console.error('상세 오류:', error);
+    alert(`오류 발생: ${error.message}`);
+  }
+};
+const getFieldName = (field) => {
+  const fieldNames = {
+    'user_id': '아이디',
+    'name': '이름',
+    'email': '이메일',
+    'phone': '전화번호',
+    'birthday': '생년월일',
+    'addressnum': '우편번호',
+    'address1': '기본주소',
+    'address2': '상세주소'  // 추가
+  };
+  return fieldNames[field] || field;
+};
+
+  const handleAddressSearch = () => {
+    setOpenPostcode(true);
   };
 
-  const getFieldName = (field) => {
-    const fieldNames = {
-      'user_id': '아이디',
-      'name': '이름',
-      'email': '이메일',
-      'phone': '전화번호',
-      'birthday': '생년월일',
-      'addressnum': '우편번호',
-      'address1': '기본주소'
-    };
-    return fieldNames[field] || field;
+  const handleAddressComplete = (data) => {
+    console.log('선택된 주소:', data);
+    
+    setFormData(prev => ({
+      ...prev,
+      addressnum: data.zonecode,     // 우편번호
+      address1: data.address         // 기본주소 (도로명주소 또는 지번주소)
+    }));
+    
+    setOpenPostcode(false);
   };
 
   return (
@@ -132,11 +148,11 @@ export default function Join() {
         <div className="card-body p-4 d-flex flex-column justify-content-center">
           <div className="text-center mb-5">
             {!selectedRole && (
-                  <div className="text-center mb-4">
-                  <h2>회원가입</h2>
-                  <p>가입하실 유형을 선택해주세요</p>
+              <div className="text-center mb-4">
+                <h2>회원가입</h2>
+                <p>가입하실 유형을 선택해주세요</p>
               </div>
-              )}
+            )}
           </div>
 
           {!selectedRole ? (
@@ -253,7 +269,7 @@ export default function Join() {
                 </button>
               </div>
 
-              {/* ✅ 기본 정보 - 필드명 수정 */}
+              {/* 기본 정보 */}
               <div className="row">
                 <div className="col-md-6">
                   <div className="mb-2">
@@ -345,14 +361,13 @@ export default function Join() {
                         id="addressnum"
                         name="addressnum"
                         value={formData.addressnum}
-                        onChange={handleInputChange}
-                        required
+                        readOnly
                         placeholder="우편번호"
                       />
                       <button 
                         type="button" 
                         className="btn btn-outline-secondary"
-                        onClick={() => alert('우편번호 검색 기능')}
+                        onClick={handleAddressSearch}
                       >
                         검색
                       </button>
@@ -371,9 +386,8 @@ export default function Join() {
                       id="address1"
                       name="address1"
                       value={formData.address1}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="기본주소를 입력하세요"
+                      readOnly
+                      placeholder="주소 검색 버튼을 클릭하세요"
                     />
                   </div>
                 </div>
@@ -390,7 +404,7 @@ export default function Join() {
                       name="address2"
                       value={formData.address2}
                       onChange={handleInputChange}
-                      placeholder="상세주소를 입력하세요"
+                      placeholder="상세주소를 입력하세요 (예: 아파트동호수, 건물명 등)"
                     />
                   </div>
                 </div>
@@ -452,7 +466,7 @@ export default function Join() {
                     className="btn btn-outline-secondary w-100"
                     onClick={() => {
                       setSelectedRole('');
-                      navigate('/join');
+                      navigate('');
                     }}
                   >
                     이전으로
@@ -462,10 +476,43 @@ export default function Join() {
             </div>
           )}
 
+          {/* 카카오 주소 API 모달 */}
+          {openPostcode && (
+            <div 
+              className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+              style={{ 
+                backgroundColor: 'rgba(0,0,0,0.5)', 
+                zIndex: 9999 
+              }}
+              onClick={() => setOpenPostcode(false)}
+            >
+              <div 
+                className="bg-white rounded shadow-lg"
+                style={{ width: '500px', height: '600px' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+                  <h5 className="mb-0">주소 검색</h5>
+                  <button 
+                    type="button" 
+                    className="btn-close"
+                    onClick={() => setOpenPostcode(false)}
+                  ></button>
+                </div>
+                <div style={{ height: '550px' }}>
+                  <DaumPostcode
+                    onComplete={handleAddressComplete}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="text-center mt-4">
             <p className="text-muted fs-6 mb-0">
               이미 계정이 있으신가요? 
-              <a href="/login" className="text-primary text-decoration-none ms-1 fs-6">로그인</a>
+              <a href="/auth/login" className="text-primary text-decoration-none ms-1 fs-6">로그인</a>
             </p>
           </div>
         </div>

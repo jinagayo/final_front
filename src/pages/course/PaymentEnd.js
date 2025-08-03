@@ -6,7 +6,7 @@ const PaymentEnd = () => {
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const class_id = params.get('class_id');
-
+    const navigate = useNavigate(); 
 
     useEffect(() => {
         if (!class_id) return;
@@ -23,11 +23,6 @@ const PaymentEnd = () => {
     },[class_id]);
     
 
-
-    const navigate = (path) => {
-        console.log(`Navigate to: ${path}`);
-        // 실제로는 useNavigate()(path) 형태로 사용
-    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
@@ -73,7 +68,7 @@ const PaymentEnd = () => {
                     <button
                         className="btn btn-outline-secondary payment-end-button"
                         style={{margin:"5px"}}
-                        onClick={() => navigate('/course/list')} // 강의 목록 경로로 변경
+                        onClick={() => navigate('/course/List')} // 강의 목록 경로로 변경
                     >
                         전체 강의 목록
                     </button>

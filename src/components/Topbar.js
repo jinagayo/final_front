@@ -9,20 +9,9 @@ const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
   };
 
   const actualLoginState = !!(isLoggedIn || (user && (user.user_id || user.userId)));
-  
 
   return (
     <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-      {/* Sidebar Toggle (Topbar) - 모바일용 */}
-      <form className="form-inline">
-        <button 
-          type="button"
-          className="btn btn-link d-md-none rounded-circle mr-3"
-          onClick={onSidebarToggle}
-        >
-          <i className="fa fa-bars"></i>
-        </button>
-      </form>
 
       {/* Logo */}
       <Logo />
@@ -30,20 +19,20 @@ const Topbar = ({ onSidebarToggle, user, isLoggedIn, onLogin, onLogout }) => {
       {/* 중앙 네비게이션 메뉴 영역 */}
       <div className="d-flex align-items-center justify-content-center flex-grow-1">
         <ul className="navbar-nav d-flex flex-row">
-          <li className="nav-item mx-3">
-            <a className="nav-link" href="#">
+          <li className="nav-item mx-4"> {/* Increased mx from 3 to 4 for more space */}
+            <a className="nav-link" href="/course/List">
               <i className="fas fa-users mr-1"></i>
               강의
             </a>
           </li>
-          <li className="nav-item mx-3">
-            <a className="nav-link" href="#">
+          <li className="nav-item mx-4"> {/* Increased mx from 3 to 4 for more space */}
+            <a className="nav-link" href="/board/list?boardnum=BOD003">
               <i className="fas fa-users mr-1"></i>
               커뮤니티
             </a>
           </li>
-          <li className="nav-item mx-3">
-            <a className="nav-link" href="#">
+          <li className="nav-item mx-4"> {/* Increased mx from 3 to 4 for more space */}
+            <a className="nav-link" href="/admin/coding/list">
               <i className="fas fa-users mr-1"></i>
               코딩문제
             </a>

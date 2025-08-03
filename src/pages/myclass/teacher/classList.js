@@ -44,7 +44,6 @@ const TCourseList = () => {
       });
 
       // endpoint를 강사용으로 고정
-
       const response = await fetch(`http://localhost:8080/api/myclass/teacher/classList?${params}`, {
         method: 'GET',
         credentials: 'include',
@@ -73,7 +72,7 @@ const TCourseList = () => {
 
   // 클래스 상세로 이동
   const goToCourseDetail = (classId) => {
-    window.location.href = `/myclass/teacher/classDetail/${classId}`;
+    window.location.href = `/myclass/teacher/classDetail?class_id=${classId}`;
   };
 
   // 검색어 변경
@@ -149,7 +148,7 @@ const TCourseList = () => {
                     <tr 
                       key={course.id || index}
                       style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                      onClick={() => goToCourseDetail(course.class_id)}
+                      onClick={() => goToCourseDetail(course.classId)}
                       onMouseEnter={(e) => e.target.closest('tr').style.backgroundColor = '#f8f9fa'}
                       onMouseLeave={(e) => e.target.closest('tr').style.backgroundColor = 'transparent'}
                     >

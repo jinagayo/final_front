@@ -9,10 +9,11 @@ const PaymentPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [impLoaded, setImpLoaded] = useState(false); // 아임포트 로드 상태 추가
+    
 
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated, isLoading: authLoading } = useAuth();
+    const { isAuthenticated, isLoading: authLoading, user } = useAuth();
     const params = new URLSearchParams(location.search);
     const classId = params.get('class_id');
 
@@ -215,8 +216,11 @@ const PaymentPage = () => {
             axios.post("http://localhost:8080/course/PaymentUpdate", {
                 class_id: course.classId,
                 payment_type:pgMethod,
-                payment_code: rsp.merchant_uid,
-                price: rsp.paid_amount
+                payment_code: rsp.imp_uid,
+                price: rsp.paid_amount,
+                user_id: user?.user_id || user?.id
+            },{
+                 withCredentials: true 
             })
             .then(res => {
                 console.log("백엔드 저장 성공:", res.data);

@@ -11,12 +11,20 @@ const CourseList = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
+
+function getImageUrl(img) {
+  if (!img) return "";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+}
 
   // API에서 강의 목록을 가져오는 함수
   const fetchCourses = async () => {
     try {
       setLoading(true);
       console.log('=== API 요청 시작 ===');
+      
       console.log('요청 URL:', 'http://localhost:8080/course/List');
       
       const response = await fetch('http://localhost:8080/course/List', {
@@ -108,8 +116,6 @@ const CourseList = () => {
     });
     return Array.from(subjects).sort();
   };
-
-  const filterOptions = ['전체', '무료', '유료', '할인'];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -295,12 +301,27 @@ const CourseList = () => {
                         e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
                       }}
                     >
-                      <div className="card-img-top bg-gray-200 d-flex align-items-center justify-content-center" 
-                           style={{ height: '140px', backgroundColor: '#e9ecef' }}>
-                        <div className="w-100 h-100 bg-gray-300" style={{backgroundColor: '#dee2e6'}}>
-                          <img style={{height:'140px', width:'100%'}}src={`/img/${course.img}`} alt={course.name} />
-                        </div>
-                      </div>
+                      <div
+  className="card-img-top bg-gray-200 d-flex align-items-center justify-content-center"
+  style={{
+    height: '140px',
+    backgroundColor: '#e9ecef',
+    overflow: 'hidden',
+    position: 'relative' // (선택) position 설정시 하위 요소 절대위치도 가능
+  }}
+>
+  <img
+    src={getImageUrl(course?.img)}
+    alt={course.title}
+    className="w-100 h-100 img-fluid rounded-top"
+    style={{
+      objectFit: 'cover',
+      width: '100%',
+      height: '100%',
+      display: 'block'
+    }}
+  />
+</div>
                       
                       <div className="card-body p-3">
                         <div className="d-flex align-items-center mb-2">
