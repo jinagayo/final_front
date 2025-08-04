@@ -56,10 +56,23 @@ const Home = () => {
       {/* Large Banner */}
       <div 
         className="relative bg-slate-800 text-white p-8 md:p-12 lg:p-16 cursor-pointer hover:bg-slate-700 transition-colors"
+        style={{
+        height: '300px',      // 배너 영역 고정
+        padding: 0,           // 혹시 p-8 등 패딩 때문에 이미지가 안차보일 수 있음. 필요 없으면 padding:0
+         overflow: 'hidden',   // 이미지 넘치면 잘라내기
+       }}
         onClick={handleGetStartedClick}
+        
       >
       <img 
-        style={{ height: '300px', width: '100%', marginTop:'-24px'}} 
+         style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',       // 요거!
+        objectPosition: 'center', // 중간 잘라서 꽉차게
+        display: 'block',         // 가끔 inline block이라서 생기는 문제 방지
+        marginTop: 0,             // 혹시나 marginTop 있으면 0
+      }}
         src={bannerUrl}
         alt="main"
         onClick={(e) => {

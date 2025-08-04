@@ -12,27 +12,7 @@ const TCourseList = () => {
 
   const { user } = useAuth();
 
-    useEffect(() => {
-    fetchMyCourses();
-    // eslint-disable-next-line
-  }, [currentPage, searchTerm]);
-
-  // 강사 권한 확인 (필요하면 사용)
-  const isTeacher = () => user?.position === '2' || user?.position === 'teacher';
-
-  if (!isTeacher()) {
-    return (
-      <div className="container-fluid px-4 py-5">
-        <div className="alert alert-danger">
-          <i className="fas fa-exclamation-triangle"></i>
-          강사 권한이 필요합니다.
-        </div>
-      </div>
-    );
-  }
-
-
-  // 내 클래스 목록 가져오기
+    // 내 클래스 목록 가져오기
   const fetchMyCourses = async () => {
     try {
       setLoading(true);
@@ -54,6 +34,7 @@ const TCourseList = () => {
 
       if (response.ok) {
         const data = await response.json();
+             console.log(data.data)
         setCourses(data.data || []);
         setCurrentPage(data.currentPage || 1);
         setTotalPages(data.totalPages || 0);
@@ -69,6 +50,26 @@ const TCourseList = () => {
       setLoading(false);
     }
   };
+
+    useEffect(() => {
+    fetchMyCourses();
+    // eslint-disable-next-line
+  }, [currentPage, searchTerm]);
+
+  // 강사 권한 확인 (필요하면 사용)
+  const isTeacher = () => user?.position === '2' || user?.position === 'teacher';
+
+  if (!isTeacher()) {
+    return (
+      <div className="container-fluid px-4 py-5">
+        <div className="alert alert-danger">
+          <i className="fas fa-exclamation-triangle"></i>
+          강사 권한이 필요합니다.
+        </div>
+      </div>
+    );
+  }
+
 
   // 클래스 상세로 이동
   const goToCourseDetail = (classId) => {

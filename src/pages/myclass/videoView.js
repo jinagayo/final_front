@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -6,22 +6,22 @@ import {
   SkipBack, SkipForward, Star, BookOpen, MessageCircle, Download, Clock
 } from 'lucide-react';
 
+
+
 export default function LectureViewer() {
+const lastSentProgress = useRef(0);
+const videoRef = useRef();
  const userId = localStorage.getItem('userId');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const { meterId } = useParams(); 
-  const [classData, setClassData] = useState(null);
-  const [lectures, setLectures] = useState([]);
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentTime, setCurrentTime] = useState(1530); // 25분 30초
-  const [duration] = useState(5400); // 90분
-  const [activeTab, setActiveTab] = useState('overview');
+ const { meterId } = useParams(); 
+ const [classData, setClassData] = useState(null);
+ const [lectures, setLectures] = useState([]);
+ const [isMuted, setIsMuted] = useState(false);
+ const [currentTime, setCurrentTime] = useState(1530); // 25분 30초
+ const [duration] = useState(5400); // 90분
+ const [activeTab, setActiveTab] = useState('overview');
  const [meterial, setMeterial] = useState(null);
-  const [videoUrl, setVideoUrl] = useState('');
-  const [progressInfo, setProgressInfo] = useState({ completed: 0, total: 0 });
-const progressPercent = progressInfo.total > 0
-  ? Math.round((progressInfo.completed / progressInfo.total) * 100)
-  : 0;
+ const [videoUrl, setVideoUrl] = useState('');
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -29,14 +29,21 @@ const progressPercent = progressInfo.total > 0
   };
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
    const BACKEND_URL = 'http://localhost:8080';
-   // 👇 추가!
-const [note, setNote] = useState('');
-const [isNoteLoading, setIsNoteLoading] = useState(false);
-const [noteSaved, setNoteSaved] = useState(false);
-const [isEditMode, setIsEditMode] = useState(false); // 👈 추가
-const [originalNote, setOriginalNote] = useState(''); // 👈 추가
+ const [note, setNote] = useState('');
+ const [isNoteLoading, setIsNoteLoading] = useState(false);
+ const [noteSaved, setNoteSaved] = useState(false);
+ const [isEditMode, setIsEditMode] = useState(false); 
+ const [originalNote, setOriginalNote] = useState('');
 
 console.log("userId: " + userId)
+
+function shouldSendProgress(current) {
+  if (current !== lastSentProgress && current % 5 === 0) {
+    lastSentProgress.current = current;
+    return true;
+  }
+  return false;
+}
 
 // 노트 불러오기
 useEffect(() => {
@@ -116,12 +123,20 @@ useEffect(() => {
 
   const fetchLectures = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/myclass/teacher/class/${meterial.classId}/lectures`, {
-        withCredentials: true,
+      const res = await axios.get(
+        `${BACKEND_URL}/api/myclass/teacher/class/${meterial.classId}/lectures`, 
+        {
+          params: {studentId: userId},
+          withCredentials: true,
       });
+       console.log('📦 강의 목록 응답:', res.data);
       setLectures(res.data.data || []);
     } catch (err) {
-      console.error('강의 목록 로딩 실패:', err);
+       if (err.response) {
+      console.error('강의 목록 로딩 실패:', err.response.status, err.response.data);
+    } else {
+      console.error('강의 목록 로딩 실패:', err.message);
+    }
     }
   };
 
@@ -129,11 +144,9 @@ useEffect(() => {
   fetchLectures();
 }, [meterial]);
 
-useEffect(() => {
-  fetchProgressInfo();
-}, [classData, userId]);
-
 console.log(lectures);
+
+
   useEffect(() => {
     if (!meterial || !meterial.content) return; // 값 없으면 실행 X
 
@@ -152,55 +165,31 @@ console.log(lectures);
   fetchVideoUrl();
 }, [meterial]);
 
-useEffect(() => {
-  if (!classData || !userId) return;
-  axios.get(`${BACKEND_URL}/video/progress/class/${classData.classId}/student/${userId}`, {
-    withCredentials: true
-  }).then(res => {
-    setProgressInfo({
-      completed: res.data.completed,
-      total: res.data.total
-    });
-  }).catch(err => {
-    console.error('진도율 불러오기 실패:', err);
-  });
-}, [classData, userId]);
-console.log('📦 진도율 응답:', progressInfo);
+const completedLectures = lectures.filter(lec => lec.progress >= 50 ).length;
+const totalLectures = lectures.length;
+const progressPercent = totalLectures > 0
+  ? Math.round((completedLectures / totalLectures) * 100)
+  : 0;
 
-const markLectureAsCompleted = async () => {
-  try {
-    console.log('진도완료 호출됨!'); // ← 이게 반드시 찍혀야 함
-    await axios.post(`${BACKEND_URL}/video/progress/complete`, {
-      meterialId: parseInt(meterId), // 백엔드 요구 필드명
-      stdId: userId
-    }, { withCredentials: true });
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    const percent = video.currentTime / video.duration;
+    const rounded = Math.round(percent * 100);
 
-    // 1️⃣ 완료 후 진도율 다시 불러오기
-    fetchProgressInfo();
-    setHasMarkedComplete(true); // 중복 방지
-  } catch (err) {
-    console.error('진도 완료 처리 실패:', err);
+    if(shouldSendProgress(rounded)){
+      sendProgressToServer(rounded);
+    }
+  };
+
+  const sendProgressToServer = async (progress) => {
+    await axios.post(`${BACKEND_URL}/video/progress/update`, {
+      meterialId : meterId,
+      stdId : userId,
+      progress : progress,
+    }, {withCredentials: true});
   }
-};
-
-const fetchProgressInfo = async () => {
-  if (!classData || !userId) return;
-  try {
-    const res = await axios.get(`${BACKEND_URL}/video/progress/class/${classData.classId}/student/${userId}`, {
-      withCredentials: true
-    });
-    setProgressInfo({
-      completed: res.data.completed,
-      total: res.data.total
-    });
-  } catch (err) {
-    console.error('진도율 불러오기 실패:', err);
-  }
-};
 
 
-
-  const progress = (currentTime / duration) * 100;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -231,20 +220,13 @@ const fetchProgressInfo = async () => {
             {/* Video Preview */}
            {videoUrl ? (
               <video
+                 ref={videoRef}
                  src={videoUrl}
                 crossOrigin="anonymous"
                  controls
                   style={{ width: '100%', borderRadius: '10px', marginTop: '20px' }}
-                 onTimeUpdate={e => {
-  const current = e.target.currentTime;
-  const total = e.target.duration;
-  console.log('🔥 onTimeUpdate:', current, total, hasMarkedComplete);
-  if (!hasMarkedComplete) {
-    console.log('🔥 markLectureAsCompleted 실행!');
-    markLectureAsCompleted();
-    setHasMarkedComplete(true);
-  }
-}}
+                  onTimeUpdate={handleTimeUpdate}
+
                />
               ) : (
                <p>동영상을 불러오는 중...</p>
@@ -330,7 +312,7 @@ const fetchProgressInfo = async () => {
   <div className="flex justify-between text-sm mb-1">
     <span>완료한 강의</span>
     <span>
-      {progressInfo.completed}/{lectures.length}
+       {completedLectures}/{totalLectures}
     </span>
   </div>
   <div className="w-full bg-gray-600 h-2 rounded-full mb-1">
