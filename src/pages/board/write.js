@@ -1,10 +1,14 @@
 import React, { useState, useRef } from 'react';
+import FroalaEditorComponent from 'react-froala-wysiwyg';
+
+import 'froala-editor/css/froala_style.min.css';
+import 'froala-editor/css/froala_editor.pkgd.min.css';
 
 const BoardWrite = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    boardnum: 'BOD001', // 기본값: 공지사항
+    boardnum: 'BOD001',
     class_id: '',
     file: null
   });
@@ -12,12 +16,35 @@ const BoardWrite = () => {
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
+  // Froala Editor 설정
+  const froalaConfig = {
+    placeholderText: '게시글 내용을 입력하세요',
+    charCounterCount: true,
+    charCounterMax: 10000,
+    height: 300,
+    toolbarButtons: {
+      'moreText': {
+        'buttons': ['bold', 'italic', 'underline', 'strikeThrough', 'fontSize', 'textColor', 'backgroundColor', 'clearFormatting']
+      },
+      'moreParagraph': {
+        'buttons': ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify', 'formatOLSimple', 'formatUL', 'outdent', 'indent']
+      },
+      'moreRich': {
+        'buttons': ['insertLink', 'insertImage', 'insertTable', 'insertHR']
+      },
+      'moreMisc': {
+        'buttons': ['undo', 'redo', 'fullscreen', 'html']
+      }
+    }
+  };
+
   // URL에서 boardnum 파라미터 가져오기
   const urlParams = new URLSearchParams(window.location.search);
   const boardnumFromUrl = urlParams.get('boardnum') || 'BOD001';
+  
   React.useEffect(() => {
-    console.log('URL에서 가져온 boardnum:', boardnumFromUrl); // 디버깅 추가
-    console.log('현재 formData.boardnum:', formData.boardnum); // 디버깅 추가
+    console.log('URL에서 가져온 boardnum:', boardnumFromUrl);
+    console.log('현재 formData.boardnum:', formData.boardnum);
     setFormData(prev => ({ ...prev, boardnum: boardnumFromUrl }));
   }, [boardnumFromUrl]);
 
@@ -26,6 +53,14 @@ const BoardWrite = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  // Froala Editor 내용 변경 처리
+  const handleContentChange = (content) => {
+    setFormData(prev => ({
+      ...prev,
+      content: content
     }));
   };
 
@@ -74,11 +109,11 @@ const BoardWrite = () => {
         content: formData.content.trim(),
         boardnum: formData.boardnum,
         class_id: formData.class_id || null,
-        file: formData.file ? formData.file.name : null // 파일은 일단 이름만 전송
+        file: formData.file ? formData.file.name : null
       };
 
-        console.log('전송 데이터:', submitData);
-        console.log('요청 URL:', `http://localhost:8080/board/write/${formData.boardnum}`);
+      console.log('전송 데이터:', submitData);
+      console.log('요청 URL:', `http://localhost:8080/board/write/${formData.boardnum}`);
 
       const response = await fetch(`http://localhost:8080/board/write/${formData.boardnum}`, {
         method: 'POST',
@@ -104,7 +139,6 @@ const BoardWrite = () => {
 
       if (result.success) {
         alert('게시글이 성공적으로 작성되었습니다.');
-        // 게시판 목록으로 이동
         window.location.href = `/board/list?boardnum=${formData.boardnum}`;
       } else {
         throw new Error(result.message || '게시글 작성에 실패했습니다.');
@@ -159,25 +193,7 @@ const BoardWrite = () => {
           새 게시글 작성
         </div>
         <div className="card-body">
-          <div onSubmit={handleSubmit}>
-            {/* 게시판 선택 
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label htmlFor="boardnum" className="form-label">게시판 분류</label>
-                <select
-                  className="form-select"
-                  id="boardnum"
-                  name="boardnum"
-                  value={formData.boardnum}
-                  onChange={handleInputChange}
-                >
-                  <option value="BOD002">공지사항</option>
-                  <option value="BOD003">자유게시판</option>
-                  <option value="BOD001">Q&A</option>
-                </select>
-              </div>
-            </div>*/}
-
+          <form onSubmit={handleSubmit}>
             {/* 제목 */}
             <div className="mb-3">
               <label htmlFor="title" className="form-label">제목 <span className="text-danger">*</span></label>
@@ -193,22 +209,16 @@ const BoardWrite = () => {
               />
             </div>
 
-            {/* 내용 */}
+            {/* 내용 - Froala Editor */}
             <div className="mb-3">
               <label htmlFor="content" className="form-label">내용 <span className="text-danger">*</span></label>
-              <textarea
-                className="form-control"
-                id="content"
-                name="content"
-                rows="12"
-                value={formData.content}
-                onChange={handleInputChange}
-                placeholder="게시글 내용을 입력하세요"
-                style={{ resize: 'vertical', minHeight: '300px' }}
-                required
-              />
-              <div className="form-text">
-                마크다운 문법을 사용할 수 있습니다. (예: **굵게**, *기울임*, `코드`)
+              <div id="editor">
+                <FroalaEditorComponent
+                  tag='textarea'
+                  config={froalaConfig}
+                  model={formData.content}
+                  onModelChange={handleContentChange}
+                />
               </div>
             </div>
 
@@ -264,19 +274,17 @@ const BoardWrite = () => {
                   className="btn btn-outline-primary me-2"
                   disabled={loading}
                   onClick={() => {
-                    // 임시저장 기능 (추후 구현)
                     alert('임시저장 기능은 추후 구현 예정입니다.');
                   }}
                 >
                   <i className="fas fa-save me-1"></i>
                   임시저장
                 </button>
-                &nbsp;&nbsp;&nbsp;
+                
                 <button
-                  type="button"
+                  type="submit"
                   className="btn btn-primary"
                   disabled={loading || !formData.title.trim() || !formData.content.trim()}
-                  onClick={handleSubmit}
                 >
                   {loading ? (
                     <>
@@ -294,7 +302,7 @@ const BoardWrite = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -316,12 +324,12 @@ const BoardWrite = () => {
               </ul>
             </div>
             <div className="col-md-6">
-              <h6>마크다운 문법 예시</h6>
+              <h6>리치 에디터 사용법</h6>
               <ul className="small text-muted">
-                <li><code>**굵은 글씨**</code> → <strong>굵은 글씨</strong></li>
-                <li><code>*기울임*</code> → <em>기울임</em></li>
-                <li><code>`코드`</code> → <code>코드</code></li>
-                <li><code>- 목록 항목</code> → 불릿 목록</li>
+                <li>툴바를 사용해 텍스트 서식을 지정하세요.</li>
+                <li>이미지와 링크를 삽입할 수 있습니다.</li>
+                <li>표와 수평선도 추가 가능합니다.</li>
+                <li>HTML 모드로 직접 편집도 가능합니다.</li>
               </ul>
             </div>
           </div>
