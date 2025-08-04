@@ -11,9 +11,11 @@ const List = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
-  
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [canCreatePost, setCanCreatePost] = useState(false);
+  const [boards, setBoards] = useState([]);
+
 
   const boardnum = searchParams.get('boardnum') || 'BOD002';
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
@@ -101,6 +103,13 @@ const List = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const searchParam = searchParams.get('search');
+    if (searchParam) {
+      setSearchKeyword(searchParam);
+    }
+  }, [searchParams]);
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
@@ -274,7 +283,7 @@ const List = () => {
     <div className="container-fluid">
       <div className="row">
         <div className="col-12">
-          {/* 헤더 섹션 */}
+          {/* 헤더 섹션 */}  
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
               <h2 className="h3 mb-0 text-gray-800 font-weight-bold">{boardTitle}</h2>
@@ -303,7 +312,6 @@ const List = () => {
               {buttonConfig.text}
             </button>
           </div>
-
           {/* 검색 및 필터 섹션 */}
           <div className="card shadow mb-4">
             <div className="card-body">
