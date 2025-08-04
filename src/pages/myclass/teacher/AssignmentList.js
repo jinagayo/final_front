@@ -9,10 +9,10 @@ const AssignmentSubmissions = () => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all'); // all, submitted, not_submitted
 
-  // URL에서 materialId 추출
+  // URL에서 meterial_id 파라미터 추출
   const getMaterialIdFromUrl = () => {
-    const pathParts = window.location.pathname.split('/');
-    return pathParts[pathParts.indexOf('material') + 1] || '1';
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('meterial_id') || '1';
   };
 
   const navigate = (path) => {
@@ -29,7 +29,7 @@ const AssignmentSubmissions = () => {
     try {
       setLoading(true);
       const materialId = getMaterialIdFromUrl();
-      const response = await fetch(`http://localhost:8080/api/myclass/teacher/material/submissions?meterial_id=${materialId}`, {
+      const response = await fetch(`http://localhost:8080/api/myclass/teacher/AssignmentList?meterial_id=${materialId}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -95,7 +95,7 @@ const AssignmentSubmissions = () => {
 
   // 파일 다운로드
   const handleDownloadFile = (submission) => {
-    if (!submission.sub.content) {
+    if (!submission.sub?.content) {
       alert('제출된 파일이 없습니다.');
       return;
     }
@@ -115,7 +115,7 @@ const AssignmentSubmissions = () => {
   // 댓글 모달 열기
   const openCommentModal = (submission) => {
     setSelectedSubmission(submission);
-    setComment(submission.sub.progress || '');
+    setComment(submission.sub?.progress || '');
     setCommentModalOpen(true);
   };
 
@@ -123,9 +123,9 @@ const AssignmentSubmissions = () => {
   const getFilteredSubmissions = () => {
     switch (filterStatus) {
       case 'submitted':
-        return submissions.filter(item => item.sub.content);
+        return submissions.filter(item => item.sub?.content);
       case 'not_submitted':
-        return submissions.filter(item => !item.sub.content);
+        return submissions.filter(item => !item.sub?.content);
       default:
         return submissions;
     }
@@ -150,9 +150,15 @@ const AssignmentSubmissions = () => {
   };
 
   const getSubmissionStats = () => {
-    const submitted = submissions.filter(item => item.sub.content).length;
+    const submitted = submissions.filter(item => item.sub?.content).length;
     const total = submissions.length;
     return { submitted, total, rate: total > 0 ? ((submitted / total) * 100).toFixed(1) : 0 };
+  };
+
+  // 뒤로가기 함수 - assignmentList로 meterial_id와 함께 이동
+  const goBack = () => {
+    const materialId = getMaterialIdFromUrl();
+    window.location.href = `/myclass/teacher/AssignmentList?meterial_id=${materialId}`;
   };
 
   if (loading) {
@@ -173,9 +179,9 @@ const AssignmentSubmissions = () => {
       <div className="mb-3">
         <button 
           className="btn btn-outline-secondary btn-sm"
-          onClick={() => window.history.back()}
+          onClick={goBack}
         >
-          <i className="fas fa-arrow-left mr-1"></i> 강의 상세로 돌아가기
+          <i className="fas fa-arrow-left mr-1"></i> 과제 목록으로 돌아가기
         </button>
       </div>
 
@@ -288,7 +294,7 @@ const AssignmentSubmissions = () => {
           ) : (
             <div className="submissions-list">
               {filteredSubmissions.map((item, index) => (
-                <div key={item.sub.metersubId || index} className="submission-item border rounded p-3 mb-3">
+                <div key={item.sub?.metersubId || index} className="submission-item border rounded p-3 mb-3">
                   <div className="row align-items-center">
                     <div className="col-md-3">
                       <div className="student-info">
@@ -300,14 +306,14 @@ const AssignmentSubmissions = () => {
                           </div>
                           <div>
                             <h6 className="mb-1">{item.name || '이름 없음'}</h6>
-                            <small className="text-muted">{item.sub.stdId}</small>
+                            <small className="text-muted">{item.sub?.stdId || 'ID 없음'}</small>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div className="submission-status">
-                        {item.sub.content ? (
+                        {item.sub?.content ? (
                           <span className="badge badge-success">
                             <i className="fas fa-check mr-1"></i>제출완료
                           </span>
@@ -320,7 +326,7 @@ const AssignmentSubmissions = () => {
                     </div>
                     <div className="col-md-3">
                       <div className="submission-actions">
-                        {item.sub.content ? (
+                        {item.sub?.content ? (
                           <button 
                             className="btn btn-sm btn-outline-primary mr-2"
                             onClick={() => handleDownloadFile(item)}
@@ -339,9 +345,9 @@ const AssignmentSubmissions = () => {
                           onClick={() => openCommentModal(item)}
                         >
                           <i className="fas fa-comment mr-1"></i>
-                          {item.sub.progress ? '댓글 수정' : '댓글 작성'}
+                          {item.sub?.progress ? '댓글 수정' : '댓글 작성'}
                         </button>
-                        {item.sub.progress && (
+                        {item.sub?.progress && (
                           <div className="mt-1">
                             <small className="text-success">
                               <i className="fas fa-check-circle mr-1"></i>댓글 작성됨
@@ -353,7 +359,7 @@ const AssignmentSubmissions = () => {
                   </div>
                   
                   {/* 기존 댓글 표시 */}
-                  {item.sub.progress && (
+                  {item.sub?.progress && (
                     <div className="mt-3 pt-3 border-top">
                       <div className="existing-comment">
                         <h6 className="text-gray-700 mb-2">

@@ -160,7 +160,8 @@ const TestCreate = () => {
         seq: 1, 
         content: testInfo.content,
         type: 'MET003',
-        title: testInfo.title
+        title: testInfo.title,
+        time: testInfo.time
       };
       
       console.log('1단계 - Material 데이터 전송:', materialData);
@@ -316,6 +317,24 @@ const TestCreate = () => {
                       value={testInfo.content}
                       onChange={(e) => handleTestInfoChange('content', e.target.value)}
                     />
+                    {errors.content && <div className="invalid-feedback">{errors.content}</div>}
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <label className="form-label font-weight-bold">
+                      테스트 시간 <span className="text-danger">*</span>
+                    </label>
+                    <input
+                    type="number"
+                    className="form-control"
+                    name="time"
+                    value={testInfo.time}
+                    onChange={(e) => handleTestInfoChange('time', e.target.value)}
+                    placeholder="0"
+                    min="0"
+                  />
+                   <small className="form-text text-muted">분 단위로 입력해주세요</small>
                     {errors.content && <div className="invalid-feedback">{errors.content}</div>}
                   </div>
                 </div>
