@@ -1,6 +1,6 @@
 // components/search/SimpleSearchComponent.js
 import React, { useState, useRef, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const SimpleSearchComponent = ({ 
   onResultSelect, 
   placeholder = "강의, 강사, 게시글 검색...",
@@ -13,7 +13,7 @@ const SimpleSearchComponent = ({
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState(null);
   const searchRef = useRef(null);
-
+  const navigate = useNavigate();
   // 백엔드 API 호출 함수
   const searchAPI = async (query) => {
     try {
@@ -127,6 +127,13 @@ const executeSearch = () => {
     setSearchQuery('');
     setShowResults(false);
     
+    if(item.type === 'class'){
+      navigate(`/admin/class/Detail/${item.id}`)
+    }else if(item.type === 'board'){
+      navigate(`/board/detail/${item.id}`)
+    }else if(item.type === 'coding'){
+      navigate(`/admin/coding/detail/${item.id}`)
+    }
     if (onResultSelect) {
       onResultSelect(item);
     }
@@ -158,8 +165,8 @@ const executeSearch = () => {
   // 타입별 아이콘 반환
   const getTypeIcon = (type) => {
     switch (type) {
-      case 'course': return '📚';
-      case 'instructor': return '👨‍🏫';
+      case 'class': return '📚';
+      case 'coding': return '👨‍🏫';
       case 'board': return '📝';
       default: return '🔍';
     }
@@ -168,8 +175,8 @@ const executeSearch = () => {
   // 타입별 배지 반환
   const getTypeBadge = (type) => {
     const badges = {
-      course: { class: 'bg-primary', text: '강의' },
-      instructor: { class: 'bg-success', text: '강사' },
+      class: { class: 'bg-primary', text: '강의' },
+      coding: { class: 'bg-success', text: '코딩문제' },
       board: { class: 'bg-info', text: '게시글' }
     };
     
@@ -220,31 +227,34 @@ const executeSearch = () => {
             </div>
             
             {/* 타입별 상세 정보 */}
-            {item.type === 'course' && (
+            {item.type === 'class' && (
               <div className="text-muted" style={{ fontSize: '12px' }}>
                 <div>
-                  강사: {item.instructor ? highlightSearchTerm(item.instructor, searchQuery) : '정보 없음'}
+                  강사: {item.teacher_name ? highlightSearchTerm(item.teacher_name, searchQuery) : '정보 없음'}
                   {item.category && ` • ${item.category}`}
                 </div>
                 <div>
                   {item.rating && `⭐ ${item.rating}`}
-                  {item.students && ` • 수강생 ${item.students.toLocaleString()}명`}
                   {item.price && ` • ₩${item.price.toLocaleString()}`}
                 </div>
               </div>
             )}
             
-            {item.type === 'instructor' && (
+            {item.type === 'coding' && (
               <div className="text-muted" style={{ fontSize: '12px' }}>
-                {item.speciality && (
-                  <div>전문분야: {highlightSearchTerm(item.speciality, searchQuery)}</div>
-                )}
                 <div>
-                  {item.rating && `⭐ ${item.rating}`}
-                  {item.courses && ` • 강의 ${item.courses}개`}
-                  {item.students && ` • 수강생 ${item.students.toLocaleString()}명`}
-                  {item.experience && ` • 경력 ${item.experience}`}
+                  {item.language && `언어: ${item.language}`}
+                  {item.level && ` • 난이도: ${item.level}`}
+                  {item.field && ` • 분야: ${item.field}`} {/* filed → field */}
                 </div>
+                {item.question && (
+                  <div className="mt-1" style={{ color: '#666' }}>
+                    {highlightSearchTerm(
+                      item.question.length > 60 ? `${item.question.substring(0, 60)}...` : item.question,
+                      searchQuery
+                    )}
+                  </div>
+                )}
               </div>
             )}
             
