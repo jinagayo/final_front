@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const StudentTestTake = () => {
   // URL에서 meterial_id 추출
@@ -16,6 +16,20 @@ const StudentTestTake = () => {
   const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // useRef를 사용하여 최신 상태값 참조
+  const timeLeftRef = useRef(0);
+  const isSubmittingRef = useRef(false);
+
+  // timeLeft가 변경될 때마다 ref 업데이트
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
+
+  useEffect(() => {
+    isSubmittingRef.current = isSubmitting;
+  }, [isSubmitting]);
 
   // API 데이터 가져오기
   useEffect(() => {
@@ -57,22 +71,47 @@ const StudentTestTake = () => {
     fetchTestData();
   }, []);
 
-  // 타이머 효과
+  // 자동 제출 함수 (useCallback 대신 일반 함수로 정의)
+  const handleAutoSubmit = async () => {
+    if (isSubmittingRef.current) {
+      console.log('이미 제출 중입니다.');
+      return;
+    }
+    
+    console.log('시간 종료로 인한 자동 제출 시작');
+    alert('시험 시간이 종료되어 자동으로 제출됩니다.');
+    await handleSubmit(true);
+  };
+
+  // 타이머 효과 - 개선된 버전
   useEffect(() => {
-    if (testStarted && timeLeft > 0) {
-      const timer = setInterval(() => {
+    let timer;
+    
+    if (testStarted && timeLeft > 0 && !isSubmitting) {
+      timer = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 1) {
-            handleAutoSubmit();
+          const newTime = prev - 1;
+          
+          // 시간이 0이 되면 자동 제출
+          if (newTime <= 0 && !isSubmittingRef.current) {
+            // setTimeout을 사용하여 상태 업데이트 후 자동 제출
+            setTimeout(() => {
+              handleAutoSubmit();
+            }, 100);
             return 0;
           }
-          return prev - 1;
+          
+          return newTime;
         });
       }, 1000);
-
-      return () => clearInterval(timer);
     }
-  }, [testStarted, timeLeft]);
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [testStarted, timeLeft, isSubmitting]);
 
   // 시험 시작
   const handleStartTest = () => {
@@ -96,48 +135,43 @@ const StudentTestTake = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // 자동 제출 (시간 종료)
-  const handleAutoSubmit = () => {
-    alert('시험 시간이 종료되어 자동으로 제출됩니다.');
-    handleSubmit(true);
-  };
-
-  // 제출 처리
+  // 제출 처리 - 개선된 버전
   const handleSubmit = async (isAutoSubmit = false) => {
+    // 이미 제출 중이면 중복 실행 방지
+    if (isSubmitting) {
+      console.log('이미 제출 중입니다.');
+      return;
+    }
+
     if (!isAutoSubmit) {
       const confirmSubmit = window.confirm('정말로 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.');
       if (!confirmSubmit) return;
     }
 
     try {
+      setIsSubmitting(true);
       setLoading(true);
       const meterialId = getMeterialIdFromUrl();
       
-      // TestSubDTO 형태로 답안 데이터 변환
+      // TestSubEntity 형태로 답안 데이터 변환
       const testSubList = data.questions.map((question, index) => ({
-        testsub_id: 0, // 새로 생성되는 경우 0
-        testnum: question.probno,
+        testsubId: 0, // 새로 생성되는 경우 0 (자동 생성)
+        testnum: question.testId, // 문제번호 (TEST 테이블의 testid와 매핑)
+        studId: null, // 백엔드에서 세션으로부터 가져올 예정
         submit: answers[index] || '', // 제출한 답
-        correct: false, // 백엔드에서 계산
-        studId: true // 실제로는 현재 로그인한 학생 ID
+        correct: false // 백엔드에서 계산
       }));
 
-      console.log('제출 데이터:', {
-        testSubList,
-        meterialId
-      });
+      console.log('제출 데이터:', testSubList);
 
-      // API 호출
-      const response = await fetch(`http://localhost:8080/api/student/test/submit`, {
+      // API 호출 - List<TestSubDTO>로 직접 전송
+      const response = await fetch(`http://localhost:8080/api/myclass/testsubmit?meterial_id=${meterialId}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          testSubList,
-          meterial_id: meterialId
-        })
+        body: JSON.stringify(testSubList) // 배열을 직접 전송
       });
 
       if (!response.ok) {
@@ -146,25 +180,54 @@ const StudentTestTake = () => {
       }
 
       alert('시험이 성공적으로 제출되었습니다.');
-      // 결과 페이지로 이동하거나 강의 목록으로 돌아가기
-      window.location.href = '/student/myclass';
+      
+      // 제출 성공 후 페이지 이동
+      // 1. 뒤로가기 시도
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // 2. 뒤로갈 페이지가 없으면 시험 시작 화면으로 다시 이동 (새로고침)
+        window.location.reload();
+      }
       
     } catch (error) {
       console.error('제출 오류:', error);
       alert(`제출 중 오류가 발생했습니다: ${error.message}`);
+      setIsSubmitting(false);
     } finally {
       setLoading(false);
     }
   };
 
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      // 컴포넌트가 언마운트될 때 모든 타이머 정리
+      console.log('컴포넌트 언마운트 - 타이머 정리');
+    };
+  }, []);
+
   // 로딩 중일 때
-  if (loading) {
+  if (loading && !isSubmitting) {
     return (
       <div className="loading-container">
         <div className="loading-content">
           <i className="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
           <h4>시험 데이터를 불러오는 중...</h4>
           <p className="text-muted">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 제출 중일 때
+  if (isSubmitting) {
+    return (
+      <div className="loading-container">
+        <div className="loading-content">
+          <i className="fas fa-paper-plane fa-spin fa-3x text-success mb-3"></i>
+          <h4>시험을 제출하는 중...</h4>
+          <p className="text-muted">잠시만 기다려주세요. 페이지를 새로고침하지 마세요.</p>
         </div>
       </div>
     );
@@ -187,7 +250,13 @@ const StudentTestTake = () => {
           </button>
           <button 
             className="btn btn-secondary"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = '/';
+              }
+            }}
           >
             <i className="fas fa-arrow-left mr-1"></i>
             돌아가기
@@ -207,7 +276,13 @@ const StudentTestTake = () => {
           <p className="text-muted mb-4">등록된 시험 문제가 없거나 삭제된 시험입니다.</p>
           <button 
             className="btn btn-secondary"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = '/';
+              }
+            }}
           >
             <i className="fas fa-arrow-left mr-1"></i>
             돌아가기
@@ -217,13 +292,16 @@ const StudentTestTake = () => {
     );
   }
 
-  // 시험 시작 모달
+  // 시험 시작/결과 보기 모달
   if (showStartModal) {
     return (
       <div className="modal-overlay">
         <div className="modal-content">
           <div className="modal-header">
-            <h4><i className="fas fa-clipboard-check mr-2"></i>시험 시작</h4>
+            <h4>
+              <i className={`fas ${data.submit ? 'fa-chart-bar' : 'fa-clipboard-check'} mr-2`}></i>
+              {data.submit ? '시험 결과 확인' : '시험 시작'}
+            </h4>
           </div>
           <div className="modal-body">
             <div className="test-info">
@@ -241,32 +319,56 @@ const StudentTestTake = () => {
                 </div>
               </div>
 
-              <div className="alert alert-warning mt-4">
-                <i className="fas fa-exclamation-triangle mr-2"></i>
-                <strong>주의사항</strong>
-                <ul className="mb-0 mt-2">
-                  <li>시험 시작 후에는 뒤로가기를 할 수 없습니다.</li>
-                  <li>제한시간이 지나면 자동으로 제출됩니다.</li>
-                  <li>한 번 제출하면 수정할 수 없습니다.</li>
-                </ul>
-              </div>
+              {data.submit ? (
+                <div className="alert alert-success mt-4">
+                  <i className="fas fa-check-circle mr-2"></i>
+                  <strong>시험 완료</strong>
+                  <p className="mb-0 mt-2">이미 시험을 완료하셨습니다. 결과를 확인하실 수 있습니다.</p>
+                </div>
+              ) : (
+                <div className="alert alert-warning mt-4">
+                  <i className="fas fa-exclamation-triangle mr-2"></i>
+                  <strong>주의사항</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>시험 시작 후에는 뒤로가기를 할 수 없습니다.</li>
+                    <li>제한시간이 지나면 자동으로 제출됩니다.</li>
+                    <li>한 번 제출하면 수정할 수 없습니다.</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
           <div className="modal-footer">
             <button 
               className="btn btn-secondary mr-2" 
-              onClick={() => window.history.back()}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = '/';
+                }
+              }}
             >
               <i className="fas fa-arrow-left mr-1"></i>
-              취소
+              돌아가기
             </button>
-            <button 
-              className="btn btn-primary" 
-              onClick={handleStartTest}
-            >
-              <i className="fas fa-play mr-1"></i>
-              시험 시작
-            </button>
+            {data.submit ? (
+              <button 
+                className="btn btn-success" 
+                onClick={() => window.location.href = `/myclass/test/result?meterial_id=${getMeterialIdFromUrl()}`}
+              >
+                <i className="fas fa-chart-bar mr-1"></i>
+                결과 보기
+              </button>
+            ) : (
+              <button 
+                className="btn btn-primary" 
+                onClick={handleStartTest}
+              >
+                <i className="fas fa-play mr-1"></i>
+                시험 시작
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -415,10 +517,10 @@ const StudentTestTake = () => {
             </div>
             <button
               className={`btn btn-lg ${Object.keys(answers).length === data.questions.length ? 'btn-success' : 'btn-warning'}`}
-              onClick={handleSubmit}
-              disabled={loading}
+              onClick={() => handleSubmit(false)}
+              disabled={isSubmitting}
             >
-              {loading ? (
+              {isSubmitting ? (
                 <>
                   <i className="fas fa-spinner fa-spin mr-2"></i>
                   제출 중...
