@@ -325,6 +325,11 @@ const getImageUrl = (img) => {
                       }}
                     >
                       <i className="fas fa-camera"></i>
+                      <img
+                          src="/img/camera.png"
+                          alt="Image"
+                          style={{ width: '20px', height: '20px', filter: 'brightness(0) invert(1)',margin:"5px"}}
+                        />
                     </button>
                   </div>
                 </div>
@@ -456,7 +461,12 @@ const getImageUrl = (img) => {
                       onClick={handleAddressSearch}
                       disabled={loading}
                       title="주소 검색"
-                    >
+                      
+                    ><img
+                          src="/img/searchIcon.png"
+                          alt="Search"
+                          style={{ width: '20px', height: '20px'}}
+                        />
                       <i className="fas fa-search"></i>
                     </button>
                   </div>
