@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const BannerUpload = () => {
@@ -7,6 +7,19 @@ const BannerUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const { user } = useAuth();
+  const [bannerUrl, setBannerUrl] = useState(null);
+
+   //최신 배너 이미지 불러오기
+  useEffect(()=> {
+    fetch('http://localhost:8080/api/admin/banner/latest', {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.url) setBannerUrl(data.url);
+      });
+  }, []);
+
 
   // 관리자 권한 확인
   const isAdmin = () => user?.position === '3' || user?.position === 'admin';
@@ -21,6 +34,7 @@ const BannerUpload = () => {
       </div>
     );
   }
+
 
   // 파일 선택 핸들러
   const handleFileSelect = (event) => {
@@ -112,12 +126,16 @@ const BannerUpload = () => {
               <h6 className="m-0 font-weight-bold text-primary">현재 배너 이미지</h6>
             </div>
             <div className="card-body">
-              <img 
-                src="/img/main.png" 
-                alt="현재 배너" 
-                className="img-fluid rounded"
-                style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
-              />
+              {bannerUrl ? (
+                <img
+                  src={bannerUrl}
+                  alt="현재 배너"
+                  className="img-fluid rounded"
+                  style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'#888'}}>로딩 중...</div>
+              )}
             </div>
           </div>
         </div>

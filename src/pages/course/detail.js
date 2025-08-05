@@ -93,6 +93,7 @@ const CourseDetail = () => {
             }
         }
     };
+ console.log("course.img", course ? course.img : null);
 
     if (loading) {
         return (
@@ -150,7 +151,7 @@ const CourseDetail = () => {
                         <div className="bg-white p-4 rounded shadow-sm mb-4 d-flex align-items-center">
                             <div className="flex-shrink-0 mr-4">
                                 <img
-                                    src={course.img ? `/img/${course.img}` : "/img/default_course_thumbnail.png"}
+                                    src={course.img ? `${course.img}` : "/img/default_course_thumbnail.png"}
                                     alt={course.name || "Course Thumbnail"}
                                     className="img-fluid rounded"
                                     style={{ width: '250px', height: '150px', objectFit: 'cover' }}

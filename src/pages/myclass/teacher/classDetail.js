@@ -261,16 +261,7 @@ const handleSaveClassInfo = async() => {
     }
 
     try {
-      const deleteData = selectedMaterials.map(meterId => {
-        const material = materials.find(m => m.meterId === meterId);
-        return {
-          meterId: meterId,
-          seq: material?.seq,
-          title: material?.title,
-          type: material?.type
-        };
-      });
-
+      const deleteData = selectedMaterials.map(meterId => ({ meterId }));
       const classId = getClassIdFromUrl();
       const response = await fetch(`http://localhost:8080/api/myclass/teacher/materials/delete?classId=${classId}`, {
         method: 'POST',
@@ -792,7 +783,7 @@ const handleDeleteMaterial = async (meterId) => {
                         onDrop={(e) => editMode && handleDrop(e, index)}
                       >
                         {editMode && (
-                          <div className="mr-3">
+                          <div className="mr-3 pl-3">
                             <input
                               type="checkbox"
                               className="form-check-input material-checkbox"
@@ -826,22 +817,29 @@ const handleDeleteMaterial = async (meterId) => {
                               </small>
                             </div>
                             <div className="material-actions">
-                               {!editMode && (
-                                  <button
-                                   className="btn btn-sm btn-outline-danger ml-2"
-                                   style={{marginRight:"12px"}}
-                                   onClick={e => {
-                                   e.stopPropagation();
-                                    handleDeleteMaterial(material.meterId);
-                                    }}
-                                    >
-                                  <i className="fas fa-trash"></i> 삭제
-                                </button>
-                                )}
+                          
                               {editMode ? (
-                                <div className="drag-handle" style={{ cursor: 'grab' }}>
-                                  <i className="fas fa-bars text-gray-400"></i>
-                                </div>
+                                <div
+                                className="drag-handle"
+                                style={{
+                                cursor: 'grab',
+                                fontSize: '2rem',
+                                color: '#495057',
+                                marginLeft: '24px',
+                                marginRight: '4px',
+                                minWidth: '36px',  // 공간 확보
+                                userSelect: 'none',
+                                fontWeight: 'bold',
+                                lineHeight: '1',
+                                display: 'flex',
+                               alignItems: 'center',
+                              justifyContent: 'center'
+                             }}
+                             title="드래그해서 순서 변경"
+                             >
+                           {/* 아이콘 대신 문자 */}
+                               ≡
+                          </div>
                               ) : (
                                 <>
                                   <span className="badge badge-info mr-2">제출현황 보기</span>
