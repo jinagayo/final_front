@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import Info from '../pages/mypage/Info';
-
+import BoardList from "../pages/myclass/List"
 function MypageRoutes() {
   return (
     <Routes>
@@ -17,11 +17,6 @@ function MypageRoutes() {
           </div>
         } />
       </Route>
-
-
-      
-      
-      
     </Routes>
   );
 }
