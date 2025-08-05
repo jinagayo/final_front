@@ -69,30 +69,51 @@ const CourseDetail = () => {
         fetchCourseDetail();
     }, [location.search]);
 
-    const handleEnroll = () => {
-        // AuthContext의 isLoading 상태를 먼저 확인
-        if (authLoading) {
-            alert("로그인 상태를 확인 중입니다. 잠시 기다려주세요.");
-            return;
-        }
+// 기존 handleEnroll 함수를 아래 코드로 교체하세요:
 
-        if (!course) {
-            alert("강의 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
-            return;
-        }
+const handleEnroll = async () => {
+    // AuthContext의 isLoading 상태를 먼저 확인
+    if (authLoading) {
+        alert("로그인 상태를 확인 중입니다. 잠시 기다려주세요.");
+        return;
+    }
 
-        // isAuthenticated() 함수를 사용하여 로그인 여부 확인
-        if (isAuthenticated()) {
-            // 로그인 되어 있다면 course/payment 페이지로 이동
-            navigate(`/course/payment?class_id=${course.classId}`);
-        } else {
-            // 로그인 되어 있지 않다면 알림창 띄우고 로그인 페이지로 이동
-            const confirmLogin = window.confirm("로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?");
-            if (confirmLogin) {
-                navigate('/Auth/login');
+    if (!course) {
+        alert("강의 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+    }
+
+    // isAuthenticated() 함수를 사용하여 로그인 여부 확인
+    if (isAuthenticated()) {
+        try {
+            // 먼저 결제 페이지 API를 호출하여 수강 가능 여부 확인
+            const response = await axios.get(`http://localhost:8080/course/Payment`, {
+                params: { class_id: course.classId },
+                withCredentials: true
+            });
+
+            // 성공적으로 응답을 받으면 결제 페이지로 이동
+            if (response.status === 200) {
+                navigate(`/course/payment?class_id=${course.classId}`);
+            }
+        } catch (error) {
+            // 400 에러 (이미 수강 중)인 경우 백엔드에서 온 메시지 표시
+            if (error.response && error.response.status === 400) {
+                alert(error.response.data || "이미 수강중인 강의입니다.");
+            } else {
+                // 기타 에러의 경우
+                console.error('수강신청 확인 중 오류 발생:', error);
+                alert("수강신청 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
             }
         }
-    };
+    } else {
+        // 로그인 되어 있지 않다면 알림창 띄우고 로그인 페이지로 이동
+        const confirmLogin = window.confirm("로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?");
+        if (confirmLogin) {
+            navigate('/Auth/login');
+        }
+    }
+};
 
     if (loading) {
         return (

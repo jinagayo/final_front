@@ -307,7 +307,11 @@ const executeSearch = () => {
               onClick={executeSearch}
               disabled={isSearching}
               style={{ border: 'none' }}
-            >
+            ><img
+                          src="/img/searchIcon.png"
+                          alt="Search"
+                          style={{ width: '20px', height: '20px', filter: 'brightness(0) invert(1)'}}
+                        />
               {isSearching ? (
                 <div className="spinner-border spinner-border-sm text-white" role="status">
                   <span className="sr-only">검색 중...</span>
