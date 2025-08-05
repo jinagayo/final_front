@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream:src/pages/myclass/board.js/list.js
-=======
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 
@@ -96,27 +94,38 @@ const MyclassBoardList = () => {
   };
 
   // 공지사항 상세보기
-  const handleNoticeClick = async (noticeId) => {
-    try {
-      // 조회수 증가 API 호출
-      await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      // 상세 페이지로 이동 (noticeId 사용)
-      window.location.href = `/board/detail/${noticeId}?boardNum=${currentBoardnum}`;
-    } catch (error) {
-      console.error('조회수 증가 오류:', error);
-      // 오류가 있어도 상세 페이지로 이동
-      window.location.href = `/board/detail/${noticeId}?boardNum=${currentBoardnum}`;
+const handleNoticeClick = async (noticeId) => {
+  try {
+    // 조회수 증가 API 호출
+    await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    
+    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+  } catch (error) {
+    console.error('조회수 증가 오류:', error);
+    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+  }
+};
+
+  //게시판 title
+  const getBoardTitle = (boardnum) => {
+    switch(boardnum){
+      case "BOD001" : return "QnA";
+      case "BOD002" : return "공지사항";
+      default: return "게시판";
     }
-  };
+  }
+  const boardTitle = getBoardTitle(currentBoardnum);
 
   const handleCreateNotice = () => {
     // 현재 게시판의 boardnum을 가져와서 작성 페이지로 이동
     window.location.href = `/myclass/board/write/${classId}?boardNum=${currentBoardnum}`;
-    console.log("currentBoardnun" + currentBoardnum)
+  };
+
+  const handleSubjectList = () => {
+    window.location.href = `/myclass/Main?class_id=${classId}`;
   };
 
   // 날짜 포맷팅 함수
@@ -147,9 +156,7 @@ const MyclassBoardList = () => {
           <div className="col-12">
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="sr-only">Loading...</span>
               </div>
-              <p className="mt-3 text-muted">공지사항을 불러오는 중...</p>
             </div>
           </div>
         </div>
@@ -181,29 +188,39 @@ const MyclassBoardList = () => {
 
   return (
     <div className="container-fluid">
-      {/* 디버그 정보 */}
-      <div className="mb-2">
-        <small className="text-muted">classId: {classId} | boardnum: {boardnum}</small>
-      </div>
-      
       <div className="row">
         <div className="col-12">
           {/* 헤더 섹션 */}
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="h3 mb-0 text-gray-800 font-weight-bold">공지사항</h2>
-            <button 
-              className="btn btn-primary"
-              onClick={handleCreateNotice}
-              style={{
-                backgroundColor: '#4e73df',
-                borderColor: '#4e73df',
-                borderRadius: '0.35rem',
-                marginTop : '1.5rem',
-                padding: '0.5rem 1.5rem'
-              }}
-            >
-              게시글 작성
-            </button>
+            <h2 className="h3 mb-0 text-gray-800 font-weight-bold">{boardTitle}</h2>
+
+            <div className="d-flex" style={{ gap: '8px', marginTop: '1.5rem' }}>
+              <button 
+                className="btn btn-primary"
+                onClick={handleSubjectList}
+                style={{
+                  backgroundColor: '#10860cff',
+                  borderColor: '#10860cff',
+                  borderRadius: '0.35rem',
+                  padding: '0.5rem 1.5rem'
+                }}
+              >
+                강의목록
+              </button>
+
+              <button 
+                className="btn btn-primary"
+                onClick={handleCreateNotice}
+                style={{
+                  backgroundColor: '#4e73df',
+                  borderColor: '#4e73df',
+                  borderRadius: '0.35rem',
+                  padding: '0.5rem 1.5rem'
+                }}
+              >
+                게시글 작성
+              </button>
+            </div>
           </div>
 
           {/* 검색 및 필터 섹션 */}
@@ -415,4 +432,3 @@ const MyclassBoardList = () => {
 };
 
 export default MyclassBoardList;
->>>>>>> Stashed changes:src/pages/myclass/board/List.js

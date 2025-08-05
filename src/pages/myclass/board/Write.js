@@ -5,20 +5,31 @@ import 'froala-editor/css/froala_style.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 
 const BoardWrite = () => {
+  const { classId } = useParams();
+  const [searchParams] = useSearchParams();
+  
+  // URL에서 boardNum 파라미터 읽기 (대소문자 주의!)
+  const boardnumFromUrl = searchParams.get('boardNum') || 'BOD002';
+  const boardNum = searchParams.get('boardNum') || 'BOD002'; // 쿼리 파라미터에서 가져옴
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    boardnum: 'BOD001',
-    class_id: '',
+    boardnum: boardnumFromUrl, // URL에서 읽은 값으로 초기화
+    class_id: classId,
     file: null
   });
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
-  const { classId } = useParams();
-  const [searchParams] = useSearchParams();
-  const boardnum = searchParams.get('boardNum') || 'BOD002';
-  const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum') || 'BOD002';
+
+  // 디버깅용 로그
+  React.useEffect(() => {
+    console.log('URL에서 가져온 boardNum:', boardnumFromUrl);
+    console.log('현재 formData.boardnum:', formData.boardnum);
+    console.log('classId:', classId);
+  }, [boardnumFromUrl, formData.boardnum, classId]);
+
   // Froala Editor 설정
   const froalaConfig = {
     placeholderText: '게시글 내용을 입력하세요',
@@ -40,16 +51,6 @@ const BoardWrite = () => {
       }
     }
   };
-
-  // URL에서 boardnum 파라미터 가져오기
-  const urlParams = new URLSearchParams(window.location.search);
-  const boardnumFromUrl = urlParams.get('boardnum') || 'BOD001';
-  
-  React.useEffect(() => {
-    console.log('URL에서 가져온 boardnum:', boardnumFromUrl);
-    console.log('현재 formData.boardnum:', formData.boardnum);
-    setFormData(prev => ({ ...prev, boardnum: boardnumFromUrl,class_id: classId }));
-  }, [boardnumFromUrl,classId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,32 +93,23 @@ const BoardWrite = () => {
     try {
       setLoading(true);
 
-      // 인증 토큰 가져오기
-      const token = localStorage.getItem('token') || 
-                   localStorage.getItem('authToken') || 
-                   sessionStorage.getItem('token') ||
-                   sessionStorage.getItem('authToken');
-
-      const headers = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       // 서버로 전송할 데이터 준비
       const submitData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
-        boardnum: formData.boardnum,
-        class_id: classId || null,
+        boardnum: formData.boardnum, // 올바른 boardnum 값
+        class_id: classId,
         file: formData.file ? formData.file.name : null
       };
 
-      const response = await fetch(`http://localhost:8080/board/write/${classId}?boardNum=${formData.boardnum}`, {
+      console.log('전송할 데이터:', submitData);
+
+      // 올바른 API 엔드포인트 사용
+      const response = await fetch(`http://localhost:8080/api/myclass/board/write/${classId}`, {
         method: 'POST',
-        headers: headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
         body: JSON.stringify(submitData)
       });
@@ -139,7 +131,7 @@ const BoardWrite = () => {
 
       if (result.success) {
         alert('게시글이 성공적으로 작성되었습니다.');
-        window.location.href = `/myclass/board/list/${classId}?boardNum=${boardnum}`;
+        window.location.href = `/myclass/board/list/${classId}?boardNum=${boardNum}`;
       } else {
         throw new Error(result.message || '게시글 작성에 실패했습니다.');
       }
@@ -154,7 +146,7 @@ const BoardWrite = () => {
 
   const handleCancel = () => {
     if (window.confirm('작성을 취소하시겠습니까? 입력한 내용이 삭제됩니다.')) {
-      window.location.href = `/myclass/board/list/${classId}?boardNum=${boardnum}`;
+      window.location.href = `/myclass/board/list/${classId}?boardNum=${formData.boardnum}`;
     }
   };
 
@@ -170,13 +162,13 @@ const BoardWrite = () => {
 
   return (
     <div className="container-fluid px-4 m-3">
-      <h1 className="mt-4">{getBoardTitle(currentBoardnum)} 작성</h1>
+      <h1 className="mt-4">{getBoardTitle(formData.boardnum)} 작성</h1>
       <ol className="breadcrumb mb-4">
         <li className="breadcrumb-item">
           <a href="/dashboard">Dashboard</a>
         </li>
         <li className="breadcrumb-item">
-          <a href={`/myclass/board/list/${classId}?boardnum=${formData.boardnum}`}>게시판</a>
+          <a href={`/myclass/board/list/${classId}?boardNum=${formData.boardnum}`}>게시판</a>
         </li>
         <li className="breadcrumb-item active">게시글 작성</li>
       </ol>
@@ -289,7 +281,6 @@ const BoardWrite = () => {
                   {loading ? (
                     <>
                       <div className="spinner-border spinner-border-sm me-2" role="status">
-                        <span className="visually-hidden">Loading...</span>
                       </div>
                       등록 중...
                     </>
@@ -303,36 +294,6 @@ const BoardWrite = () => {
               </div>
             </div>
           </form>
-        </div>
-      </div>
-
-      {/* 작성 가이드 */}
-      <div className="card">
-        <div className="card-header">
-          <i className="fas fa-info-circle me-1"></i>
-          작성 가이드
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
-              <h6>게시글 작성 시 주의사항</h6>
-              <ul className="small text-muted">
-                <li>제목과 내용은 필수 입력 항목입니다.</li>
-                <li>상대방을 배려하는 언어를 사용해주세요.</li>
-                <li>광고성 게시글은 삭제될 수 있습니다.</li>
-                <li>저작권을 침해하는 내용은 금지됩니다.</li>
-              </ul>
-            </div>
-            <div className="col-md-6">
-              <h6>리치 에디터 사용법</h6>
-              <ul className="small text-muted">
-                <li>툴바를 사용해 텍스트 서식을 지정하세요.</li>
-                <li>이미지와 링크를 삽입할 수 있습니다.</li>
-                <li>표와 수평선도 추가 가능합니다.</li>
-                <li>HTML 모드로 직접 편집도 가능합니다.</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>
