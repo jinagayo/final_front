@@ -3,11 +3,19 @@ import React, { useState, useEffect } from 'react';
 const AssignmentSubmissions = () => {
   const [assignmentData, setAssignmentData] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [comment, setComment] = useState('');
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all'); // all, submitted, not_submitted
+  const [fileUrl, setFileUrl] = useState('');
+
+  const findStudentName = (stdId) => {
+    if(!Array.isArray(students)) return '이름없음';
+  return students.find(s => s.userId === stdId)?.name || '이름 없음';
+  };
+
 
   // URL에서 meterial_id 파라미터 추출
   const getMaterialIdFromUrl = () => {
@@ -23,6 +31,27 @@ const AssignmentSubmissions = () => {
   useEffect(() => {
     fetchSubmissions();
   }, []);
+
+useEffect(()=> {
+  if (submissions?.content) {
+    console.log("프리사인 URL 요청 key:", submissions.content);   // 이거
+    fetch(`http://localhost:8080/api/myclass/teacher/assignment/file-url?key=${submissions.content}`,{
+      credentials: `include`,
+    })
+    .then(res => {
+      console.log('res:', res);
+      return res.json();
+    })
+    .then(data => {
+      console.log("presigned url 응답:", data);     // 이거
+      setFileUrl(data.url);
+    })
+    .catch(err => {
+      console.log("fileUrl fetch error", err);
+      setFileUrl('');
+    });
+  }
+},[submissions])
 
   // 제출물 데이터 가져오기
   const fetchSubmissions = async () => {
@@ -42,9 +71,10 @@ const AssignmentSubmissions = () => {
         console.log('Fetched data:', data);
         
         // 데이터 구조에 따라 설정
-        if (data.length > 0) {
-          setAssignmentData(data[0].meterial); // 첫 번째 항목의 과제 정보
-          setSubmissions(data);
+        if (data.assignment) {
+          setAssignmentData(data.assignment);
+          setSubmissions(data.submissions || []);
+          setStudents(data.student);
         }
       } else {
         console.error('제출물 정보 가져오기 실패');
@@ -56,76 +86,82 @@ const AssignmentSubmissions = () => {
     }
   };
 
-  // 댓글 저장
-  const handleSaveComment = async () => {
-    if (!selectedSubmission || !comment.trim()) {
-      alert('댓글을 입력해주세요.');
-      return;
-    }
 
-    try {
-      const updatedSubmission = {
-        ...selectedSubmission.sub,
-        progress: comment.trim()
-      };
 
-      const response = await fetch(`http://localhost:8080/api/myclass/teacher/submission/comment`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedSubmission)
-      });
+ // 댓글 저장
+const handleSaveComment = async () => {
+  if (!selectedSubmission || !comment) {
+    alert('점수를 입력해주세요.');
+    return;
+  }
 
-      if (response.ok) {
-        alert('댓글이 저장되었습니다.');
-        setCommentModalOpen(false);
-        setComment('');
-        setSelectedSubmission(null);
-        fetchSubmissions(); // 데이터 새로고침
-      } else {
-        alert('댓글 저장 중 오류가 발생했습니다.');
-      }
-    } catch (error) {
-      console.error('댓글 저장 오류:', error);
-      alert('댓글 저장 중 오류가 발생했습니다.');
-    }
+  // metersubId와 progress만 보내기
+  const requestBody = {
+    metersubId: selectedSubmission.metersubId, 
+    progress: comment
   };
 
-  // 파일 다운로드
-  const handleDownloadFile = (submission) => {
-    if (!submission.sub?.content) {
-      alert('제출된 파일이 없습니다.');
-      return;
-    }
-    
-    // 실제 구현에서는 파일 다운로드 API 호출
-    console.log('파일 다운로드:', submission.sub.content);
-    
-    // 임시로 새 창에서 파일 URL 열기
-    if (submission.sub.content.startsWith('http')) {
-      window.open(submission.sub.content, '_blank');
+  console.log("점수 저장 요청 데이터:", requestBody);
+
+  try {
+    const response = await fetch(`http://localhost:8080/api/myclass/teacher/submission/comment`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (response.ok) {
+      alert('점수가 저장되었습니다.');
+      setCommentModalOpen(false);
+      setComment('');
+      setSelectedSubmission(null);
+      fetchSubmissions(); // 데이터 새로고침
     } else {
-      // 파일명이나 경로인 경우 다운로드 API 호출
-      window.open(`http://localhost:8080/api/files/download/${submission.sub.content}`, '_blank');
+      alert('점수 저장 중 오류가 발생했습니다.');
     }
-  };
+  } catch (error) {
+    console.error('점수 저장 오류:', error);
+    alert('점수 저장 중 오류가 발생했습니다.');
+  }
+};
+ const handleDownloadFile = async (item) => {
+  if (!item?.content) {
+    alert('제출된 파일이 없습니다.');
+    return;
+  }
+  try {
+    // 제출물이 S3 key
+    const res = await fetch(`http://localhost:8080/api/myclass/teacher/assignment/file-url?key=${item.content}`, {
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (data?.url) {
+      window.open(data.url, '_blank'); // presigned url로 새 창에서 다운로드
+    } else {
+      alert('다운로드 URL을 가져오지 못했습니다.');
+    }
+  } catch (err) {
+    alert('파일 다운로드 실패');
+  }
+};
 
-  // 댓글 모달 열기
-  const openCommentModal = (submission) => {
-    setSelectedSubmission(submission);
-    setComment(submission.sub?.progress || '');
-    setCommentModalOpen(true);
+  // 점수 모달 열기
+  const openCommentModal = (item) => {
+     setSelectedSubmission(item); // 그냥 item을 넘기면 됨 (item.metersubId 포함)
+      setComment(item.progress || '');
+      setCommentModalOpen(true);
   };
 
   // 제출 상태에 따른 필터링
   const getFilteredSubmissions = () => {
     switch (filterStatus) {
       case 'submitted':
-        return submissions.filter(item => item.sub?.content);
+        return submissions.filter(item => item?.content);
       case 'not_submitted':
-        return submissions.filter(item => !item.sub?.content);
+        return submissions.filter(item => !item?.content);
       default:
         return submissions;
     }
@@ -150,7 +186,7 @@ const AssignmentSubmissions = () => {
   };
 
   const getSubmissionStats = () => {
-    const submitted = submissions.filter(item => item.sub?.content).length;
+    const submitted = submissions.filter(item => item?.content).length;
     const total = submissions.length;
     return { submitted, total, rate: total > 0 ? ((submitted / total) * 100).toFixed(1) : 0 };
   };
@@ -186,68 +222,69 @@ const AssignmentSubmissions = () => {
       </div>
 
       {/* 과제 정보 카드 */}
-      {assignmentData && (
-        <div className="card shadow mb-4">
-          <div className="card-header bg-warning text-white">
-            <div className="d-flex align-items-center">
-              <i className="fas fa-clipboard-list fa-lg mr-3"></i>
-              <div>
-                <h5 className="mb-0">{assignmentData.title}</h5>
-                <small>과제 번호: {assignmentData.meterId} | 순서: {assignmentData.seq}</small>
-              </div>
-            </div>
+  {assignmentData && (
+      <div className="card shadow mb-4">
+      <div className="card-header bg-warning text-white">
+      <div className="d-flex align-items-center">
+        <i className="fas fa-clipboard-list fa-lg mr-3"></i>
+        <div>
+          <h5 className="mb-0">{assignmentData.title}</h5>
+          <small>과제 번호: {assignmentData.meterId} | 순서: {assignmentData.seq}</small>
+      </div>
+      </div>
+      </div>
+      <div className="card-body">
+      <div className="row">
+        <div className="col-md-8">
+          <h6 className="text-gray-800 mb-3">과제 내용</h6>
+          <div className="assignment-content p-3 bg-light rounded">
+            <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: 0 }}>
+              {assignmentData.content || '과제 내용이 없습니다.'}
+            </p>
+
           </div>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-8">
-                <h6 className="text-gray-800 mb-3">과제 내용</h6>
-                <div className="assignment-content p-3 bg-light rounded">
-                  <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: 0 }}>
-                    {assignmentData.content || '과제 내용이 없습니다.'}
-                  </p>
-                </div>
-                {assignmentData.detail && (
-                  <>
-                    <h6 className="text-gray-800 mt-4 mb-3">추가 설명</h6>
-                    <div className="assignment-detail p-3 bg-light rounded">
-                      <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: 0 }}>
-                        {assignmentData.detail}
-                      </p>
-                    </div>
-                  </>
-                )}
+          {assignmentData.detail && (
+            <>
+              <h6 className="text-gray-800 mt-4 mb-3">추가 설명</h6>
+              <div className="assignment-detail p-3 bg-light rounded">
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: 0 }}>
+                  {assignmentData.detail}
+                </p>
               </div>
-              <div className="col-md-4">
-                <div className="submission-stats">
-                  <h6 className="text-gray-800 mb-3">제출 현황</h6>
-                  <div className="stats-card p-3 border rounded">
-                    <div className="row text-center">
-                      <div className="col-4">
-                        <div className="stat-item">
-                          <div className="stat-number text-primary font-weight-bold">{stats.total}</div>
-                          <div className="stat-label text-muted small">전체</div>
-                        </div>
-                      </div>
-                      <div className="col-4">
-                        <div className="stat-item">
-                          <div className="stat-number text-success font-weight-bold">{stats.submitted}</div>
-                          <div className="stat-label text-muted small">제출</div>
-                        </div>
-                      </div>
-                      <div className="col-4">
-                        <div className="stat-item">
-                          <div className="stat-number text-warning font-weight-bold">{stats.rate}%</div>
-                          <div className="stat-label text-muted small">제출률</div>
-                        </div>
-                      </div>
-                    </div>
+            </>
+          )}
+        </div>
+        <div className="col-md-4">
+          <div className="submission-stats">
+            <h6 className="text-gray-800 mb-3">제출 현황</h6>
+            <div className="stats-card p-3 border rounded">
+              <div className="row text-center">
+                <div className="col-4">
+                  <div className="stat-item">
+                    <div className="stat-number text-primary font-weight-bold">{stats.total}</div>
+                    <div className="stat-label text-muted small">전체</div>
+                  </div>
+                </div>
+                <div className="col-4">
+                  <div className="stat-item">
+                    <div className="stat-number text-success font-weight-bold">{stats.submitted}</div>
+                    <div className="stat-label text-muted small">제출</div>
+                  </div>
+                </div>
+                <div className="col-4">
+                  <div className="stat-item">
+                    <div className="stat-number text-warning font-weight-bold">{stats.rate}%</div>
+                    <div className="stat-label text-muted small">제출률</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* 제출물 목록 */}
       <div className="card shadow">
@@ -293,8 +330,8 @@ const AssignmentSubmissions = () => {
             </div>
           ) : (
             <div className="submissions-list">
-              {filteredSubmissions.map((item, index) => (
-                <div key={item.sub?.metersubId || index} className="submission-item border rounded p-3 mb-3">
+              {(filteredSubmissions || []).map((item, index) => (
+                <div key={item?.metersubId || index} className="submission-item border rounded p-3 mb-3">
                   <div className="row align-items-center">
                     <div className="col-md-3">
                       <div className="student-info">
@@ -305,15 +342,16 @@ const AssignmentSubmissions = () => {
                             </div>
                           </div>
                           <div>
-                            <h6 className="mb-1">{item.name || '이름 없음'}</h6>
-                            <small className="text-muted">{item.sub?.stdId || 'ID 없음'}</small>
-                          </div>
+                            <h6 className="mb-1">{findStudentName(item.stdId)}</h6>
+                            <small className="text-muted">{item?.stdId || 'ID 없음'}</small>
+                                      
+                               </div>
+                            </div>
                         </div>
-                      </div>
-                    </div>
+                       </div>
                     <div className="col-md-3">
                       <div className="submission-status">
-                        {item.sub?.content ? (
+                        {item?.content ? (
                           <span className="badge badge-success">
                             <i className="fas fa-check mr-1"></i>제출완료
                           </span>
@@ -326,16 +364,15 @@ const AssignmentSubmissions = () => {
                     </div>
                     <div className="col-md-3">
                       <div className="submission-actions">
-                        {item.sub?.content ? (
-                          <button 
-                            className="btn btn-sm btn-outline-primary mr-2"
-                            onClick={() => handleDownloadFile(item)}
-                          >
-                            <i className="fas fa-download mr-1"></i>다운로드
-                          </button>
-                        ) : (
-                          <span className="text-muted">-</span>
-                        )}
+                       {item?.content && (
+                       <button 
+                        className="btn btn-sm btn-outline-primary mr-2"
+                         onClick={() => handleDownloadFile(item)}
+                       >
+                      <i className="fas fa-download mr-1"></i>
+                        첨부파일 다운로드
+                      </button>
+                        )}         
                       </div>
                     </div>
                     <div className="col-md-3">
@@ -345,12 +382,12 @@ const AssignmentSubmissions = () => {
                           onClick={() => openCommentModal(item)}
                         >
                           <i className="fas fa-comment mr-1"></i>
-                          {item.sub?.progress ? '댓글 수정' : '댓글 작성'}
+                          {item?.progress ? '점수 수정' : '점수 작성'}
                         </button>
-                        {item.sub?.progress && (
+                        {item?.progress && (
                           <div className="mt-1">
                             <small className="text-success">
-                              <i className="fas fa-check-circle mr-1"></i>댓글 작성됨
+                              <i className="fas fa-check-circle mr-1"></i>평가완료!
                             </small>
                           </div>
                         )}
@@ -359,15 +396,15 @@ const AssignmentSubmissions = () => {
                   </div>
                   
                   {/* 기존 댓글 표시 */}
-                  {item.sub?.progress && (
+                  {item?.progress && (
                     <div className="mt-3 pt-3 border-top">
                       <div className="existing-comment">
                         <h6 className="text-gray-700 mb-2">
-                          <i className="fas fa-comment-dots mr-2"></i>강사 댓글
+                          <i className="fas fa-comment-dots mr-2"></i>평가
                         </h6>
                         <div className="comment-content p-2 bg-light rounded">
                           <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                            {item.sub.progress}
+                            {item.progress}
                           </p>
                         </div>
                       </div>
@@ -388,7 +425,7 @@ const AssignmentSubmissions = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="fas fa-comment-edit mr-2"></i>
-                  {selectedSubmission?.name}님 과제에 댓글 작성
+                  {findStudentName(selectedSubmission.stdId)}님 과제
                 </h5>
                 <button 
                   type="button" 
@@ -398,22 +435,34 @@ const AssignmentSubmissions = () => {
                   <span>&times;</span>
                 </button>
               </div>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label htmlFor="comment">댓글 내용</label>
-                  <textarea
-                    id="comment"
-                    className="form-control"
-                    rows="5"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="학생에게 전달할 피드백을 작성해주세요..."
-                  />
-                  <small className="form-text text-muted">
-                    작성한 댓글은 학생이 확인할 수 있습니다.
-                  </small>
-                </div>
-              </div>
+              
+                  <div className="modal-body">
+                  <div className="form-group">
+                 <label htmlFor="comment">점수</label>
+                    <input
+                     type="number"
+                     id="comment"
+                     className="form-control"
+                      value={comment}
+                     min={0}
+                      max={100}
+                     step={1}
+                    onChange={(e) => {
+                    // 음수, 100초과 방지 (필요시)
+                    let val = e.target.value;
+                    // 빈값 허용(지울때) 아니면 정수 변환
+                     if (val === "") setComment("");
+                     else setComment(Math.max(0, Math.min(100, parseInt(val, 10))) || 0);
+                      }}
+                      placeholder="0~100 사이의 점수만 입력하세요"
+                      />
+                    <small className="form-text text-muted">
+                      입력한 점수는 학생이 확인할 수 있습니다.
+                    </small>
+                    </div>
+                    </div>
+      
+             
               <div className="modal-footer">
                 <button 
                   type="button" 
