@@ -22,6 +22,25 @@ const BoardDetail = () => {
     fetchComments();
   }, [boardId]);
 
+  //날짜 포맷
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}년 ${month}월 ${day}일 ${hours}:${minutes}`;
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   const fetchPostDetail = async () => {
     try {
       setLoading(true);
@@ -431,7 +450,7 @@ const BoardDetail = () => {
             <div className="col-md-6 text-md-end">
               <small className="text-muted">
                 <i className="fas fa-calendar me-1"></i>
-                작성일: {post.createdAt || post.regdate}
+                작성일: {formatDate(post.createdAt || post.regdate)}
               </small>
             </div>
           </div>
