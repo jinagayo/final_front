@@ -1,3 +1,4 @@
+import { AppleIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 const TClassDetail = () => {
@@ -19,10 +20,38 @@ const TClassDetail = () => {
     return urlParams.get('class_id');
   };
 
+  // 강의 정보 수정용 상태
+  const [editClassModalOpen, setEditClassModalOpen] = useState(false);
+  const [editClassForm, setEditClassForm] = useState({
+    name: '',
+    intro:'',
+    detail:'',
+    price:'',
+    img:'',         //최종 업로드(or 기존url)
+    imgFile:null,   //새 파일(선택시)
+    imgPreview:'',  //미리보기
+  });
+  const [savingClass, setSavingClass] = useState(false);
+
   const navigate = (path) => {
     console.log('Navigate to:', path);
     window.location.href = path;
   };
+
+  //강의 데이터가 바뀔 때 수정 폼도 초기화
+  useEffect(() => {
+    if(classData){
+      setEditClassForm({
+        name : classData.name || '',
+        intro: classData.intro || '',
+        detail: classData.detail || '',
+        price: classData.price || '',
+        img: classData.img || '',
+        imgFile:null,
+        imgPreview: classData.img || '',
+      });
+    }
+  },[classData]);
 
   useEffect(() => {
     fetchClassDetail();
@@ -60,6 +89,93 @@ const TClassDetail = () => {
     }
   };
   console.log(classData)
+
+   // 폼 값 변경 핸들러
+  const handleEditClassFormChange = (e) => {
+   const { name, value } = e.target;
+    setEditClassForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditClassImageChange = (e) => {
+  const file = e.target.files[0];
+  if(file){
+    setEditClassForm(prev => ({
+      ...prev,
+      imgFile: file,
+      imgPreview: URL.createObjectURL(file)   // 미리보기 생성
+    }));
+  }
+};
+
+const handleSaveClassInfo = async() => {
+  if(!editClassForm.name.trim()){
+    alert("강의명을 입력해주세요.");
+    return;
+  }
+  setSavingClass(true);
+  const classId = getClassIdFromUrl();
+
+  let imgUrl = editClassForm.img; // 기본: 기존 이미지
+
+  // 이미지 새로 선택했으면 업로드
+  if(editClassForm.imgFile){
+    // 1. 파일 S3나 서버에 업로드 (FormData 활용)
+    const imgForm = new FormData();
+    imgForm.append("file", editClassForm.imgFile);
+    imgForm.append("folderName","course-images");
+
+    try {
+      // 실제 API URL로 교체!
+      const uploadRes = await fetch("http://localhost:8080/course/teacher/upload-image", {
+        method: "POST",
+        body: imgForm,
+        credentials: 'include'
+      });
+      if(uploadRes.ok){
+        const data = await uploadRes.json();
+        imgUrl = data.url; // 서버가 { url: "업로드된 url" } 반환한다고 가정
+      } else {
+        alert("이미지 업로드 실패");
+        setSavingClass(false);
+        return;
+      }
+    } catch(e){
+      alert("이미지 업로드 오류: " + e);
+      setSavingClass(false);
+      return;
+    }
+  }
+
+  // 2. 강의 정보 수정 요청
+  try{
+    const body = {
+      ...editClassForm,
+      img: imgUrl,     // 바뀐 이미지 url
+      imgFile: undefined,  // 파일 필드는 제거
+      imgPreview: undefined,
+    };
+
+    const response = await fetch(`http://localhost:8080/api/myclass/teacher/class/${classId}`,{
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    });
+    if(response.ok){
+      alert("강의 정보가 수정되었습니다.");
+      setEditClassModalOpen(false);
+      fetchClassDetail();  //강의정보 다시 불러오기
+    }else{
+      alert("수정에 실패했습니다.");
+    }
+  }catch(e){
+    alert("수정 중 오류 발생: " + e);
+  }finally{
+    setSavingClass(false);
+  }
+};
 
   const fetchMaterials = async () => {
     try {
@@ -311,17 +427,124 @@ const TClassDetail = () => {
     );
   }
 
+  // 개별 자료 삭제 함수
+const handleDeleteMaterial = async (meterId) => {
+  if (!window.confirm('정말 이 자료를 삭제하시겠습니까?')) return;
+  try {
+    const classId = getClassIdFromUrl();
+    const deleteData = [{ meterId }];
+    const response = await fetch(`http://localhost:8080/api/myclass/teacher/materials/delete?classId=${classId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(deleteData)
+    });
+
+    if (response.ok) {
+      alert('자료가 삭제되었습니다.');
+      fetchMaterials();
+    } else {
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    console.error('삭제 오류:', error);
+    alert('삭제 중 오류가 발생했습니다.');
+  }
+};
+
   return (
     <div className="container-fluid">
-      <div className="mb-3">
+      <div className="mb-3 mt-3">
         <button 
-          className="btn btn-outline-secondary btn-sm"
+          className="btn btn-outline-secondary btn-sm mr-2"
           onClick={() => navigate('/myclass/teacher/classList')}
         >
           <i className="fas fa-arrow-left mr-1"></i> 강의 목록으로 돌아가기
         </button>
-      </div>
 
+        {/* 강의 정보 수정 버튼 */}
+        <button
+          className="btn btn-outline-primary btn-sm"
+          onClick={()=> setEditClassModalOpen(true)}
+        >
+          <i className="fas fa-edit mr-1"></i> 강의정보 수정
+        </button>
+
+        {/* 수정 모달 */}
+        {editClassModalOpen && (
+        <div className="modal show fade" style={{
+          display: "block", 
+          background: "rgba(0,0,0,0.15)", 
+          zIndex: 1000,
+          position: "fixed",
+          top: 0, left: 0, width: "100%", height: "100%",
+        }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">강의 정보 수정</h5>
+                <button type="button" className="close" onClick={() => setEditClassModalOpen(false)}>
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div className="modal-body">
+                <form>
+                  <div className="form-group mb-3">
+                    <label>강의명</label>
+                    <input type="text" className="form-control" name="name"
+                      value={editClassForm.name}
+                      onChange={handleEditClassFormChange} />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label>간단소개</label>
+                    <input type="text" className="form-control" name="intro"
+                      value={editClassForm.intro}
+                      onChange={handleEditClassFormChange} />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label>상세설명</label>
+                    <textarea className="form-control" name="detail"
+                      value={editClassForm.detail}
+                      onChange={handleEditClassFormChange} rows={5} />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label>수강료(원)</label>
+                    <input type="number" className="form-control" name="price"
+                      value={editClassForm.price}
+                      onChange={handleEditClassFormChange} />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label>대표 이미지</label>
+                    <input type="file" accept="image/*"
+                      className="form-control"
+                      onChange={handleEditClassImageChange}
+                    />
+                    {editClassForm.imgPreview && 
+                      <div style={{marginTop:8}}>
+                        <img src={editClassForm.imgPreview}
+                        alt = "이미지 미리보기"
+                        style={{width: "100%", maxHeight: 160, objectFit: "contain", borderRadius: 8, border: "1px solid #eee"}} />
+                      </div>
+                    }
+                  </div>
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setEditClassModalOpen(false)}>
+                  취소
+                </button>
+                <button className="btn btn-primary" onClick={handleSaveClassInfo} disabled={savingClass}>
+                  {savingClass ? "저장중..." : "저장"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      </div>
       <div className="card shadow mb-4">
         <div className="card-body">
           <div className="row">
@@ -603,6 +826,18 @@ const TClassDetail = () => {
                               </small>
                             </div>
                             <div className="material-actions">
+                               {!editMode && (
+                                  <button
+                                   className="btn btn-sm btn-outline-danger ml-2"
+                                   style={{marginRight:"12px"}}
+                                   onClick={e => {
+                                   e.stopPropagation();
+                                    handleDeleteMaterial(material.meterId);
+                                    }}
+                                    >
+                                  <i className="fas fa-trash"></i> 삭제
+                                </button>
+                                )}
                               {editMode ? (
                                 <div className="drag-handle" style={{ cursor: 'grab' }}>
                                   <i className="fas fa-bars text-gray-400"></i>
