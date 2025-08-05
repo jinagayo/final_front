@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from "react-router-dom";
 
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const { user, isLoading } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
 
+function getImageUrl(img) {
+  if (!img) return "/img/undraw_profile.svg";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+}
+
+useEffect(() => {
+  async function fetchProfile() {
+    const res = await fetch("http://localhost:8080/api/Mypage/Profile", { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      setProfile(data);
+    }
+  }
+  fetchProfile();
+}, []);
   // 디버깅을 위한 useEffect 추가
   useEffect(() => {
     console.log('=== Sidebar 렌더링 ===');
@@ -97,17 +116,17 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
             }}
           >
             <div className="profile-image-container">
-              <img 
-                src="/img/undraw_profile.svg" 
+             <img 
+               src={getImageUrl(profile?.img)}
                 alt="Profile" 
-                className="rounded-circle"
+                 className="rounded-circle"
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  objectFit: 'cover',
-                  border: '3px solid rgba(255,255,255,0.2)'
-                }}
-              />
+                width: '100px',
+                height: '100px',
+                objectFit: 'cover',
+                border: '3px solid rgba(255,255,255,0.2)'
+              }}
+               />
             </div>
             
             <div className="profile-info ml-3">
@@ -143,30 +162,44 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
               
               {/* 수강 신청 - 학생 */}
               {isStudent() && (
+                <>
                 <li className="nav-item">
                   <a className="nav-link" href="/course/List">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>수강신청</span>
                   </a>
                 </li>
-              )}
+              
 
               {/* 내 강의실 - 학생/강사 */}
               <li className="nav-item">
                 <a className="nav-link" href="/myclass/List">
+                
                   <i className="fas fa-fw fa-chart-area"></i>
                   <span>내강의실</span>
                 </a>
               </li>
+              </>
+              )}
+
+            
               
               {/* 강의개설 - 강사 */}
               {isTeacher() && (
+                <>
                 <li className="nav-item">
                   <a className="nav-link" href="/course/teacher/List">
                     <i className="fas fa-fw fa-cogs"></i>
                     <span>강의 개설</span>
                   </a>
                 </li>
+                <li className="nav-item">
+                <Link className="nav-link" to="/myclass/teacher/classList">
+                  <i className="fas fa-fw fa-chart-area"></i>
+                  <span>내강의실</span>
+                </Link>
+              </li>
+              </>
               )}
               <hr className="sidebar-divider" />
             </>

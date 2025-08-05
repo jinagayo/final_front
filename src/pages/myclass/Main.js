@@ -353,7 +353,12 @@ export default function ClassMain() {
             console.log('classId:', classData.classId); // undefined인지 확인
             navigate(`/myclass/board/list/${classData.classId}?boardNum=BOD002`)
           }}
-        >
+          />
+          <button 
+            className="btn btn-info btn-block"
+            onClick={() =>
+            navigate(`/myclass/board/List?classId=${classData.classId}&boardNum=BOD002`)}
+          >
             <i className="fas fa-bullhorn mr-2"></i>공지사항
           </button>
         </div>

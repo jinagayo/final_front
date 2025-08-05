@@ -5,7 +5,23 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     name: userDetails?.name || '',
     email: userDetails?.email || '',
     phone: userDetails?.phone || '',
-    birthday: userDetails?.birthday ? userDetails.birthday.split('T')[0] : '',
+    birthday:
+    (() => {
+      const b = userDetails?.birthday;
+      if (!b) return '';
+      if (typeof b === 'string') {
+        if (b.includes('T')) return b.split('T')[0];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(b)) return b;
+        return b;
+      }
+      if (typeof b === 'number') {
+        return new Date(b).toISOString().split('T')[0];
+      }
+      if (b instanceof Date) {
+        return b.toISOString().split('T')[0];
+      }
+      return '';
+    })(),
     addressnum: userDetails?.addressnum || '',
     address1: userDetails?.address1 || '',
     address2: userDetails?.address2 || '',
@@ -14,9 +30,7 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [preview, setPreview] = useState(
-    userDetails?.img ? `/images/${userDetails.img}` : "/img/undraw_profile.svg"
-  );
+  const [preview, setPreview] = useState(userDetails?.img );
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -86,12 +100,7 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
       try {
         const base64 = await fileToBase64(file);
         setPreview(base64);
-        setImageFile({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          data: base64
-        });
+        setImageFile(file);
         
         // 에러 메시지 제거
         setErrors(prev => ({
@@ -184,6 +193,26 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     }).open();
   };
 
+  const uploadImageToServer = async(file, folderName='user/profile') => {
+    const formData = new FormData();
+    formData.append('file',file);
+    formData.append('folderName',folderName);
+
+    const response = await fetch('http://localhost:8080/api/Mypage/ProfileImageUpload',{
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if(response.ok){
+      const {key} = await response.json();  //백엔드에서 return key;
+      return key;
+    }else{
+      throw new Error('이미지 업로드 실패');
+    }
+  }
+  console.log("imageFile:", imageFile);
+
   // 폼 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -195,10 +224,17 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
     setLoading(true);
 
     try {
+      let imgValue = formData.img;
+
+      // 새 파일을 올린 경우에만 업로드
+      if(imageFile && imageFile instanceof File){
+        imgValue = await uploadImageToServer(imageFile, 'user/profile');
+      }
+
       // JSON 데이터 생성
       const submitData = {
         ...formData,
-        profileImage: imageFile // 이미지 파일 정보 (Base64 포함)
+         img: imgValue  // 이미지 파일 정보 (Base64 포함)
       };
 
       const response = await fetch('http://localhost:8080/api/Mypage/ProfileUpdate', {
@@ -225,6 +261,16 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
       setLoading(false);
     }
   };
+
+  const S3_BASE_URL = "https://my-lecture-video.s3.ap-northeast-2.amazonaws.com/";
+
+const getImageUrl = (img) => {
+  if (!img) return "/img/undraw_profile.svg";
+  if (img.startsWith("http") || img.startsWith("data:")) return img;
+  return S3_BASE_URL + img;
+};
+
+
 
   return (
     <div className="container-fluid">
@@ -254,7 +300,7 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel }) {
               <div className="card-body text-center">
                 <div className="profile-image-container mb-3">
                   <img 
-                    src={preview}
+                    src={getImageUrl(preview)}
                     alt="Profile Preview" 
                     className="rounded-circle shadow"
                     style={{
