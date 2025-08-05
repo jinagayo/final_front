@@ -38,8 +38,13 @@ const TeacherTestList = () => {
         console.log("테스트 결과 데이터:", testData);
         
         if (testData) {
-          setData(testData);
-          console.log("테스트 결과 데이터 로드 완료");
+          // 백엔드 데이터 구조에 맞게 수정
+          const transformedData = {
+            title: testData.title,
+            students: testData.submit || [] // submit 배열을 students로 변환
+          };
+          setData(transformedData);
+          console.log("변환된 데이터:", transformedData);
         } else {
           setError('테스트 결과 데이터를 찾을 수 없습니다.');
         }
@@ -70,8 +75,7 @@ const TeacherTestList = () => {
     if (!data || !data.students) return [];
 
     let filtered = data.students.filter(student =>
-      student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(searchTerm.toLowerCase())
+      student.student.toLowerCase().includes(searchTerm.toLowerCase()) // studentName -> student로 수정
     );
 
     return filtered.sort((a, b) => {
@@ -79,8 +83,8 @@ const TeacherTestList = () => {
       
       switch (sortBy) {
         case 'name':
-          aValue = a.studentName;
-          bValue = b.studentName;
+          aValue = a.student; // studentName -> student로 수정
+          bValue = b.student;
           break;
         case 'score':
           aValue = a.score;
@@ -124,9 +128,9 @@ const TeacherTestList = () => {
   };
 
   // 학생 결과 상세보기로 이동
-  const handleViewDetail = (studentName) => {
+  const handleViewDetail = (subId) => {
     const meterialId = getMeterialIdFromUrl();
-    window.location.href = `/myclass/teacher/testDetail?meterial_id=${meterialId}&student_name=${encodeURIComponent(studentName)}`;
+    window.location.href = `/myclass/teacher/testDetail?meterialSub_id=${subId}`;
   };
 
   // 통계 계산
@@ -391,11 +395,8 @@ const TeacherTestList = () => {
             <div className="col-md-3 text-center">
               <strong>점수</strong>
             </div>
-            <div className="col-md-2 text-center">
+            <div className="col-md-3 text-center">
               <strong>등급</strong>
-            </div>
-            <div className="col-md-1 text-center">
-              <strong>상세</strong>
             </div>
           </div>
         </div>
@@ -404,7 +405,12 @@ const TeacherTestList = () => {
           const gradeInfo = getScoreGrade(student.score);
           
           return (
-            <div key={student.student} className="student-item">
+            <div 
+              key={student.student} 
+              className="student-item clickable"
+              onClick={() => handleViewDetail(student.subId)}
+              title="클릭하여 상세 결과 보기"
+            >
               <div className="row align-items-center">
                 <div className="col-md-6">
                   <div className="student-info">
@@ -419,19 +425,10 @@ const TeacherTestList = () => {
                     {student.score}점
                   </div>
                 </div>
-                <div className="col-md-2 text-center">
+                <div className="col-md-3 text-center">
                   <span className={`badge badge-${gradeInfo.color} grade-badge`}>
                     {gradeInfo.grade}
                   </span>
-                </div>
-                <div className="col-md-1 text-center">
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => handleViewDetail(student.student)}
-                    title="상세 결과 보기"
-                  >
-                    <i className="fas fa-eye"></i>
-                  </button>
                 </div>
               </div>
             </div>
@@ -458,8 +455,9 @@ const TeacherTestList = () => {
 
       <style>{`
         .test-results-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: #f8f9fa;
+          border: 1px solid #dee2e6;
+          color: #495057;
           padding: 25px;
           border-radius: 8px;
           margin-bottom: 30px;
@@ -582,8 +580,14 @@ const TeacherTestList = () => {
           transition: all 0.3s ease;
         }
 
+        .student-item.clickable {
+          cursor: pointer;
+        }
+
         .student-item:hover {
           background: #f8f9ff;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
         }
 
         .student-item:last-child {

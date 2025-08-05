@@ -14,6 +14,7 @@ import Main from '../pages/myclass/Main';
 import StudentTestTake from '../pages/myclass/Test';
 import StudentTestResult from '../pages/myclass/TestResult';
 import TeacherTestList from '../pages/myclass/teacher/TestList';
+import TeacherTestResult from '../pages/myclass/teacher/TestDetail';
 
 function ClassRoutes() {
   return (
@@ -135,6 +136,15 @@ function ClassRoutes() {
             <div className="col-lg-12">
               <div className="card shadow mb-4">
                 <TeacherTestList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="teacher/testDetail" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <TeacherTestResult />
               </div>
             </div>
           </div>
