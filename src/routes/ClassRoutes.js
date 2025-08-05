@@ -12,6 +12,9 @@ import StudentAssignmentView from '../pages/myclass/Assignment';
 import List from '../pages/myclass/List';
 import Main from '../pages/myclass/Main';
 import StudentTestTake from '../pages/myclass/Test';
+import StudentTestResult from '../pages/myclass/TestResult';
+import TeacherTestList from '../pages/myclass/teacher/TestList';
+import TeacherTestResult from '../pages/myclass/teacher/TestDetail';
 
 function ClassRoutes() {
   return (
@@ -118,7 +121,34 @@ function ClassRoutes() {
             </div>
           </div>
         } />
+        <Route path="test/result" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <StudentTestResult />
+              </div>
+            </div>
+          </div>
+        } />
 
+        <Route path="teacher/testList" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <TeacherTestList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="teacher/testDetail" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <TeacherTestResult />
+              </div>
+            </div>
+          </div>
+        } />
       
     </Routes>
   );
