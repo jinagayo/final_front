@@ -9,6 +9,20 @@ export default function Join() {
   const [openPostcode, setOpenPostcode] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   
+  // 비밀번호 강도 체크 관련 상태 추가
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    feedback: '',
+    color: 'danger',
+    checks: {
+      length: false,
+      lowercase: false,
+      uppercase: false,
+      number: false,
+      special: false
+    }
+  });
+  
   const [formData, setFormData] = useState({
     user_id: '',
     name: '',
@@ -17,9 +31,9 @@ export default function Join() {
     confirmPassword: '',
     phone: '',
     birthday: '',
-    address1: '',       // 기본주소
-    address2: '',       // 상세주소
-    addressnum: ''      // 우편번호
+    address1: '',
+    address2: '',
+    addressnum: ''
   });
 
   useEffect(() => {
@@ -30,6 +44,71 @@ export default function Join() {
     }
   }, [role]);
 
+  // 비밀번호 강도 체크 함수
+  const checkPasswordStrength = (password) => {
+    if (!password) {
+      setPasswordStrength({
+        score: 0,
+        feedback: '',
+        color: 'danger',
+        checks: {
+          length: false,
+          lowercase: false,
+          uppercase: false,
+          number: false,
+          special: false
+        }
+      });
+      return;
+    }
+
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    };
+
+    const score = Object.values(checks).filter(Boolean).length;
+    
+    let feedback = '';
+    let color = 'danger';
+
+    switch (score) {
+      case 0:
+      case 1:
+        feedback = '매우 약함';
+        color = 'danger';
+        break;
+      case 2:
+        feedback = '약함';
+        color = 'warning';
+        break;
+      case 3:
+        feedback = '보통';
+        color = 'info';
+        break;
+      case 4:
+        feedback = '강함';
+        color = 'success';
+        break;
+      case 5:
+        feedback = '매우 강함';
+        color = 'success';
+        break;
+      default:
+        feedback = '';
+    }
+
+    setPasswordStrength({
+      score,
+      feedback,
+      color,
+      checks
+    });
+  };
+
   const handleRoleSelect = (selectedRole) => {
     const urlRole = selectedRole === 'instructor' ? 'teacher' : 'student';
     navigate(`/join/signup/${urlRole}`);
@@ -37,94 +116,105 @@ export default function Join() {
   };
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // 비밀번호 필드인 경우 강도 체크
+    if (name === 'pw') {
+      checkPasswordStrength(value);
+    }
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // 비밀번호 검증
-  if (formData.pw !== formData.confirmPassword) {
-    alert('비밀번호가 일치하지 않습니다.');
-    return;
-  }
-
-  if (formData.pw.length < 8) {
-    alert('비밀번호는 8자리 이상이어야 합니다.');
-    return;
-  }
-
-  // ✅ 필수 필드 수정 (address2 제외)
-  const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];
-  for (let field of requiredFields) {
-    if (!formData[field] || !formData[field].toString().trim()) {
-      alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
-      return;
-    }
-  }
-
-  try {
-    const endpoint = selectedRole === 'student' 
-      ? 'http://localhost:8080/join/signup/student'
-      : 'http://localhost:8080/join/signup/teacher';
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(formData)
-    });
-
-    // ✅ 상세한 에러 처리
-    if (response.status === 403) {
-      alert('접근 권한이 없습니다. 서버 설정을 확인해주세요.');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // 비밀번호 강도 체크
+    if (passwordStrength.score < 3) {
+      alert('비밀번호 강도가 너무 약합니다. 더 안전한 비밀번호를 사용해주세요.');
       return;
     }
 
-    // ✅ JSON 응답 확인
-    const contentType = response.headers.get('content-type');
-
-    if (!contentType || !contentType.includes('application/json')) {
-      const textResponse = await response.text();
-      alert('서버에서 예상하지 못한 응답을 받았습니다.');
+    // 비밀번호 일치 확인
+    if (formData.pw !== formData.confirmPassword) {
+      alert('비밀번호가 일치하지 않습니다.');
       return;
     }
 
-    const data = await response.json();
+    if (formData.pw.length < 8) {
+      alert('비밀번호는 8자리 이상이어야 합니다.');
+      return;
+    }
 
-    if (response.ok) {
-      alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);
-      navigate('/');
-    } else {
-      if (data.message) {
-        alert(data.message);
-      } else {
-        alert('회원가입에 실패했습니다.');
+    const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];
+    for (let field of requiredFields) {
+      if (!formData[field] || !formData[field].toString().trim()) {
+        alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
+        return;
       }
     }
-  } catch (error) {
-    console.error('상세 오류:', error);
-    alert(`오류 발생: ${error.message}`);
-  }
-};
-const getFieldName = (field) => {
-  const fieldNames = {
-    'user_id': '아이디',
-    'name': '이름',
-    'email': '이메일',
-    'phone': '전화번호',
-    'birthday': '생년월일',
-    'addressnum': '우편번호',
-    'address1': '기본주소',
-    'address2': '상세주소'  // 추가
+
+    try {
+      const endpoint = selectedRole === 'student' 
+        ? 'http://localhost:8080/join/signup/student'
+        : 'http://localhost:8080/join/signup/teacher';
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+
+      if (response.status === 403) {
+        alert('접근 권한이 없습니다. 서버 설정을 확인해주세요.');
+        return;
+      }
+
+      const contentType = response.headers.get('content-type');
+
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        alert('서버에서 예상하지 못한 응답을 받았습니다.');
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`${selectedRole === 'student' ? '수강생' : '강사'}으로 회원가입이 완료되었습니다!`);
+        navigate('/');
+      } else {
+        if (data.message) {
+          alert(data.message);
+        } else {
+          alert('회원가입에 실패했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('상세 오류:', error);
+      alert(`오류 발생: ${error.message}`);
+    }
   };
-  return fieldNames[field] || field;
-};
+
+  const getFieldName = (field) => {
+    const fieldNames = {
+      'user_id': '아이디',
+      'name': '이름',
+      'email': '이메일',
+      'phone': '전화번호',
+      'birthday': '생년월일',
+      'addressnum': '우편번호',
+      'address1': '기본주소',
+      'address2': '상세주소'
+    };
+    return fieldNames[field] || field;
+  };
 
   const handleAddressSearch = () => {
     setOpenPostcode(true);
@@ -135,8 +225,8 @@ const getFieldName = (field) => {
     
     setFormData(prev => ({
       ...prev,
-      addressnum: data.zonecode,     // 우편번호
-      address1: data.address         // 기본주소 (도로명주소 또는 지번주소)
+      addressnum: data.zonecode,
+      address1: data.address
     }));
     
     setOpenPostcode(false);
@@ -410,6 +500,7 @@ const getFieldName = (field) => {
                 </div>
               </div>
 
+              {/* 비밀번호 섹션 - 강도 체크 추가 */}
               <div className="row">
                 <div className="col-md-6">
                   <div className="mb-2">
@@ -425,6 +516,24 @@ const getFieldName = (field) => {
                       placeholder="8자리 이상 입력하세요"
                       minLength="8"
                     />
+                    
+                    {/* 비밀번호 강도 표시 */}
+                    {formData.pw && (
+                      <div className="mt-2">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <small className="text-muted">비밀번호 강도:</small>
+                          <small className={`text-${passwordStrength.color} fw-bold`}>
+                            {passwordStrength.feedback}
+                          </small>
+                        </div>
+                        <div className="progress" style={{ height: '6px' }}>
+                          <div 
+                            className={`progress-bar bg-${passwordStrength.color}`}
+                            style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -440,6 +549,23 @@ const getFieldName = (field) => {
                       required
                       placeholder="비밀번호를 다시 입력하세요"
                     />
+                    
+                    {/* 비밀번호 일치 확인 */}
+                    {formData.confirmPassword && (
+                      <div className="mt-1">
+                        {formData.pw === formData.confirmPassword ? (
+                          <small className="text-success">
+                            <i className="fas fa-check me-1"></i>
+                            비밀번호가 일치합니다
+                          </small>
+                        ) : (
+                          <small className="text-danger">
+                            <i className="fas fa-times me-1"></i>
+                            비밀번호가 일치하지 않습니다
+                          </small>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -456,6 +582,7 @@ const getFieldName = (field) => {
                       border: 'none'
                     }}
                     onClick={handleSubmit}
+                    disabled={passwordStrength.score < 3 || formData.pw !== formData.confirmPassword}
                   >
                     회원가입 완료
                   </button>
