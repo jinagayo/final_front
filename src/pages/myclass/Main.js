@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import { useSearchParams,useParams } from 'react-router-dom';
 export default function ClassMain() {
   const [classData, setClassData] = useState(null);
   const [materials, setMaterials] = useState([]);
@@ -325,55 +325,62 @@ export default function ClassMain() {
         </div>
       </div>
 
-      {/* 액션 버튼들 */}
-      <div className="row mb-4">
-        <div className="col-md-3 mb-2">
-          <button 
-            className="btn btn-primary btn-block"
-            onClick={() => {
-              console.log("버튼 클릭됨!");
-              console.log("hasReviewed 현재값:", hasReviewed);
-              if (hasReviewed) {
-                console.log("이미 평가함 - alert 표시");
-                alert('이미 평가하셨습니다.');
-                return;
-              }
-              console.log("평가 폼 토글");
-              setShowReviewForm(!showReviewForm);
-            }}
-          >
-            <i className="fas fa-star mr-2"></i>강의 평가하기
-          </button>
+        {/* 액션 버튼들 */}
+        <div className="row mb-4">
+          <div className="col-md-3 mb-2">
+            <button 
+              className="btn btn-primary btn-block"
+              onClick={() => {
+                console.log("버튼 클릭됨!");
+                console.log("hasReviewed 현재값:", hasReviewed);
+                if (hasReviewed) {
+                  console.log("이미 평가함 - alert 표시");
+                  alert('이미 평가하셨습니다.');
+                  return;
+                }
+                console.log("평가 폼 토글");
+                setShowReviewForm(!showReviewForm);
+              }}
+            >
+              <i className="fas fa-star mr-2"></i>강의 평가하기
+            </button>
+          </div>
+          
+          <div className="col-md-3 mb-2">
+            <button 
+              className="btn btn-info btn-block"
+              onClick={() => {
+                console.log('classData:', classData);
+                console.log('classId:', classData.classId);
+                navigate(`/myclass/board/list/${classData.classId}?boardNum=BOD002`);
+              }}
+            >
+              <i className="fas fa-bullhorn mr-2"></i>공지사항
+            </button>
+          </div>
+          
+          <div className="col-md-3 mb-2">
+            <button 
+              className="btn btn-info btn-block"
+              onClick={() => {
+                console.log('classData:', classData);
+                console.log('classId:', classData.classId);
+                navigate(`/myclass/board/list/${classData.classId}?boardNum=BOD001`);
+              }}
+            >
+              <i className="fas fa-bullhorn mr-2"></i>QnA
+            </button>
+          </div>
+          
+          <div className="col-md-3 mb-2">
+            <button 
+              className="btn btn-outline-secondary btn-block"
+              onClick={() => window.location.reload()}
+            >
+              <i className="fas fa-sync-alt mr-2"></i>새로고침
+            </button>
+          </div>
         </div>
-        <div className="col-md-3 mb-2">
-          <button 
-            className="btn btn-info btn-block"
-            onClick={() =>
-            navigate(`/myclass/board/List?classId=${classData.classId}&boardNum=BOD002`)
-}
-
-
-          >
-            <i className="fas fa-bullhorn mr-2"></i>공지사항
-          </button>
-        </div>
-        <div className="col-md-3 mb-2">
-          <button 
-            className="btn btn-success btn-block"
-            onClick={() => navigate(`/myclass/qna/${classData.classId}`)}
-          >
-            <i className="fas fa-question-circle mr-2"></i>Q&A 게시판
-          </button>
-        </div>
-        <div className="col-md-3 mb-2">
-          <button 
-            className="btn btn-outline-secondary btn-block"
-            onClick={() => window.location.reload()}
-          >
-            <i className="fas fa-sync-alt mr-2"></i>새로고침
-          </button>
-        </div>
-      </div>
 
       {/* 강의 평가 폼 */}
       {showReviewForm && (

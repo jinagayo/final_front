@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams,useNavigate  } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 const BoardDetail = () => {
-  const { boardId } = useParams();
-  const { boardnum } = useParams();
-  const [post, setPost] = useState(null);
+  // URL에서 올바른 파라미터 추출
+  const { classId, boardId } = useParams();
+  const [searchParams] = useSearchParams();
+  const boardNum = searchParams.get('boardNum') || 'BOD002';
   const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [commentLoading, setCommentLoading] = useState(false);
+    const [editingComment, setEditingComment] = useState(null);
+    const [editContent, setEditContent] = useState('');
+    const [replyingToComment, setReplyingToComment] = useState(null);
+    const [replyContent, setReplyContent] = useState('');
+   const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum') || 'BOD002';
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [commentLoading, setCommentLoading] = useState(false);
-  const [newComment, setNewComment] = useState('');
-  const [editingComment, setEditingComment] = useState(null);
-  const [editContent, setEditContent] = useState('');
-  const [replyingToComment, setReplyingToComment] = useState(null);
-  const [replyContent, setReplyContent] = useState('');
-  const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +24,8 @@ const BoardDetail = () => {
     fetchComments();
   }, [boardId]);
 
-  //날짜 포맷
+
+    //날짜 포맷
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
@@ -40,7 +43,6 @@ const BoardDetail = () => {
       return dateString;
     }
   };
-
   const fetchPostDetail = async () => {
     try {
       setLoading(true);
@@ -61,9 +63,9 @@ const BoardDetail = () => {
       }
       
       console.log('요청 헤더:', headers);
-      console.log('요청 URL:', `http://localhost:8080/detail/${boardId}`);
+      console.log('요청 URL:', `http://localhost:8080/api/myclass/board/detail/${classId}`);
       
-      const response = await fetch(`http://localhost:8080/board/detail/${boardId}`, {
+      const response = await fetch(`http://localhost:8080/api/myclass/board/detail/${classId}/${boardId}`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
@@ -117,7 +119,7 @@ const BoardDetail = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`http://localhost:8080/board/${boardId}/comments`, {
+      const response = await fetch(`http://localhost:8080/api/myclass/board/${boardId}/comments`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
@@ -335,42 +337,52 @@ const BoardDetail = () => {
   };
 
   const handleList = () => {
-    window.location.href = `/board/list?boardnum=${currentBoardnum}`;
-  };
-
-  const handleEdit = () => {
-    navigate(`/board/edit/${boardId}?boardnum=${currentBoardnum}`);
-  };
-
-  const handleDelete = async () => {
-    if (window.confirm('정말로 삭제하시겠습니까?')) {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        
-        const response = await fetch(`http://localhost:8080/board/${boardId}`, { 
-          method: 'DELETE',
-          headers: headers,
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          alert('삭제되었습니다.');
-          window.location.href = `/board/list?boardnum=${currentBoardnum}`;
-        } else {
-          throw new Error('삭제에 실패했습니다.');
-        }
-      } catch (err) {
-        alert('삭제에 실패했습니다.');
-      }
+    if (classId) {
+      // 강의별 게시판으로 돌아가기
+      window.location.href = `/myclass/board/list/${classId}?boardNum=${boardNum}&classId=${classId}`;
+    } else {
+      // 전체 게시판으로 돌아가기
+      window.location.href = `/board/list?boardnum=${boardNum}`;
     }
   };
+
+    const handleEdit = () => {
+    if (classId) {
+        navigate(`/myclass/board/edit/${classId }/${boardId}?boardNum=${boardNum}`);
+    } else {
+        navigate(`/board/edit/${boardId}?boardnum=${boardNum}`);
+    }
+    };
+
+const handleDelete = async () => {
+  if (window.confirm('정말로 삭제하시겠습니까?')) {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`http://localhost:8080/api/myclass/board/delete/${classId}/${boardId}`, { 
+        method: 'DELETE',
+        headers: headers,
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        alert('삭제되었습니다.');
+        window.location.href = `/myclass/board/list/${classId}?boardNum=${boardNum}`;
+      } else {
+        throw new Error('삭제에 실패했습니다.');
+      }
+    } catch (err) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+};
 
   if (loading) {
     return (
@@ -415,7 +427,7 @@ const BoardDetail = () => {
           <a href="/dashboard">Dashboard</a>
         </li>
         <li className="breadcrumb-item">
-          <a href={`/board/list?boardnum=${currentBoardnum}`}>게시판</a>
+          <a href={`/myclass/board/list/${classId}?boardNum=${boardNum}`}>게시판</a>
         </li>
         <li className="breadcrumb-item active">상세보기</li>
       </ol>
