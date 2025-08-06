@@ -191,7 +191,7 @@ const handleDownloadSubmission = () => {
       <div className="mb-3">
         <button 
           className="btn btn-outline-secondary btn-sm"
-          onClick={() => navigate(`/myclass/student/classDetail?class_id=${assignmentData?.class_id}`)}
+          onClick={() => window.history.back()}
         >
           <i className="fas fa-arrow-left mr-1"></i> 강의로 돌아가기
         </button>
@@ -289,7 +289,7 @@ const handleDownloadSubmission = () => {
                     <div className="teacher-comment">
                       <div className="comment-header mb-2">
                         <i className="fas fa-comment-dots text-info mr-2"></i>
-                        <strong>선생님 코멘트</strong>
+                        <strong>점수</strong>
                       </div>
                       <div className="comment-content p-3 bg-light rounded">
                         <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>

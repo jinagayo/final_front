@@ -61,7 +61,7 @@ const PaymentEnd = () => {
                     <button
                         className="btn btn-primary payment-end-button"
                         style={{margin:"5px"}}
-                        onClick={() => navigate('/my-courses')} // 내 강의실 경로로 변경
+                        onClick={() => navigate('/myclass/List')} // 내 강의실 경로로 변경
                     >
                         내 강의실 바로가기
                     </button>

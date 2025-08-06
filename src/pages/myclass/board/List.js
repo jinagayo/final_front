@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 
-const List = () => {
+const MyclassBoardList = () => {
   const [notices, setNotices] = useState([]);
+  const { classId } = useParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('latest');
   const [filterBy, setFilterBy] = useState('all');
@@ -11,65 +12,68 @@ const List = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
-  const boardnum = searchParams.get('boardnum') || 'BOD002';
-  const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
+  const boardnum = searchParams.get('boardNum') || 'BOD002';
+  const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum') || 'BOD002';
 
-const fetchNotices = async () => {
+  const fetchNotices = async () => {
     try {
+      const url = `http://localhost:8080/api/myclass/board/list/${classId}?boardNum=${boardnum}&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;
 
-        const url = `http://localhost:8080/myclass/board/list?boardnum=${boardnum}&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;
-
-        console.log('요청 URL:', url);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        console.log('응답 상태:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('서버 응답 오류:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}`);
+      
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
         }
+      });
 
-        const data = await response.json();
-        console.log('API 응답:', data);
-        
-        if (data.success) {
-            // 백엔드에서 이미 변환된 형식으로 데이터가 옴
-            setNotices(data.data || []);
-            setTotalPages(data.totalPage || 1);
-            setLoading(false);
-        } else {
-            console.error('API 오류:', data.message);
-            setError(data.message);
-            setLoading(false);
-        }
-    } catch (error) {
-        console.error('공지사항 조회 오류:', error);
-        setError(error.message);
+      console.log('응답 상태:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('서버 응답 오류:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('API 응답:', data);
+      
+      if (data.success) {
+        setNotices(data.data?.boards || []);
+        setTotalPages(data.data?.totalPage || 1);
         setLoading(false);
+      } else {
+        console.error('API 오류:', data.message);
+        setError(data.message);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('공지사항 조회 오류:', error);
+      setError(error.message);
+      setLoading(false);
     }
-};
+  };
+
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    fetchNotices(currentPage, searchTerm, sortBy, filterBy);
-  }, [currentPage, sortBy, filterBy]);
+    if (classId) {
+      fetchNotices();
+    }
+  }, [classId, currentPage, sortBy, filterBy]);
 
   // 검색어 변경 시 디바운싱 적용
   useEffect(() => {
+    if (!classId) return;
+    
     const timeoutId = setTimeout(() => {
-      setCurrentPage(1); // 검색 시 첫 페이지로 이동
-      fetchNotices(1, searchTerm, sortBy, filterBy);
+      setCurrentPage(1);
+      fetchNotices();
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, classId]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -90,28 +94,39 @@ const fetchNotices = async () => {
   };
 
   // 공지사항 상세보기
-  // handleNoticeClick 함수도 수정:
 const handleNoticeClick = async (noticeId) => {
-    try {
-        // 조회수 증가 API 호출
-        await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-        
-        // 상세 페이지로 이동 (noticeId 사용)
-        window.location.href = `/board/detail/${noticeId}?boardnum=${currentBoardnum}`;
-    } catch (error) {
-        console.error('조회수 증가 오류:', error);
-        // 오류가 있어도 상세 페이지로 이동
-        window.location.href = `/board/detail/${noticeId}?boardnum=${currentBoardnum}`;
-    }
+  try {
+    // 조회수 증가 API 호출
+    await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    
+    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+  } catch (error) {
+    console.error('조회수 증가 오류:', error);
+    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+  }
 };
 
-const handleCreateNotice = () => {
-  // 현재 게시판의 boardnum을 가져와서 작성 페이지로 이동
-  window.location.href = `/board/write?boardnum=${currentBoardnum}`;
-};
+  //게시판 title
+  const getBoardTitle = (boardnum) => {
+    switch(boardnum){
+      case "BOD001" : return "QnA";
+      case "BOD002" : return "공지사항";
+      default: return "게시판";
+    }
+  }
+  const boardTitle = getBoardTitle(currentBoardnum);
+
+  const handleCreateNotice = () => {
+    // 현재 게시판의 boardnum을 가져와서 작성 페이지로 이동
+    window.location.href = `/myclass/board/write/${classId}?boardNum=${currentBoardnum}`;
+  };
+
+  const handleSubjectList = () => {
+    window.location.href = `/myclass/Main?class_id=${classId}`;
+  };
 
   // 날짜 포맷팅 함수
   const formatDate = (dateString) => {
@@ -131,8 +146,6 @@ const handleCreateNotice = () => {
     }
   };
 
-  
-
   const pinnedNotices = notices.filter(notice => notice.isPinned || notice.pinned);
   const regularNotices = notices.filter(notice => !notice.isPinned && !notice.pinned);
 
@@ -143,9 +156,7 @@ const handleCreateNotice = () => {
           <div className="col-12">
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
-                <span className="sr-only">Loading...</span>
               </div>
-              <p className="mt-3 text-muted">공지사항을 불러오는 중...</p>
             </div>
           </div>
         </div>
@@ -164,7 +175,7 @@ const handleCreateNotice = () => {
               <p>{error}</p>
               <button 
                 className="btn btn-outline-danger"
-                onClick={() => fetchNotices(currentPage, searchTerm, sortBy, filterBy)}
+                onClick={() => fetchNotices()}
               >
                 다시 시도
               </button>
@@ -181,7 +192,22 @@ const handleCreateNotice = () => {
         <div className="col-12">
           {/* 헤더 섹션 */}
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="h3 mb-0 text-gray-800 font-weight-bold">공지사항</h2>
+            <h2 className="h3 mb-0 text-gray-800 font-weight-bold">{boardTitle}</h2>
+
+            <div className="d-flex" style={{ gap: '8px', marginTop: '1.5rem' }}>
+              <button 
+                className="btn btn-primary"
+                onClick={handleSubjectList}
+                style={{
+                  backgroundColor: '#10860cff',
+                  borderColor: '#10860cff',
+                  borderRadius: '0.35rem',
+                  padding: '0.5rem 1.5rem'
+                }}
+              >
+                강의목록
+              </button>
+
               <button 
                 className="btn btn-primary"
                 onClick={handleCreateNotice}
@@ -189,12 +215,12 @@ const handleCreateNotice = () => {
                   backgroundColor: '#4e73df',
                   borderColor: '#4e73df',
                   borderRadius: '0.35rem',
-                  marginTop : '1.5rem',
                   padding: '0.5rem 1.5rem'
                 }}
               >
                 게시글 작성
               </button>
+            </div>
           </div>
 
           {/* 검색 및 필터 섹션 */}
@@ -228,20 +254,6 @@ const handleCreateNotice = () => {
                         style={{ fontSize: '14px' }}
                       />
                     </div>
-                    {/*
-                    <div className="col-md-3">
-                      <select 
-                        className="form-control form-control-sm"
-                        value={filterBy}
-                        onChange={handleFilterChange}
-                        style={{ fontSize: '14px' }}
-                      >
-                        <option value="all">전체</option>
-                        <option value="중요">중요</option>
-                        <option value="공지">공지</option>
-                        <option value="일반">일반</option>
-                      </select>
-                    </div>*/}
                   </div>
                 </div>
               </div>
@@ -280,7 +292,7 @@ const handleCreateNotice = () => {
                       <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>
                         <span className="mr-3">
                           <i className="fas fa-user mr-1"></i>
-                          {notice.author || notice.createdBy}
+                          {notice.author || notice.createBy}
                         </span>
                         <span className="mr-3">
                           <i className="fas fa-clock mr-1"></i>
@@ -300,49 +312,49 @@ const handleCreateNotice = () => {
                 </div>
               ))}
 
-            {/* 일반 공지사항 */}
-            {regularNotices.map((notice) => (
-            <div 
-              key={notice.id} 
-              className="notice-item border-bottom"
-              style={{
-                padding: '1rem 1.5rem',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fc'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-              onClick={() => handleNoticeClick(notice.id)}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="flex-grow-1">
-                  <div className="d-flex align-items-center mb-2">
-                    <h6 className="mb-0 text-dark" style={{ fontSize: '15px' }}>
-                      {notice.title}
-                    </h6>
-                  </div>
-                  <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>
-                    <span className="mr-3">
-                      <i className="fas fa-user mr-1"></i>
-                      {notice.author || notice.createdBy}
-                    </span>
-                    <span className="mr-3">
-                      <i className="fas fa-clock mr-1"></i>
-                      {formatDate(notice.createdAt || notice.date)}
-                    </span>
+              {/* 일반 공지사항 */}
+              {regularNotices.map((notice) => (
+                <div 
+                  key={notice.id} 
+                  className="notice-item border-bottom"
+                  style={{
+                    padding: '1rem 1.5rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fc'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                  onClick={() => handleNoticeClick(notice.id)}
+                >
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="flex-grow-1">
+                      <div className="d-flex align-items-center mb-2">
+                        <h6 className="mb-0 text-dark" style={{ fontSize: '15px' }}>
+                          {notice.title}
+                        </h6>
+                      </div>
+                      <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>
+                        <span className="mr-3">
+                          <i className="fas fa-user mr-1"></i>
+                          {notice.author || notice.createBy}
+                        </span>
+                        <span className="mr-3">
+                          <i className="fas fa-clock mr-1"></i>
+                          {formatDate(notice.createdAt || notice.date)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-primary font-weight-bold" style={{ fontSize: '16px' }}>
+                        {(notice.views || notice.viewCount || 0).toLocaleString()}
+                      </div>
+                      <div className="text-muted" style={{ fontSize: '12px' }}>
+                        조회수
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-primary font-weight-bold" style={{ fontSize: '16px' }}>
-                    {(notice.views || notice.viewCount || 0).toLocaleString()}
-                  </div>
-                  <div className="text-muted" style={{ fontSize: '12px' }}>
-                    조회수
-                  </div>
-                </div>
-              </div>
-            </div>
-            ))}
+              ))}
 
               {notices.length === 0 && (
                 <div className="text-center py-5">
@@ -356,67 +368,67 @@ const handleCreateNotice = () => {
           </div>
 
           {/* 페이지네이션 */}
-<div className="d-flex justify-content-center mt-4">
-  <nav>
-    <ul className="pagination">
-      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-        <button 
-          className="page-link" 
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          style={{ color: '#4e73df' }}
-        >
-          이전
-        </button>
-      </li>
-      
-      {/* 페이지 번호들 - 최소 1페이지는 항상 표시 */}
-      {Array.from({ length: Math.max(1, Math.min(5, totalPages)) }, (_, i) => {
-        let pageNum;
-        if (totalPages <= 5) {
-          pageNum = i + 1;
-        } else if (currentPage <= 3) {
-          pageNum = i + 1;
-        } else if (currentPage >= totalPages - 2) {
-          pageNum = totalPages - 4 + i;
-        } else {
-          pageNum = currentPage - 2 + i;
-        }
-        
-        return (
-                <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+          <div className="d-flex justify-content-center mt-4">
+            <nav>
+              <ul className="pagination">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                   <button 
                     className="page-link" 
-                    onClick={() => handlePageChange(pageNum)}
-                    style={{ 
-                      backgroundColor: currentPage === pageNum ? '#4e73df' : 'transparent',
-                      borderColor: '#4e73df',
-                      color: currentPage === pageNum ? 'white' : '#4e73df'
-                    }}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{ color: '#4e73df' }}
                   >
-                    {pageNum}
+                    이전
                   </button>
                 </li>
-              );
-            })}
-            
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button 
-                className="page-link" 
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                style={{ color: '#4e73df' }}
-              >
-                다음
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
+                
+                {/* 페이지 번호들 - 최소 1페이지는 항상 표시 */}
+                {Array.from({ length: Math.max(1, Math.min(5, totalPages)) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                      <button 
+                        className="page-link" 
+                        onClick={() => handlePageChange(pageNum)}
+                        style={{ 
+                          backgroundColor: currentPage === pageNum ? '#4e73df' : 'transparent',
+                          borderColor: '#4e73df',
+                          color: currentPage === pageNum ? 'white' : '#4e73df'
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    </li>
+                  );
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{ color: '#4e73df' }}
+                  >
+                    다음
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default List;
+export default MyclassBoardList;

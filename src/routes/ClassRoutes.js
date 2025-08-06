@@ -10,9 +10,15 @@ import AssignmentSubmissions from '../pages/myclass/teacher/AssignmentList';
 import TestCreate from '../pages/myclass/teacher/Test';
 import StudentAssignmentView from '../pages/myclass/Assignment';
 import List from '../pages/myclass/List';
+import BoardList from "../pages/myclass/board/List"
+import BoardWrite from "../pages/myclass/board/Write"
+import BoardEdit from '../pages/myclass/board/Edit';
+import BoardDetail from '../pages/myclass/board/Detail';
 import Main from '../pages/myclass/Main';
 import StudentTestTake from '../pages/myclass/Test';
-
+import StudentTestResult from '../pages/myclass/TestResult';
+import TeacherTestList from '../pages/myclass/teacher/TestList';
+import TeacherTestResult from '../pages/myclass/teacher/TestDetail';
 function ClassRoutes() {
   return (
     <Routes>
@@ -118,8 +124,73 @@ function ClassRoutes() {
             </div>
           </div>
         } />
+        <Route path="test/result" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <StudentTestResult />
+              </div>
+            </div>
+          </div>
+        } />
 
-      
+        <Route path="teacher/testList" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <TeacherTestList />
+              </div>
+            </div>
+          </div>
+        } />
+        <Route path="teacher/testDetail" element={
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card shadow mb-4">
+                <TeacherTestResult />
+              </div>
+            </div>
+          </div>
+        } />
+      {/* 강의별 게시판 라우트 추가 */}
+      <Route path='board/list/:classId' element={
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="card shadow mb-4">
+              <BoardList />
+            </div>
+          </div>
+        </div>
+      }/>
+      <Route path='board/detail/:classId/:boardId' element={
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="card shadow mb-4">
+              <BoardDetail />
+            </div>
+          </div>
+        </div>
+      }/>
+      {/* 강의별 게시판작성 라우터 */}
+      <Route path='board/write/:classId' element={
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="card shadow mb-4">
+              <BoardWrite />
+            </div>
+          </div>
+        </div>
+      }/>
+      {/* 강의별 게시판작성 라우터 */}
+      <Route path='board/edit/:classId/:boardId' element={
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="card shadow mb-4">
+              <BoardEdit />
+            </div>
+          </div>
+        </div>
+      }/>
     </Routes>
   );
 }
