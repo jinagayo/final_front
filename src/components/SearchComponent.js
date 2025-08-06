@@ -121,23 +121,39 @@ const executeSearch = () => {
     }
   };
 
-  // 결과 항목 클릭 처리
-  const handleResultClick = (item) => {
-    console.log('검색 결과 선택:', item);
-    setSearchQuery('');
-    setShowResults(false);
+const handleResultClick = async (item) => {
+  console.log('검색 결과 선택:', item);
+  setSearchQuery('');
+  setShowResults(false);
+  
+  if(item.type === 'class'){
+    navigate(`/course/Detail?class_id=${item.id}`)
+  }else if(item.type === 'board'){
+    navigate(`/board/detail/${item.id}`)
+  }else if(item.type === 'coding'){
+    // 관리자 페이지 접근 시 권한 체크 (선택사항)
+    try {
+      const response = await fetch('/api/profile', {
+        credentials: 'include'
+      });
+      const profile = await response.json();
+      
+      if (profile.role !== 'ADMIN') {
+        alert('관리자 권한이 필요합니다.');
+        return;
+      }
+    } catch (error) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
     
-    if(item.type === 'class'){
-      navigate(`/admin/class/Detail/${item.id}`)
-    }else if(item.type === 'board'){
-      navigate(`/board/detail/${item.id}`)
-    }else if(item.type === 'coding'){
-      navigate(`/admin/coding/detail/${item.id}`)
-    }
-    if (onResultSelect) {
-      onResultSelect(item);
-    }
-  };
+    navigate(`/admin/coding/detail/${item.id}`)
+  }
+  
+  if (onResultSelect) {
+    onResultSelect(item);
+  }
+};
 
   // 외부 클릭 시 결과 숨김
   useEffect(() => {
