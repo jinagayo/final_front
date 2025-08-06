@@ -76,6 +76,19 @@ export default function ClassMain() {
     }
   };
 
+  // 전체 진행률 계산
+  const calculateProgress = () => {
+    if (materials.length === 0) return 0;
+    
+    const completedCount = materials.filter(item => item.sub === true).length;
+    return Math.round((completedCount / materials.length) * 100);
+  };
+
+  // 완료된 자료 수 계산
+  const getCompletedCount = () => {
+    return materials.filter(item => item.sub === true).length;
+  };
+
   useEffect(() => {
     const fetchClassData = async () => {
       const classId = getClassIdFromUrl();
@@ -100,11 +113,10 @@ export default function ClassMain() {
         
         if (data && data.class) {
           setClassData(data.class);
-          setMaterials(data.material || []);
+          // 백엔드에서 변경된 데이터 구조에 맞게 수정
+          setMaterials(data.meterials || []);
           const reviewStatus = data.review === true;
           console.log("hasReviewed 설정값:", reviewStatus);
-          console.log("data.review === true 결과:", data.review === true);
-          console.log("data.review 원본값:", data.review);
           setHasReviewed(reviewStatus);
         } else {
           setError("강의 정보를 찾을 수 없습니다.");
@@ -121,7 +133,8 @@ export default function ClassMain() {
     fetchClassData();
   }, []);
 
-  const handleMaterialClick = (material) => {
+  const handleMaterialClick = (materialItem) => {
+    const material = materialItem.meterial; // 백엔드 구조에 맞게 수정
     console.log('선택된 강의 자료:', material);
     
     switch (material.type) {
@@ -141,10 +154,6 @@ export default function ClassMain() {
   };
 
   const handleReviewClick = () => {
-    // 백엔드 응답에서 review 값 체크 (임시로 classData에서 가져온다고 가정)
-    // 실제로는 응답 데이터에서 review 키의 값을 확인해야 함
-    const hasReviewed = classData.review === true;
-    
     if (hasReviewed) {
       alert('이미 평가하셨습니다.');
       return;
@@ -218,9 +227,7 @@ export default function ClassMain() {
   };
 
   if (loading) {
-    console.log("컴포넌트 렌더링 - hasReviewed:", hasReviewed);
-
-  return (
+    return (
       <div className="container-fluid text-center py-5">
         <i className="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
         <p className="text-gray-500">강의 정보를 불러오는 중입니다...</p>
@@ -246,6 +253,9 @@ export default function ClassMain() {
       </div>
     );
   }
+
+  const progressPercent = calculateProgress();
+  const completedCount = getCompletedCount();
 
   return (
     <div className="container-fluid">
@@ -318,6 +328,29 @@ export default function ClassMain() {
                       <strong>총 강의:</strong> {materials.length}개
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* 진행률 표시 */}
+              <div className="progress-section mt-3">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span className="text-sm font-weight-bold">
+                    <i className="fas fa-chart-pie text-success mr-2"></i>
+                    학습 진행률
+                  </span>
+                  <span className="text-sm font-weight-bold text-success">
+                    {completedCount}/{materials.length} ({progressPercent}%)
+                  </span>
+                </div>
+                <div className="progress" style={{ height: '8px' }}>
+                  <div 
+                    className="progress-bar bg-success" 
+                    role="progressbar" 
+                    style={{ width: `${progressPercent}%` }}
+                    aria-valuenow={progressPercent} 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -475,10 +508,16 @@ export default function ClassMain() {
 
       {/* 강의 자료 목록 */}
       <div className="card shadow mb-4">
-        <div className="card-header py-3">
+        <div className="card-header py-3 d-flex justify-content-between align-items-center">
           <h6 className="m-0 font-weight-bold text-primary">
             <i className="fas fa-folder-open mr-2"></i>강의 자료 ({materials.length}개)
           </h6>
+          <div className="progress-summary">
+            <small className="text-muted">
+              완료: <span className="font-weight-bold text-success">{completedCount}</span> / 
+              전체: <span className="font-weight-bold">{materials.length}</span>
+            </small>
+          </div>
         </div>
         <div className="card-body">
           {materials.length === 0 ? (
@@ -488,17 +527,22 @@ export default function ClassMain() {
             </div>
           ) : (
             <div className="materials-list">
-              {materials.map((material, index) => {
+              {materials.map((materialItem, index) => {
+                const material = materialItem.meterial;
+                const isCompleted = materialItem.sub === true;
                 const iconInfo = getMaterialIcon(material.type);
+                
                 return (
                   <div 
                     key={material.meter_id || index}
-                    className="material-item d-flex align-items-center p-3 mb-2 border rounded"
-                    onClick={() => handleMaterialClick(material)}
+                    className={`material-item d-flex align-items-center p-3 mb-2 border rounded ${isCompleted ? 'completed-material' : ''}`}
+                    onClick={() => handleMaterialClick(materialItem)}
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="material-number mr-3">
-                      <span className="badge badge-light">{material.seq || index + 1}</span>
+                      <span className={`badge ${isCompleted ? 'badge-success' : 'badge-light'}`}>
+                        {material.seq || index + 1}
+                      </span>
                     </div>
                     <div className="material-icon mr-3">
                       <i className={`${iconInfo.icon} fa-lg ${iconInfo.color}`}></i>
@@ -506,7 +550,10 @@ export default function ClassMain() {
                     <div className="material-info flex-grow-1">
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <h6 className="mb-1">{material.title || `강의 자료 ${material.seq || index + 1}`}</h6>
+                          <h6 className={`mb-1 ${isCompleted ? 'text-success' : ''}`}>
+                            {material.title || `강의 자료 ${material.seq || index + 1}`}
+                            {isCompleted && <i className="fas fa-check-circle ml-2 text-success"></i>}
+                          </h6>
                           <small className="text-muted">
                             <span className="badge badge-outline-secondary mr-2">
                               {iconInfo.label}
@@ -515,6 +562,11 @@ export default function ClassMain() {
                               <span className="text-primary">
                                 <i className="fas fa-clock mr-1"></i>
                                 {formatTime(material.time)}
+                              </span>
+                            )}
+                            {isCompleted && (
+                              <span className="badge badge-success ml-2">
+                                <i className="fas fa-check mr-1"></i>완료
                               </span>
                             )}
                           </small>
@@ -566,6 +618,16 @@ export default function ClassMain() {
           transform: translateX(5px);
         }
         
+        .completed-material {
+          background-color: #f8fff9 !important;
+          border-color: #28a745 !important;
+        }
+        
+        .completed-material:hover {
+          background-color: #e8f5e8 !important;
+          border-color: #1e7e34 !important;
+        }
+        
         .material-number .badge {
           width: 30px;
           height: 30px;
@@ -601,6 +663,15 @@ export default function ClassMain() {
         
         .star-clickable:hover {
           transform: scale(1.1);
+        }
+        
+        .progress-section {
+          border-top: 1px solid #e3e6f0;
+          padding-top: 15px;
+        }
+        
+        .progress-summary small {
+          font-size: 0.8rem;
         }
         
         .text-gray-300 {
