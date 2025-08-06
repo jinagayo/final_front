@@ -247,8 +247,8 @@ export default function ClassList() {
   return (
     <div className="container-fluid">
       {/* Page Heading */}
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">강의 승인 관리</h1>
+      <div className="d-sm-flex align-items-center justify-content-between mt-4 mb-4">
+        <h1 className="h3 mb-0 text-gray-800">강의 관리</h1>
         <div className="d-flex">
           <button
             className="btn btn-sm btn-outline-primary mr-2"
@@ -405,7 +405,7 @@ export default function ClassList() {
       <div className="card shadow mb-4">
         <div className="card-header py-3">
           <h6 className="m-0 font-weight-bold text-primary">
-            강의 승인 대기 목록 ({filteredApplications.length}건)
+            전체 강의 목록 ({filteredApplications.length}건)
           </h6>
         </div>
         <div className="card-body">

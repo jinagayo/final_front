@@ -15,6 +15,12 @@ const StudentManagement = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
+  // 비밀번호 확인 모달 상태
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
   // 관리자 권한 확인
   const isAdmin = () => user?.position === '3' || user?.position === 'admin';
 
@@ -60,30 +66,63 @@ const StudentManagement = () => {
     }
   };
 
-  // 학생 삭제
-  const deleteStudent = async (userId) => {
-    if (!window.confirm('정말로 이 학생을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+  // 삭제 버튼 클릭 시 모달 열기
+  const handleDeleteClick = (userId) => {
+    setSelectedUserId(userId);
+    setShowPasswordModal(true);
+    setPassword('');
+  };
+
+  // 모달 닫기
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPassword('');
+    setSelectedUserId(null);
+    setPasswordLoading(false);
+  };
+
+  // 학생 삭제 (비밀번호 확인 후)
+  const deleteStudent = async () => {
+    if (!password.trim()) {
+      alert('비밀번호를 입력해주세요.');
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/users/${userId}`, {
-        method: 'DELETE',
+      setPasswordLoading(true);
+      
+      const response = await fetch(`http://localhost:8080/join/userDelete/${selectedUserId}`, {
+        method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ password: password })
       });
 
       if (response.ok) {
         alert('학생이 삭제되었습니다.');
+        closePasswordModal();
         fetchStudents(); // 현재 페이지 다시 로드
+      } else if (response.status === 401) {
+        alert('비밀번호가 일치하지 않습니다.');
+      } else if (response.status === 403) {
+        alert('삭제 권한이 없습니다.');
       } else {
         alert('학생 삭제에 실패했습니다.');
       }
     } catch (error) {
       console.error('학생 삭제 오류:', error);
       alert('학생 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // 엔터 키로 삭제 실행
+  const handlePasswordKeyPress = (e) => {
+    if (e.key === 'Enter' && !passwordLoading) {
+      deleteStudent();
     }
   };
 
@@ -301,7 +340,7 @@ const StudentManagement = () => {
                           <td>
                             <button
                               className="btn btn-sm btn-danger"
-                              onClick={() => deleteStudent(student.userId)}
+                              onClick={() => handleDeleteClick(student.userId)}
                               title="삭제"
                             >
                               <i className="fas fa-trash mr-1"></i>
@@ -388,6 +427,92 @@ const StudentManagement = () => {
           )}
         </div>
       </div>
+
+      {/* 비밀번호 확인 모달 */}
+      {showPasswordModal && (
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-lock mr-2 text-warning"></i>
+                  비밀번호 확인
+                </h5>
+                <button
+                  type="button"
+                  className="close"
+                  onClick={closePasswordModal}
+                  disabled={passwordLoading}
+                >
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-warning">
+                  <i className="fas fa-exclamation-triangle mr-2"></i>
+                  학생을 삭제하려면 관리자 비밀번호를 입력해주세요.
+                  <br />
+                  <strong>이 작업은 되돌릴 수 없습니다.</strong>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="deletePassword" className="form-label">
+                    <i className="fas fa-key mr-1"></i>
+                    관리자 비밀번호
+                  </label>
+                  <input
+                    type="password"
+                    id="deletePassword"
+                    className="form-control"
+                    placeholder="비밀번호를 입력하세요"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={handlePasswordKeyPress}
+                    disabled={passwordLoading}
+                    autoFocus
+                  />
+                </div>
+                <div className="form-group mb-0">
+                  <small className="text-muted">
+                    <i className="fas fa-info-circle mr-1"></i>
+                    삭제할 학생 ID: <strong>{selectedUserId}</strong>
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closePasswordModal}
+                  disabled={passwordLoading}
+                >
+                  <i className="fas fa-times mr-1"></i>
+                  취소
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={deleteStudent}
+                  disabled={passwordLoading || !password.trim()}
+                >
+                  {passwordLoading ? (
+                    <>
+                      <div className="spinner-border spinner-border-sm mr-2" role="status">
+                        <span className="sr-only">Loading...</span>
+                      </div>
+                      삭제 중...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-trash mr-1"></i>
+                      삭제
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

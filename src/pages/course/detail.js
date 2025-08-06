@@ -106,6 +106,7 @@ const handleEnroll = async () => {
                 alert("수강신청 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
             }
         }
+
     } else {
         // 로그인 되어 있지 않다면 알림창 띄우고 로그인 페이지로 이동
         const confirmLogin = window.confirm("로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?");
@@ -114,6 +115,7 @@ const handleEnroll = async () => {
         }
     }
 };
+
 
     if (loading) {
         return (
@@ -171,7 +173,7 @@ const handleEnroll = async () => {
                         <div className="bg-white p-4 rounded shadow-sm mb-4 d-flex align-items-center">
                             <div className="flex-shrink-0 mr-4">
                                 <img
-                                    src={course.img ? `/img/${course.img}` : "/img/default_course_thumbnail.png"}
+                                    src={course.img ? `${course.img}` : "/img/default_course_thumbnail.png"}
                                     alt={course.name || "Course Thumbnail"}
                                     className="img-fluid rounded"
                                     style={{ width: '250px', height: '150px', objectFit: 'cover' }}
