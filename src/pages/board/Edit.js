@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import FroalaEditorComponent from 'react-froala-wysiwyg';
 import { useParams, useNavigate } from 'react-router-dom';
-
+import 'froala-editor/css/froala_style.min.css';
+import 'froala-editor/css/froala_editor.pkgd.min.css';
 const BoardEdit = () => {
   const { boardId } = useParams();
   const { boardnum } = useParams();
@@ -16,6 +18,35 @@ const BoardEdit = () => {
     boardnum: ''
   });
   
+  // Froala Editor 설정
+  const froalaConfig = {
+    placeholderText: '게시글 내용을 입력하세요',
+    charCounterCount: true,
+    charCounterMax: 10000,
+    height: 300,
+    toolbarButtons: {
+      'moreText': {
+        'buttons': ['bold', 'italic', 'underline', 'strikeThrough', 'fontSize', 'textColor', 'backgroundColor', 'clearFormatting']
+      },
+      'moreParagraph': {
+        'buttons': ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify', 'formatOLSimple', 'formatUL', 'outdent', 'indent']
+      },
+      'moreRich': {
+        'buttons': ['insertLink', 'insertImage', 'insertTable', 'insertHR']
+      },
+      'moreMisc': {
+        'buttons': ['undo', 'redo', 'fullscreen', 'html']
+      }
+    }
+  };
+    // Froala Editor 내용 변경 처리
+  const handleContentChange = (content) => {
+    setFormData(prev => ({
+      ...prev,
+      content: content
+    }));
+  };
+
   // 원본 데이터 (취소 시 비교용)
   const [originalData, setOriginalData] = useState({});
   
@@ -291,25 +322,15 @@ const BoardEdit = () => {
             </div>
 
             {/* 내용 입력 */}
-            <div className="mb-4">
-              <label htmlFor="content" className="form-label">
-                내용 <span className="text-danger">*</span>
-              </label>
-              <textarea
-                className="form-control"
-                id="content"
-                name="content"
-                rows="15"
-                value={formData.content}
-                onChange={handleInputChange}
-                placeholder="내용을 입력해주세요 (최대 10,000자)"
-                maxLength="10000"
-                disabled={saving}
-                required
-                style={{ resize: 'vertical' }}
-              />
-              <div className="form-text">
-                {formData.content.length}/10,000자
+            <div className="mb-3">
+              <label htmlFor="content" className="form-label">내용 <span className="text-danger">*</span></label>
+              <div id="editor">
+                <FroalaEditorComponent
+                  tag='textarea'
+                  config={froalaConfig}
+                  model={formData.content}
+                  onModelChange={handleContentChange}
+                />
               </div>
             </div>
 

@@ -107,7 +107,7 @@ useEffect(() => {
         {!isCollapsed && (
           <a 
             className="nav-link d-flex align-items-center justify-content-center py-3" 
-            href="/profile"
+            href="/mypage/Info"
             style={{ 
               flexDirection: 'row',
               textAlign: 'left',

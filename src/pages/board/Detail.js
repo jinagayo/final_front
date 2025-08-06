@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams,useNavigate  } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { comment } from 'postcss';
 const BoardDetail = () => {
   const { boardId } = useParams();
   const { boardnum } = useParams();
@@ -14,13 +15,54 @@ const BoardDetail = () => {
   const [editContent, setEditContent] = useState('');
   const [replyingToComment, setReplyingToComment] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const [userInfo,setUserInfo] = useState('');
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchUserInfo();
     fetchPostDetail();
     fetchComments();
   }, [boardId]);
+
+    // 사용자 정보 가져오기
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/auth/check', {
+        method: 'GET',
+        credentials: 'include' // 세션 쿠키 전송
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.isLoggedIn) {
+          setUserInfo({
+            userId: responseData.user_id,
+            name: responseData.name,
+            role: responseData.position // position을 role로 매핑
+          });
+        } else {
+          setUserInfo(null);
+        }
+      }
+    } catch (err) {
+      console.error('사용자 정보 조회 오류:', err);
+      setUserInfo(null);
+    }
+  };
+
+  // 댓글 권한 체크 함수
+  const canWriteComment = () => {
+    if (!userInfo) return false;
+    return userInfo.role !== "1" && userInfo.role !== "2";
+  };
+
+  // 댓글 수정/삭제 권한 체크 함수 (본인 댓글만 수정/삭제 가능)
+  const canModifyComment = (commentAuthorId) => {
+    if (!userInfo) return false;
+    return userInfo.userId === commentAuthorId || userInfo.id === commentAuthorId;
+  };
+
 
   //날짜 포맷
   const formatDate = (dateString) => {
@@ -49,28 +91,19 @@ const BoardDetail = () => {
                    localStorage.getItem('authToken') || 
                    sessionStorage.getItem('token') ||
                    sessionStorage.getItem('authToken');
-      
-      console.log('사용할 토큰:', token ? '토큰 존재' : '토큰 없음');
-      
       const headers = {
         'Content-Type': 'application/json',
       };
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      console.log('요청 헤더:', headers);
-      console.log('요청 URL:', `http://localhost:8080/detail/${boardId}`);
-      
+      } 
       const response = await fetch(`http://localhost:8080/board/detail/${boardId}`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
       });
-      
-      console.log('응답 상태:', response.status);
-      
+  
       if (!response.ok) {
         if (response.status === 403) {
           throw new Error('접근 권한이 없습니다. 로그인 상태를 확인해주세요.');
@@ -84,7 +117,6 @@ const BoardDetail = () => {
       }
       
       const apiResponse = await response.json();
-      console.log('API 응답:', apiResponse);
       
       if (apiResponse.success) {
         setPost(apiResponse.data);
@@ -139,6 +171,12 @@ const BoardDetail = () => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     
+    // 권한 체크
+    if (!canWriteComment()) {
+      alert('댓글 작성 권한이 없습니다.');
+      return;
+    }
+
     if (!newComment.trim()) {
       alert('댓글 내용을 입력해주세요.');
       return;
@@ -147,15 +185,17 @@ const BoardDetail = () => {
     setCommentLoading(true);
     
     try {
+      // 토큰 가져오기
       const token = localStorage.getItem('token') || 
-                   localStorage.getItem('authToken') || 
-                   sessionStorage.getItem('token') ||
-                   sessionStorage.getItem('authToken');
+                  localStorage.getItem('authToken') || 
+                  sessionStorage.getItem('token') ||
+                  sessionStorage.getItem('authToken');
       
       const headers = {
         'Content-Type': 'application/json',
       };
       
+      // 토큰이 있는 경우에만 Authorization 헤더 추가
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -163,7 +203,7 @@ const BoardDetail = () => {
       const response = await fetch(`http://localhost:8080/board/${boardId}/comments`, {
         method: 'POST',
         headers: headers,
-        credentials: 'include',
+        credentials: 'include', // 세션 쿠키도 함께 전송
         body: JSON.stringify({
           content: newComment
         })
@@ -171,10 +211,18 @@ const BoardDetail = () => {
       
       if (response.ok) {
         setNewComment('');
-        await fetchComments(); // 댓글 목록 새로고침
+        await fetchComments();  //댓글 목록 새로고침
         alert('댓글이 등록되었습니다.');
       } else {
-        throw new Error('댓글 등록에 실패했습니다.');
+        const errorData = await response.json();
+        
+        if (response.status === 403) {
+          alert('댓글 작성 권한이 없습니다.');
+        } else if (response.status === 401) {
+          alert('로그인이 필요합니다.');
+        } else {
+          alert(errorData.message || '댓글 등록에 실패했습니다.');
+        }
       }
     } catch (err) {
       alert(err.message);
@@ -185,6 +233,11 @@ const BoardDetail = () => {
 
   // 댓글 수정 시작
   const handleEditComment = (comment) => {
+    // 권한 체크
+    if (!canModifyComment(comment.created_user_id || comment.authorId)) {
+      alert('댓글 수정 권한이 없습니다.');
+      return;
+    }
     setEditingComment(comment.comment_id || comment.id);
     setEditContent(comment.content);
   };
@@ -197,6 +250,11 @@ const BoardDetail = () => {
 
   // 대댓글 작성 시작
   const handleReplyComment = (comment) => {
+    // 권한 체크
+    if (!canWriteComment()) {
+      alert('댓글 작성 권한이 없습니다.');
+      return;
+    }
     setReplyingToComment(comment.comment_id);
     setReplyContent('');
   };
@@ -209,6 +267,11 @@ const BoardDetail = () => {
 
   // 대댓글 작성 제출
   const handleReplySubmit = async (parentCommentId) => {
+    // 권한 체크
+    if (!canWriteComment()) {
+      alert('댓글 작성 권한이 없습니다.');
+      return;
+    }
     if (!replyContent.trim()) {
       alert('댓글 내용을 입력해주세요.');
       return;
@@ -273,8 +336,6 @@ const BoardDetail = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      console.log('수정 요청 - commentId:', commentId, 'content:', editContent); // 🔥 디버깅
-
       const response = await fetch(`http://localhost:8080/board/comments/${commentId}`, {
         method: 'PUT',
         headers: headers,
@@ -298,7 +359,13 @@ const BoardDetail = () => {
   };
 
   // 댓글 삭제
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (commentId,commentAuthorId) => {  
+     // 권한 체크
+    if (!canModifyComment(commentAuthorId)) {
+      alert('댓글 삭제 권한이 없습니다.');
+      return;
+    }
+    
     if (!window.confirm('정말로 댓글을 삭제하시겠습니까?')) {
       return;
     }
@@ -512,8 +579,15 @@ const BoardDetail = () => {
           댓글 ({comments.length})
         </div>
         <div className="card-body">
-          {/* 댓글 작성 폼 */}
-          <form onSubmit={handleCommentSubmit} className="mb-4">
+          {/* 권한이 없는 경우 안내 메세지 표시 */}
+          {!canWriteComment() &&  (
+            <div className='alert alert-info mb-4'>
+              <i className='fas fa-info-circle me-2'>댓글 작성 권한 없음</i>
+            </div>
+          )}
+          {/* 댓글 작성 폼 - 권한이있는 경우만 표시 */}
+          {canWriteComment() && (
+                      <form onSubmit={handleCommentSubmit} className="mb-4">
             <div className="mb-3">
               <label htmlFor="newComment" className="form-label">댓글 작성</label>
               <textarea
@@ -546,7 +620,7 @@ const BoardDetail = () => {
               </button>
             </div>
           </form>
-
+          )}
           <hr />
 
           {/* 댓글 목록 */}
@@ -618,7 +692,7 @@ const BoardDetail = () => {
                               &nbsp;&nbsp;
                               <button
                                 className="btn btn-sm btn-outline-danger"
-                                onClick={() => handleDeleteComment(comment.comment_id || comment.id)}
+                                onClick={() => handleDeleteComment(comment.comment_id || comment.id, comment.created_user_id || comment.authorId)}
                               >
                                 <i className="fas fa-trash me-1"></i>
                                 삭제

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const CodingProblemSubmit = () => {
  const [formData, setFormData] = useState({
@@ -47,8 +47,8 @@ const CodingProblemSubmit = () => {
    }
  };
 
- const handleSubmit = async (e) => {
-   e.preventDefault();
+ const handleSubmit = async (e) => {  
+  e.preventDefault();
 
    // 입력값 검증
    if (!formData.qeustion || !formData.qeustion.trim()) {
@@ -436,19 +436,19 @@ public class Solution {
                </div>
 
                {/* 등록 버튼 */}
-               <div className="text-right">
-                 <button
-                   type="button"
-                   onClick={handleSubmit}
-                   className="btn btn-primary px-4 py-2"
-                   style={{
-                     backgroundColor: '#4e73df',
-                     borderColor: '#4e73df',
-                     borderRadius: '0.35rem'
-                   }}
-                 >
-                   등록
-                 </button>
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="btn btn-primary px-4 py-2"
+                    style={{
+                      backgroundColor: '#4e73df',
+                      borderColor: '#4e73df',
+                      borderRadius: '0.35rem'
+                    }}
+                  >
+                    등록
+                  </button>
                </div>
              </div>
            </div>

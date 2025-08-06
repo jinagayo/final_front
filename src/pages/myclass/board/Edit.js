@@ -176,13 +176,6 @@ const BoardEdit = () => {
     setSaving(true);
     
     try {
-        console.log('수정 요청 - classId:', classId, 'boardId:', boardId);
-        console.log('요청 데이터:', {
-            title: formData.title.trim(),
-            content: formData.content.trim(),
-            boardnum: formData.boardnum,
-            class_id: classId
-        });
       const token = localStorage.getItem('token') || 
                    localStorage.getItem('authToken') || 
                    sessionStorage.getItem('token') ||

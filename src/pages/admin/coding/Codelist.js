@@ -12,45 +12,47 @@ const CodingProblems = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
-  
   const [userInfo, setUserInfo] = useState(null);
   const [canSubmitProblem, setCanSubmitProblem] = useState(false);
-
-  const checkUserPermissions = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/auth/api/user/info', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUserInfo(userData);
-        
-        const position = userData.position || userData.data?.position;
-        
-        // 모든 권한에서 문제 풀이 가능
-        switch(position) {
-          case 1: // 학생
-          case 2: // 강사
-          case 3: // 관리자
-            setCanSubmitProblem(true);
-            break;
-          default:
-            setCanSubmitProblem(false);
-        }
-      } else {
-        console.log('사용자 정보 조회 실패');
-        setCanSubmitProblem(false);
+  const [canCreateProblem, setCanCreateProblem] = useState(false);
+  
+const checkUserPermissions = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/auth/check', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
       }
-    } catch (error) {
-      console.error('권한 확인 오류:', error);
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      console.log('사용자 데이터:', userData); // 디버깅용
+      setUserInfo(userData);
+      
+      const position = userData.position;
+      console.log('position 값:', position, '타입:', typeof position); // 디버깅용
+      
+      // 문제 풀이는 모든 권한 가능
+      setCanSubmitProblem(true);
+      
+      // 문제 출제는 권한 3(관리자)만 가능 - 숫자와 문자열 둘 다 체크
+      const canCreate = position === 3 || position === "3";
+      console.log('문제 출제 권한:', canCreate); // 디버깅용
+      setCanCreateProblem(canCreate);
+      
+    } else {
+      console.log('사용자 정보 조회 실패');
       setCanSubmitProblem(false);
+      setCanCreateProblem(false);
     }
-  };
+  } catch (error) {
+    console.error('권한 확인 오류:', error);
+    setCanSubmitProblem(false);
+    setCanCreateProblem(false);
+  }
+};
 
   const fetchProblems = async () => {
     try {
@@ -215,20 +217,22 @@ const CodingProblems = () => {
               )}
             </div>
             
-            <button 
-              className="btn"
-              onClick={() => alert('문제 출제 기능은 준비 중입니다.')}
-              style={{
-                backgroundColor: '#4e73df',
-                borderColor: '#4e73df',
-                borderRadius: '0.35rem',
-                marginTop: '1.5rem',
-                padding: '0.5rem 1.5rem',
-                color: 'white',
-              }}
-            >
-              문제 출제
-            </button>
+            {canCreateProblem && (
+              <button 
+                className="btn"
+                onClick={() => alert('문제 출제 기능은 준비 중입니다.')}
+                style={{
+                  backgroundColor: '#4e73df',
+                  borderColor: '#4e73df',
+                  borderRadius: '0.35rem',
+                  marginTop: '1.5rem',
+                  padding: '0.5rem 1.5rem',
+                  color: 'white',
+                }}
+              >
+                문제 출제
+              </button>
+            )}
           </div>
 
           {/* 검색 및 필터 섹션 */}
