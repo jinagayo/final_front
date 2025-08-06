@@ -22,6 +22,7 @@ const BoardWrite = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const [file,setFile] = useState(null);
 
   // 디버깅용 로그
   React.useEffect(() => {
@@ -70,10 +71,14 @@ const BoardWrite = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setFormData(prev => ({
-      ...prev,
-      file: file
-    }));
+    if(file){
+      //파일크기제한(10MB)
+      if(file.size > 10*1024*1024){
+        alert('파일 크기는 10MB 이하로 업로드해주세요.');
+        return;
+      }
+        setFile(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -94,24 +99,18 @@ const BoardWrite = () => {
       setLoading(true);
 
       // 서버로 전송할 데이터 준비
-      const submitData = {
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        boardnum: formData.boardnum, // 올바른 boardnum 값
-        class_id: classId,
-        file: formData.file ? formData.file.name : null
-      };
-
-      console.log('전송할 데이터:', submitData);
+      const data = new FormData();
+     data.append('title', formData.title.trim());
+     data.append('content', formData.content.trim());
+     data.append('boardnum', formData.boardnum);
+     data.append('class_id', classId);  // class_id는 반드시 string!
+     if (file) data.append('file', file); // 파일이 있을 때만
 
       // 올바른 API 엔드포인트 사용
       const response = await fetch(`http://localhost:8080/api/myclass/board/write/${classId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify(submitData)
+        body: data,
       });
 
       console.log('응답 상태:', response.status);

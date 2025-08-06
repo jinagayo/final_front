@@ -283,7 +283,7 @@ const PaymentPage = () => {
                 <div className="row g-0 align-items-center">
                     <div className="col-md-3">
                         <img
-                            src={course.img ? `/img/${course.img}` : "/img/default_course_thumbnail.png"}
+                            src={course.img ? `${course.img}` : "/img/default_course_thumbnail.png"}
                             alt={course.name || "강의 썸네일"}
                             className="img-fluid rounded"
                             style={{ width: '100%', height: '120px', objectFit: 'cover' }}

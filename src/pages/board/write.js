@@ -15,6 +15,7 @@ const BoardWrite = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const [file,setFile] = useState(null);
 
   // Froala Editor 설정
   const froalaConfig = {
@@ -66,10 +67,14 @@ const BoardWrite = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setFormData(prev => ({
-      ...prev,
-      file: file
-    }));
+    if(file){
+      //파일크기제한(10MB)
+      if(file.size > 10*1024*1024){
+        alert('파일 크기는 10MB 이하로 업로드해주세요.');
+        return;
+      }
+        setFile(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -104,22 +109,18 @@ const BoardWrite = () => {
       }
 
       // 서버로 전송할 데이터 준비
-      const submitData = {
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        boardnum: formData.boardnum,
-        class_id: formData.class_id || null,
-        file: formData.file ? formData.file.name : null
-      };
+      const data = new FormData();
+     data.append('title', formData.title.trim());
+     data.append('content', formData.content.trim());
+     data.append('boardnum', formData.boardnum);
+     if (file) data.append('file', file); // 파일이 있을 때만
 
-      console.log('전송 데이터:', submitData);
-      console.log('요청 URL:', `http://localhost:8080/board/write/${formData.boardnum}`);
+      
 
       const response = await fetch(`http://localhost:8080/board/write/${formData.boardnum}`, {
         method: 'POST',
-        headers: headers,
         credentials: 'include',
-        body: JSON.stringify(submitData)
+        body: data,
       });
 
       console.log('응답 상태:', response.status);

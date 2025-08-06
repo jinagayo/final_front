@@ -444,6 +444,33 @@ const handleDelete = async () => {
           </div>
         </div>
         <div className="card-body">
+  {/* 첨부 파일 영역 */}
+  {post.file && (
+    <div className="mb-4">
+      <label className="form-label">
+        <i className="fas fa-paperclip me-1"></i>첨부 파일
+      </label>
+      <div>
+        <a 
+          href={post.file}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-outline-primary btn-sm"
+          download
+        >
+          <i className="fas fa-download me-1"></i>
+          파일 다운로드
+        </a>
+        {/* 이미지 미리보기 */}
+        {/\.(jpe?g|png|gif|bmp|webp)$/i.test(post.file) && (
+          <div className="mt-2">
+            <img src={post.file} alt="첨부 이미지" style={{maxWidth: 400, borderRadius: 8}} />
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
           {/* 게시물 제목 */}
           <div className="row mb-3">
             <div className="col-12">
@@ -484,6 +511,7 @@ const handleDelete = async () => {
               </div>
             </div>
           </div>
+
 
         {/* 버튼 그룹 */}
         <div className="card-footer">
