@@ -263,7 +263,7 @@ export default function ClassMain() {
       <div className="mb-3">
         <button 
           className="btn btn-outline-secondary btn-sm"
-          onClick={() => navigate('/myclass/teacher/classList')}
+          onClick={() => navigate('/myclass/List')}
         >
           <i className="fas fa-arrow-left mr-1"></i> 내 강의실로 돌아가기
         </button>

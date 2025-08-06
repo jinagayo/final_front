@@ -164,7 +164,7 @@ export default function CourseApplicationList() {
     <div className="container-fluid">
       {/* Page Heading */}
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">강의 개설 신청 내역</h1>
+        <h2 className="h3 mb-0 text-gray-800 font-weight-bold">강의 개설 신청 내역</h2>
         <button className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onClick={() => navigate('/course/teacher/Application')}>
           <i className="fas fa-plus fa-sm text-white-50"></i> 새 강의 신청
         </button>

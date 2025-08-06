@@ -168,9 +168,8 @@ export default function MyClassList() {
     <div className="container-fluid">
       {/* Page Heading */}
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">
-          <i className="fas fa-book-open mr-2"></i>내 강의실
-        </h1>
+        
+        <h2 className="h3 mb-0 text-gray-800 font-weight-bold">내 강의실</h2>
         <div className="d-flex">
           <button
             className="btn btn-sm btn-outline-primary mr-2"

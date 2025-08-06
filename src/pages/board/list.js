@@ -160,62 +160,7 @@ const List = () => {
 
   // 🔥 게시글 작성 버튼 클릭 처리
   const handleCreateNotice = () => {
-    if (!canCreatePost) {
-      alert('게시글 작성 권한이 없습니다.');
-      return;
-    }
     window.location.href = `/board/write?boardnum=${currentBoardnum}`;
-  };
-
-  // 🔥 권한별 버튼 텍스트 및 스타일 결정
-  const getButtonConfig = () => {
-    if (!userInfo) {
-      return {
-        text: '로그인 필요',
-        disabled: true,
-        style: {
-          backgroundColor: '#6c757d',
-          borderColor: '#6c757d',
-          cursor: 'not-allowed'
-        }
-      };
-    }
-
-    if (!canCreatePost) {
-      const position = userInfo.position || userInfo.data?.position;
-      let reasonText = '';
-      
-      switch(position) {
-        case 1:
-          reasonText = '학생은 게시글 작성 불가';
-          break;
-        case 2:
-          reasonText = '해당 게시판 작성 권한 없음';
-          break;
-        default:
-          reasonText = '작성 권한 없음';
-      }
-
-      return {
-        text: reasonText,
-        disabled: true,
-        style: {
-          backgroundColor: '#dc3545',
-          borderColor: '#dc3545',
-          cursor: 'not-allowed'
-        }
-      };
-    }
-
-    return {
-      text: '게시글 작성',
-      disabled: false,
-      style: {
-        backgroundColor: '#4e73df',
-        borderColor: '#4e73df',
-        cursor: 'pointer'
-      }
-    };
   };
 
   const formatDate = (dateString) => {
@@ -277,8 +222,6 @@ const List = () => {
     );
   }
 
-  const buttonConfig = getButtonConfig();
-
   return (
     <div className="container-fluid">
       <div className="row">
@@ -287,30 +230,27 @@ const List = () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
               <h2 className="h3 mb-0 text-gray-800 font-weight-bold">{boardTitle}</h2>
-              {/* 🔥 사용자 정보 표시 (디버깅용) */}
-              {userInfo && (
-                <small className="text-muted">
-                  사용자: {userInfo.name || userInfo.data?.name}
-                </small>
-              )}
             </div>
             
-            {/* 🔥 권한별 게시글 작성 버튼 */}
-            <button 
-              className="btn"
-              onClick={handleCreateNotice}
-              disabled={buttonConfig.disabled}
-              style={{
-                ...buttonConfig.style,
-                borderRadius: '0.35rem',
-                marginTop: '1.5rem',
-                padding: '0.5rem 1.5rem',
-                color : 'white',
-              }}
-              title={buttonConfig.disabled ? buttonConfig.text : '게시글을 작성합니다'}
-            >
-              {buttonConfig.text}
-            </button>
+            {/* 🔥 권한이 있을 때만 게시글 작성 버튼 표시 */}
+            {canCreatePost && (
+              <button 
+                className="btn"
+                onClick={handleCreateNotice}
+                style={{
+                  backgroundColor: '#4e73df',
+                  borderColor: '#4e73df',
+                  borderRadius: '0.35rem',
+                  marginTop: '1.5rem',
+                  padding: '0.5rem 1.5rem',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+                title="게시글을 작성합니다"
+              >
+                게시글 작성
+              </button>
+            )}
           </div>
           {/* 검색 및 필터 섹션 */}
           <div className="card shadow mb-4">

@@ -41,10 +41,10 @@ const Home = () => {
 
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
   
-  // 기존 하드코딩된 courses 배열은 제거됨 (위에서 state로 관리)
 
   const handleCourseClick = (courseId) => {
     console.log('Course clicked:', courseId);
+    navigate(`/course/Detail?class_id=${courseId}`); 
   };
 
   const handleGetStartedClick = () => {
