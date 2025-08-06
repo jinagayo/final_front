@@ -8,14 +8,13 @@ const AssignmentSubmissions = () => {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [comment, setComment] = useState('');
   const [commentModalOpen, setCommentModalOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all'); // all, submitted, not_submitted
+  const [filterStatus, setFilterStatus] = useState('all'); // all, evaluated, not_evaluated
   const [fileUrl, setFileUrl] = useState('');
 
   const findStudentName = (stdId) => {
     if(!Array.isArray(students)) return '이름없음';
   return students.find(s => s.userId === stdId)?.name || '이름 없음';
   };
-
 
   // URL에서 meterial_id 파라미터 추출
   const getMaterialIdFromUrl = () => {
@@ -86,8 +85,6 @@ useEffect(()=> {
     }
   };
 
-
-
  // 댓글 저장
 const handleSaveComment = async () => {
   if (!selectedSubmission || !comment) {
@@ -127,6 +124,7 @@ const handleSaveComment = async () => {
     alert('점수 저장 중 오류가 발생했습니다.');
   }
 };
+
  const handleDownloadFile = async (item) => {
   if (!item?.content) {
     alert('제출된 파일이 없습니다.');
@@ -155,13 +153,13 @@ const handleSaveComment = async () => {
       setCommentModalOpen(true);
   };
 
-  // 제출 상태에 따른 필터링
+  // 평가 상태에 따른 필터링
   const getFilteredSubmissions = () => {
     switch (filterStatus) {
-      case 'submitted':
-        return submissions.filter(item => item?.content);
-      case 'not_submitted':
-        return submissions.filter(item => !item?.content);
+      case 'evaluated':
+        return submissions.filter(item => item?.progress);
+      case 'not_evaluated':
+        return submissions.filter(item => !item?.progress);
       default:
         return submissions;
     }
@@ -185,16 +183,15 @@ const handleSaveComment = async () => {
     }
   };
 
-  const getSubmissionStats = () => {
-    const submitted = submissions.filter(item => item?.content).length;
+  const getEvaluationStats = () => {
+    const evaluated = submissions.filter(item => item?.progress).length;
     const total = submissions.length;
-    return { submitted, total, rate: total > 0 ? ((submitted / total) * 100).toFixed(1) : 0 };
+    return { evaluated, total, rate: total > 0 ? ((evaluated / total) * 100).toFixed(1) : 0 };
   };
 
-  // 뒤로가기 함수 - assignmentList로 meterial_id와 함께 이동
+  // 뒤로가기 함수 - 이전 페이지로 이동 (브라우저 히스토리 사용)
   const goBack = () => {
-    const materialId = getMaterialIdFromUrl();
-    window.location.href = `/myclass/teacher/AssignmentList?meterial_id=${materialId}`;
+    window.history.back();
   };
 
   if (loading) {
@@ -206,7 +203,7 @@ const handleSaveComment = async () => {
     );
   }
 
-  const stats = getSubmissionStats();
+  const stats = getEvaluationStats();
   const filteredSubmissions = getFilteredSubmissions();
 
   return (
@@ -217,7 +214,7 @@ const handleSaveComment = async () => {
           className="btn btn-outline-secondary btn-sm"
           onClick={goBack}
         >
-          <i className="fas fa-arrow-left mr-1"></i> 과제 목록으로 돌아가기
+          <i className="fas fa-arrow-left mr-1"></i> 이전으로 돌아가기
         </button>
       </div>
 
@@ -256,7 +253,7 @@ const handleSaveComment = async () => {
         </div>
         <div className="col-md-4">
           <div className="submission-stats">
-            <h6 className="text-gray-800 mb-3">제출 현황</h6>
+            <h6 className="text-gray-800 mb-3">평가 현황</h6>
             <div className="stats-card p-3 border rounded">
               <div className="row text-center">
                 <div className="col-4">
@@ -267,14 +264,14 @@ const handleSaveComment = async () => {
                 </div>
                 <div className="col-4">
                   <div className="stat-item">
-                    <div className="stat-number text-success font-weight-bold">{stats.submitted}</div>
-                    <div className="stat-label text-muted small">제출</div>
+                    <div className="stat-number text-success font-weight-bold">{stats.evaluated}</div>
+                    <div className="stat-label text-muted small">평가완료</div>
                   </div>
                 </div>
                 <div className="col-4">
                   <div className="stat-item">
                     <div className="stat-number text-warning font-weight-bold">{stats.rate}%</div>
-                    <div className="stat-label text-muted small">제출률</div>
+                    <div className="stat-label text-muted small">평가율</div>
                   </div>
                 </div>
               </div>
@@ -292,7 +289,7 @@ const handleSaveComment = async () => {
           <div className="d-flex justify-content-between align-items-center">
             <h5 className="mb-0">
               <i className="fas fa-users mr-2"></i>
-              학생 제출 현황 ({filteredSubmissions.length})
+              과제 제출 목록 ({filteredSubmissions.length})
             </h5>
             <div className="filter-buttons">
               <div className="btn-group" role="group">
@@ -303,16 +300,16 @@ const handleSaveComment = async () => {
                   전체 ({submissions.length})
                 </button>
                 <button 
-                  className={`btn btn-sm ${filterStatus === 'submitted' ? 'btn-success' : 'btn-outline-success'}`}
-                  onClick={() => setFilterStatus('submitted')}
+                  className={`btn btn-sm ${filterStatus === 'evaluated' ? 'btn-success' : 'btn-outline-success'}`}
+                  onClick={() => setFilterStatus('evaluated')}
                 >
-                  제출완료 ({stats.submitted})
+                  평가완료 ({stats.evaluated})
                 </button>
                 <button 
-                  className={`btn btn-sm ${filterStatus === 'not_submitted' ? 'btn-warning' : 'btn-outline-warning'}`}
-                  onClick={() => setFilterStatus('not_submitted')}
+                  className={`btn btn-sm ${filterStatus === 'not_evaluated' ? 'btn-warning' : 'btn-outline-warning'}`}
+                  onClick={() => setFilterStatus('not_evaluated')}
                 >
-                  미제출 ({stats.total - stats.submitted})
+                  평가대기 ({stats.total - stats.evaluated})
                 </button>
               </div>
             </div>
@@ -323,9 +320,9 @@ const handleSaveComment = async () => {
             <div className="text-center py-4">
               <i className="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
               <p className="text-gray-500">
-                {filterStatus === 'submitted' && '제출된 과제가 없습니다.'}
-                {filterStatus === 'not_submitted' && '미제출 학생이 없습니다.'}
-                {filterStatus === 'all' && '등록된 학생이 없습니다.'}
+                {filterStatus === 'evaluated' && '평가가 완료된 과제가 없습니다.'}
+                {filterStatus === 'not_evaluated' && '평가 대기 중인 과제가 없습니다.'}
+                {filterStatus === 'all' && '제출된 과제가 없습니다.'}
               </p>
             </div>
           ) : (
@@ -344,20 +341,19 @@ const handleSaveComment = async () => {
                           <div>
                             <h6 className="mb-1">{findStudentName(item.stdId)}</h6>
                             <small className="text-muted">{item?.stdId || 'ID 없음'}</small>
-                                      
-                               </div>
-                            </div>
+                          </div>
                         </div>
-                       </div>
+                      </div>
+                    </div>
                     <div className="col-md-3">
                       <div className="submission-status">
-                        {item?.content ? (
+                        {item?.progress ? (
                           <span className="badge badge-success">
-                            <i className="fas fa-check mr-1"></i>제출완료
+                            <i className="fas fa-check-circle mr-1"></i>평가완료
                           </span>
                         ) : (
                           <span className="badge badge-warning">
-                            <i className="fas fa-clock mr-1"></i>미제출
+                            <i className="fas fa-clock mr-1"></i>평가대기
                           </span>
                         )}
                       </div>
@@ -381,13 +377,13 @@ const handleSaveComment = async () => {
                           className="btn btn-sm btn-outline-secondary"
                           onClick={() => openCommentModal(item)}
                         >
-                          <i className="fas fa-comment mr-1"></i>
-                          {item?.progress ? '점수 수정' : '점수 작성'}
+                          <i className="fas fa-star mr-1"></i>
+                          {item?.progress ? '점수 수정' : '점수 평가'}
                         </button>
                         {item?.progress && (
                           <div className="mt-1">
                             <small className="text-success">
-                              <i className="fas fa-check-circle mr-1"></i>평가완료!
+                              <i className="fas fa-check-circle mr-1"></i>점수: {item.progress}점
                             </small>
                           </div>
                         )}
@@ -395,16 +391,16 @@ const handleSaveComment = async () => {
                     </div>
                   </div>
                   
-                  {/* 기존 댓글 표시 */}
+                  {/* 기존 평가 점수 표시 */}
                   {item?.progress && (
                     <div className="mt-3 pt-3 border-top">
                       <div className="existing-comment">
                         <h6 className="text-gray-700 mb-2">
-                          <i className="fas fa-comment-dots mr-2"></i>평가
+                          <i className="fas fa-star mr-2"></i>평가 점수
                         </h6>
                         <div className="comment-content p-2 bg-light rounded">
-                          <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                            {item.progress}
+                          <p className="mb-0 font-weight-bold text-primary" style={{ fontSize: '1.1rem' }}>
+                            {item.progress}점
                           </p>
                         </div>
                       </div>
@@ -417,15 +413,15 @@ const handleSaveComment = async () => {
         </div>
       </div>
 
-      {/* 댓글 작성 모달 */}
+      {/* 점수 평가 모달 */}
       {commentModalOpen && (
         <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  <i className="fas fa-comment-edit mr-2"></i>
-                  {findStudentName(selectedSubmission.stdId)}님 과제
+                  <i className="fas fa-star mr-2"></i>
+                  {findStudentName(selectedSubmission.stdId)}님 과제 평가
                 </h5>
                 <button 
                   type="button" 
@@ -436,32 +432,31 @@ const handleSaveComment = async () => {
                 </button>
               </div>
               
-                  <div className="modal-body">
-                  <div className="form-group">
-                 <label htmlFor="comment">점수</label>
-                    <input
-                     type="number"
-                     id="comment"
-                     className="form-control"
-                      value={comment}
-                     min={0}
-                      max={100}
-                     step={1}
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="comment">점수 (0~100점)</label>
+                  <input
+                    type="number"
+                    id="comment"
+                    className="form-control"
+                    value={comment}
+                    min={0}
+                    max={100}
+                    step={1}
                     onChange={(e) => {
-                    // 음수, 100초과 방지 (필요시)
-                    let val = e.target.value;
-                    // 빈값 허용(지울때) 아니면 정수 변환
-                     if (val === "") setComment("");
-                     else setComment(Math.max(0, Math.min(100, parseInt(val, 10))) || 0);
-                      }}
-                      placeholder="0~100 사이의 점수만 입력하세요"
-                      />
-                    <small className="form-text text-muted">
-                      입력한 점수는 학생이 확인할 수 있습니다.
-                    </small>
-                    </div>
-                    </div>
-      
+                      // 음수, 100초과 방지 (필요시)
+                      let val = e.target.value;
+                      // 빈값 허용(지울때) 아니면 정수 변환
+                      if (val === "") setComment("");
+                      else setComment(Math.max(0, Math.min(100, parseInt(val, 10))) || 0);
+                    }}
+                    placeholder="0~100 사이의 점수를 입력하세요"
+                  />
+                  <small className="form-text text-muted">
+                    입력한 점수는 학생이 확인할 수 있습니다.
+                  </small>
+                </div>
+              </div>
              
               <div className="modal-footer">
                 <button 
@@ -476,7 +471,7 @@ const handleSaveComment = async () => {
                   className="btn btn-primary" 
                   onClick={handleSaveComment}
                 >
-                  <i className="fas fa-save mr-1"></i>저장
+                  <i className="fas fa-save mr-1"></i>점수 저장
                 </button>
               </div>
             </div>

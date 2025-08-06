@@ -1072,7 +1072,7 @@ export default function ProfileEdit({ userDetails, onComplete, onCancel, onAccou
     <div className="container-fluid">
       {/* Page Heading */}
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">프로필 수정</h1>
+        <h2 className="h3 mb-0 text-gray-800 font-weight-bold">프로필 수정</h2>
         <div>
           <button
             className="btn btn-secondary mr-2"

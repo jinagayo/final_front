@@ -3,6 +3,7 @@ import Layout from './layout/Layout';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
+import ForgotPassword from './pages/ForgotPassword';
 import CourseList from './pages/course/List';
 import CourseRoutes from './routes/CourseRoutes';
 import ClassRoutes from './routes/ClassRoutes';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/join/signup/teacher" element={<Join />} /> 
           <Route path="/oauth" element={<OAuthCallback />} />
           <Route path="/kakao/callback" element={<KakaoCallback />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
 
           {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
           <Route element={<Layout />}>

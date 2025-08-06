@@ -610,7 +610,7 @@ const BoardDetail = () => {
           {/* 권한이 없는 경우 안내 메세지 표시 */}
           {!canWriteComment() &&  (
             <div className='alert alert-info mb-4'>
-              <i className='fas fa-info-circle me-2'>댓글 작성 권한 없음</i>
+              <i className='fas fa-info-circle me-2'>로그인이 필요합니다.</i>
             </div>
           )}
           {/* 댓글 작성 폼 - 권한이있는 경우만 표시 */}
