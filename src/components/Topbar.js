@@ -67,49 +67,6 @@ const handleSearchResultSelect = (item) => {
           </div>
 
         <ul className="navbar-nav">
-          {/* 알림 */}
-          <li className="nav-item dropdown no-arrow mx-1">
-            <a
-              className="nav-link dropdown-toggle"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                toggleDropdown('alerts');
-              }}
-              aria-expanded={activeDropdown === 'alerts'}
-            >
-              <i className="fas fa-bell fa-fw">
-                <img
-                  src="/img/alertIcon.png"
-                  alt="Menu"
-                  style={{ width: '20px', height: '20px' }}
-                />
-              </i>
-              <span className="badge badge-danger badge-counter">3+</span>
-            </a>
-            <div
-              className={`dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in ${
-                activeDropdown === 'alerts' ? 'show' : ''
-              }`}
-            >
-              <h6 className="dropdown-header">Alerts Center</h6>
-              <a className="dropdown-item d-flex align-items-center" href="#">
-                <div className="mr-3">
-                  <div className="icon-circle bg-primary">
-                    <i className="fas fa-file-alt text-white"></i>
-                  </div>
-                </div>
-                <div>
-                  <div className="small text-gray-500">December 12, 2019</div>
-                  <span className="font-weight-bold">A new monthly report is ready to download!</span>
-                </div>
-              </a>
-              <a className="dropdown-item text-center small text-gray-500" href="#">
-                Show All Alerts
-              </a>
-            </div>
-          </li>
-
           <div className="topbar-divider d-none d-sm-block"></div>
 
           {/* 로그인/로그아웃 버튼*/}
@@ -126,7 +83,7 @@ const handleSearchResultSelect = (item) => {
                 transition: 'all 0.2s ease',
                 outline: 'none',
                 height: '33px',
-                marginTop: '20px',
+                marginTop: '4px',
                 minWidth: '60px'
               }}
               onMouseEnter={(e) => {

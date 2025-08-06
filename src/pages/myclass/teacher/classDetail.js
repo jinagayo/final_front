@@ -624,8 +624,8 @@ const handleDeleteMaterial = async (meterId) => {
         </div>
       </div>
 
-      <div className="row mb-4">
-        <div className="col-md-2 mb-2">
+      <div className="row mb-4 justify-content-center">
+        <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
           <button
             className="btn btn-primary btn-block"
             onClick={() => {
@@ -636,7 +636,7 @@ const handleDeleteMaterial = async (meterId) => {
             <i className="fas fa-video mr-2"></i>강의 업로드
           </button>
         </div>
-        <div className="col-md-2 mb-2">
+        <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
           <button
             className="btn btn-warning btn-block"
             onClick={() => {
@@ -647,7 +647,7 @@ const handleDeleteMaterial = async (meterId) => {
             <i className="fas fa-clipboard-list mr-2"></i>과제 업로드
           </button>
         </div>
-        <div className="col-md-2 mb-2">
+        <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
           <button
             className="btn btn-danger btn-block"
             onClick={() => {
@@ -658,31 +658,23 @@ const handleDeleteMaterial = async (meterId) => {
             <i className="fas fa-file-alt mr-2"></i>테스트 업로드
           </button>
         </div>
-        <div className="col-md-2 mb-2">
-          <button 
-            className="btn btn-success btn-block"
-            onClick={handleStudentListClick}
-          >
-            <i className="fas fa-users mr-2"></i>수강생 목록
-          </button>
-        </div>
-        <div className="col-md-2 mb-2">
+        <div className="col-lg-2 col-md-6 col-sm-6 mb-2">
           <button 
             className="btn btn-info btn-block"
             onClick={() => {
               const classId = getClassIdFromUrl();
-              navigate(`/myclass/board/List?classId=${classId}&boardNum=BOD002`);
+              navigate(`/myclass/board/list/${classData.classId}?boardNum=BOD002`);
             }}
           >
             <i className="fas fa-bullhorn mr-2"></i>공지사항
           </button>
         </div>
-        <div className="col-md-2 mb-2">
+        <div className="col-lg-2 col-md-6 col-sm-6 mb-2">
           <button 
             className="btn btn-secondary btn-block"
             onClick={() => {
               const classId = getClassIdFromUrl();
-              navigate(`/myclass/qna/${classId}`);
+              navigate(`/myclass/board/list/${classData.classId}?boardNum=BOD001`);
             }}
           >
             <i className="fas fa-question-circle mr-2"></i>Q&A

@@ -254,18 +254,19 @@ useEffect(() => {
           )}
           
           {/* 마이 페이지 - 모든 사용자 */}
-          <div className="sidebar-heading">
-            마이페이지
-          </div>
-          
-          <li className="nav-item">
-            <a className="nav-link" href="/mypage/Info">
-                <i className="fas fa-fw fa-chart-area"></i>
-                <span>마이페이지</span>
-            </a>
-          </li>
-          
-
+          {user?.position != null && (
+            <>
+              <div className="sidebar-heading">
+                마이페이지
+              </div>
+              <li className="nav-item">
+                <a className="nav-link" href="/mypage/Info">
+                  <i className="fas fa-fw fa-chart-area"></i>
+                  <span>마이페이지</span>
+                </a>
+              </li>
+            </>
+          )}
 
           <hr className="sidebar-divider" />
           

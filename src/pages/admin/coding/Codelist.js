@@ -212,7 +212,7 @@ const checkUserPermissions = async () => {
               {userInfo && (
                 <small className="text-muted">
                   사용자: {userInfo.name || userInfo.data?.name} | 
-                  권한: {userInfo.position === 1 ? '학생' : userInfo.position === 2 ? '강사' : userInfo.position === 3 ? '관리자' : '알 수 없음'}
+                  권한: {userInfo.position === "1" ? '학생' : userInfo.position === "2" ? '강사' : userInfo.position === "3" ? '관리자' : '알 수 없음'}
                 </small>
               )}
             </div>
