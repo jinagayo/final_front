@@ -50,6 +50,14 @@ const BoardDetail = () => {
       setUserInfo(null);
     }
   };
+  const canModifyPost = () => {
+    if (!userInfo || !post) return false;
+    // 관리자는 모든 글 수정/삭제 가능
+    if (userInfo.role === "3") return true;
+    // 본인 글만 수정/삭제 가능
+    return userInfo.userId === post.userId || userInfo.userId === post.created_user_id || userInfo.userId === post.authorId;
+  };
+
 
   // 댓글 권한 체크 함수
   const canWriteComment = () => {
@@ -60,7 +68,10 @@ const BoardDetail = () => {
   // 댓글 수정/삭제 권한 체크 함수 (본인 댓글만 수정/삭제 가능)
   const canModifyComment = (commentAuthorId) => {
     if (!userInfo) return false;
-    return userInfo.userId === commentAuthorId || userInfo.id === commentAuthorId;
+    // 관리자는 모든 댓글 수정/삭제 가능
+    if (userInfo.role === "3") return true;
+    // 본인 댓글만 수정/삭제 가능
+    return userInfo.userId === commentAuthorId;
   };
 
 
@@ -577,8 +588,30 @@ const BoardDetail = () => {
             >
               <i className="fas fa-list me-1"></i>
               목록
-            </button>
-            
+            </button>            
+            <div>
+              {/* ⭐ 수정 버튼 - 권한 체크 */}
+              {canModifyPost() && (
+                <button 
+                  className="btn btn-primary me-2"
+                  onClick={handleEdit}
+                >
+                  <i className="fas fa-edit me-1"></i>
+                  수정
+                </button>
+              )}
+              
+              {/* ⭐ 삭제 버튼 - 권한 체크 */}
+              {canModifyPost() && (
+                <button 
+                  className="btn btn-danger"
+                  onClick={handleDelete}
+                >
+                  <i className="fas fa-trash me-1"></i>
+                  삭제
+                </button>
+              )}
+            </div>
             <div>
               <button 
                 className="btn btn-primary me-2"
