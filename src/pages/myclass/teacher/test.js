@@ -379,7 +379,7 @@ const TestCreate = () => {
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => removeQuestion(index)}
                         >
-                          <i className="fas fa-trash"></i>
+                          <i className="fas fa-trash">삭제</i>
                         </button>
                       )}
                     </div>
