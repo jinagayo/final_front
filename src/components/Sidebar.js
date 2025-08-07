@@ -16,14 +16,27 @@ function getImageUrl(img) {
 
 useEffect(() => {
   async function fetchProfile() {
-    const res = await fetch("http://localhost:8080/api/Mypage/Profile", { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-      setProfile(data);
+    try {
+      const res = await fetch("http://localhost:8080/api/Mypage/Profile", { 
+        credentials: 'include' 
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      } else if (res.status === 401) {
+        console.log('로그인이 필요합니다.');
+      } else {
+        console.error('Profile을 가져오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Profile fetch 에러:', error);
     }
   }
+  
   fetchProfile();
 }, []);
+
   // 디버깅을 위한 useEffect 추가
   useEffect(() => {
     console.log('=== Sidebar 렌더링 ===');

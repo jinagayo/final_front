@@ -20,7 +20,7 @@ const handleSearchResultSelect = (item) => {
       break;
     case 'fullSearch':
       // 🔥 전체 검색은 강의 목록으로 이동
-      window.location.href = `/course/List?search=${encodeURIComponent(item.query)}`;
+      window.location.href = `/course/Detail?search=${encodeURIComponent(item.query)}`;
       break;
     default:
       console.log('검색 결과 선택:', item);

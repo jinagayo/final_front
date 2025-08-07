@@ -37,7 +37,7 @@ export default function ClassDetail() {
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
             setError("관리자 권한이 필요합니다. 로그인해주세요.");
-            navigate('/login');
+            navigate('/auth/login');
             return;
           }
           if (response.status === 404) {

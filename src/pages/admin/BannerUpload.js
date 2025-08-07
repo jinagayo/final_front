@@ -1,249 +1,340 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const BannerUpload = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState('');
-  const { user } = useAuth();
-  const [bannerUrl, setBannerUrl] = useState(null);
+ const [selectedFile, setSelectedFile] = useState(null);
+ const [previewUrl, setPreviewUrl] = useState(null);
+ const [uploading, setUploading] = useState(false);
+ const [message, setMessage] = useState('');
+ const { user } = useAuth();
+ const [bannerUrl, setBannerUrl] = useState(null);
+ 
+ // ⭐ 권한 관련 state 추가
+ const [isAuthorized, setIsAuthorized] = useState(false);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState(null);
+ const navigate = useNavigate();
 
-   //최신 배너 이미지 불러오기
-  useEffect(()=> {
-    fetch('http://localhost:8080/api/admin/banner/latest', {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.url) setBannerUrl(data.url);
-      });
-  }, []);
+ // 관리자 권한 확인
+ const isAdmin = () => user?.position === '3' || user?.position === 'admin';
 
+ // ⭐ useEffect 권한 체크 및 배너 이미지 로드
+ useEffect(() => {
+   if (isAdmin()) {
+     fetchBannerData();
+   }
+ }, []);
 
-  // 관리자 권한 확인
-  const isAdmin = () => user?.position === '3' || user?.position === 'admin';
+const fetchBannerData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-  if (!isAdmin()) {
+    // ⭐ 1. 먼저 권한 체크
+    const authResponse = await fetch('/auth/check', {
+      credentials: 'include'
+    });
+
+    if (authResponse.ok) {
+      const authData = await authResponse.json();
+      if (authData.position === "3") {
+        setIsAuthorized(true);
+
+        const bannerResponse = await fetch('http://localhost:8080/api/admin/banner/latest', {
+          credentials: 'include',
+        });
+
+        if (bannerResponse.ok) {
+          const bannerData = await bannerResponse.json();
+          if (bannerData.url) setBannerUrl(bannerData.url);
+        } else {
+          console.warn('배너 이미지를 가져올 수 없습니다.');
+        }
+      } else {
+        throw new Error('접근 권한이 없습니다. 관리자 권한이 필요합니다.');
+      }
+    } else {
+      if (authResponse.status === 403) {
+        throw new Error('접근 권한이 없습니다. 관리자 권한이 필요합니다.');
+      } else if (authResponse.status === 401) {
+        throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
+      } else {
+        throw new Error(`서버 오류: ${authResponse.status} ${authResponse.statusText}`);
+      }
+    }
+  } catch (error) {
+    console.error('데이터 가져오기 오류:', error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+ // ⭐ 로딩 중일 때
+ if(loading){
+      return (
+      <div className="container-fluid">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2">권한을 확인하는 중...</p>
+        </div>
+      </div>
+    );
+ }
+
+ // ⭐ 에러가 있을 때
+   if (error) {
     return (
-      <div className="container-fluid px-4 py-5">
-        <div className="alert alert-danger">
-          <i className="fas fa-exclamation-triangle"></i>
-          관리자 권한이 필요합니다.
+      <div className="card-body">
+        <div className="alert alert-danger" role="alert">
+          <h4 className="alert-heading">오류 발생</h4>
+          <p>{error}</p>
+          <hr />
+          <div className="mb-0">
+            <button 
+              className="btn btn-outline-danger" 
+              onClick={() => fetchBannerData()}
+            >
+              다시 시도
+            </button>
+            {error.includes('권한') && (
+              <div className="mt-2">
+                <small className="text-muted">
+                  관리자 권한이 필요합니다. 로그인 상태와 권한을 확인해주세요.
+                </small>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   }
+ if(!isAuthorized){
+  return null;
+ }
+ // ⭐ 권한이 없을 때
+ if (!isAdmin() || !isAuthorized) {
+   return (
+     <div className="container-fluid px-4 py-5">
+       <div className="alert alert-danger">
+         <i className="fas fa-exclamation-triangle"></i>
+         관리자 권한이 필요합니다.
+       </div>
+     </div>
+   );
+ }
 
+ // 파일 선택 핸들러
+ const handleFileSelect = (event) => {
+   const file = event.target.files[0];
+   
+   if (file) {
+     // 파일 타입 검증
+     if (!file.type.startsWith('image/')) {
+       setMessage('이미지 파일만 선택할 수 있습니다.');
+       return;
+     }
+     
+     // 파일 크기 검증 (10MB 제한)
+     if (file.size > 10 * 1024 * 1024) {
+       setMessage('파일 크기는 10MB 이하여야 합니다.');
+       return;
+     }
+     
+     setSelectedFile(file);
+     setMessage('');
+     
+     // 미리보기 생성
+     const reader = new FileReader();
+     reader.onload = (e) => {
+       setPreviewUrl(e.target.result);
+     };
+     reader.readAsDataURL(file);
+   }
+ };
 
-  // 파일 선택 핸들러
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    
-    if (file) {
-      // 파일 타입 검증
-      if (!file.type.startsWith('image/')) {
-        setMessage('이미지 파일만 선택할 수 있습니다.');
-        return;
-      }
-      
-      // 파일 크기 검증 (10MB 제한)
-      if (file.size > 10 * 1024 * 1024) {
-        setMessage('파일 크기는 10MB 이하여야 합니다.');
-        return;
-      }
-      
-      setSelectedFile(file);
-      setMessage('');
-      
-      // 미리보기 생성
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewUrl(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+ // 파일 업로드 핸들러
+ const handleUpload = async () => {
+   if (!selectedFile) {
+     setMessage('파일을 선택해주세요.');
+     return;
+   }
 
-  // 파일 업로드 핸들러
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage('파일을 선택해주세요.');
-      return;
-    }
+   setUploading(true);
+   setMessage('');
 
-    setUploading(true);
-    setMessage('');
+   try {
+     const formData = new FormData();
+     formData.append('file', selectedFile);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+     const response = await fetch('http://localhost:8080/api/admin/upload-banner', {
+       method: 'POST',
+       credentials: 'include',
+       body: formData
+     });
 
-      const response = await fetch('http://localhost:8080/api/admin/upload-banner', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
+     const data = await response.json();
 
-      const data = await response.json();
+     if (data.success) {
+       setMessage('배너 이미지가 성공적으로 업로드되었습니다!');
+       // 업로드 후 페이지 새로고침하여 새 이미지 반영
+       setTimeout(() => {
+         window.location.reload();
+       }, 2000);
+     } else {
+       setMessage(data.message || '업로드에 실패했습니다.');
+     }
+   } catch (error) {
+     console.error('업로드 오류:', error);
+     setMessage('업로드 중 오류가 발생했습니다.');
+   } finally {
+     setUploading(false);
+   }
+ };
 
-      if (data.success) {
-        setMessage('배너 이미지가 성공적으로 업로드되었습니다!');
-        // 업로드 후 페이지 새로고침하여 새 이미지 반영
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        setMessage(data.message || '업로드에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('업로드 오류:', error);
-      setMessage('업로드 중 오류가 발생했습니다.');
-    } finally {
-      setUploading(false);
-    }
-  };
+ // 선택 취소
+ const handleCancel = () => {
+   setSelectedFile(null);
+   setPreviewUrl(null);
+   setMessage('');
+   document.getElementById('fileInput').value = '';
+ };
 
-  // 선택 취소
-  const handleCancel = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setMessage('');
-    document.getElementById('fileInput').value = '';
-  };
+ return (
+   <div className="container-fluid px-4 py-5">
+     <div className="d-sm-flex align-items-center justify-content-between mb-4">
+       <h1 className="h3 mb-0 text-gray-800">배너 이미지 관리</h1>
+     </div>
 
-  return (
-    <div className="container-fluid px-4 py-5">
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">배너 이미지 관리</h1>
-      </div>
+     <div className="row">
+       {/* 현재 배너 이미지 */}
+       <div className="col-lg-6 mb-4">
+         <div className="card shadow">
+           <div className="card-header py-3">
+             <h6 className="m-0 font-weight-bold text-primary">현재 배너 이미지</h6>
+           </div>
+           <div className="card-body">
+             {bannerUrl ? (
+               <img
+                 src={bannerUrl}
+                 alt="현재 배너"
+                 className="img-fluid rounded"
+                 style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
+               />
+             ) : (
+               <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'#888'}}>로딩 중...</div>
+             )}
+           </div>
+         </div>
+       </div>
 
-      <div className="row">
-        {/* 현재 배너 이미지 */}
-        <div className="col-lg-6 mb-4">
-          <div className="card shadow">
-            <div className="card-header py-3">
-              <h6 className="m-0 font-weight-bold text-primary">현재 배너 이미지</h6>
-            </div>
-            <div className="card-body">
-              {bannerUrl ? (
-                <img
-                  src={bannerUrl}
-                  alt="현재 배너"
-                  className="img-fluid rounded"
-                  style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
-                />
-              ) : (
-                <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',color:'#888'}}>로딩 중...</div>
-              )}
-            </div>
-          </div>
-        </div>
+       {/* 파일 업로드 */}
+       <div className="col-lg-6 mb-4">
+         <div className="card shadow">
+           <div className="card-header py-3">
+             <h6 className="m-0 font-weight-bold text-primary">새 배너 이미지 업로드</h6>
+           </div>
+           <div className="card-body">
+             {/* 파일 선택 */}
+             <div className="mb-3">
+               <label htmlFor="fileInput" className="form-label">이미지 파일 선택</label>
+               <input
+                 id="fileInput"
+                 type="file"
+                 className="form-control"
+                 accept="image/*"
+                 onChange={handleFileSelect}
+                 disabled={uploading}
+               />
+               <small className="form-text text-muted">
+                 JPG, PNG, GIF 형식의 이미지 파일 (최대 10MB)
+               </small>
+             </div>
 
-        {/* 파일 업로드 */}
-        <div className="col-lg-6 mb-4">
-          <div className="card shadow">
-            <div className="card-header py-3">
-              <h6 className="m-0 font-weight-bold text-primary">새 배너 이미지 업로드</h6>
-            </div>
-            <div className="card-body">
-              {/* 파일 선택 */}
-              <div className="mb-3">
-                <label htmlFor="fileInput" className="form-label">이미지 파일 선택</label>
-                <input
-                  id="fileInput"
-                  type="file"
-                  className="form-control"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  disabled={uploading}
-                />
-                <small className="form-text text-muted">
-                  JPG, PNG, GIF 형식의 이미지 파일 (최대 10MB)
-                </small>
-              </div>
+             {/* 미리보기 */}
+             {previewUrl && (
+               <div className="mb-3">
+                 <label className="form-label">미리보기</label>
+                 <div>
+                   <img 
+                     src={previewUrl} 
+                     alt="미리보기" 
+                     className="img-fluid rounded"
+                     style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
+                   />
+                 </div>
+               </div>
+             )}
 
-              {/* 미리보기 */}
-              {previewUrl && (
-                <div className="mb-3">
-                  <label className="form-label">미리보기</label>
-                  <div>
-                    <img 
-                      src={previewUrl} 
-                      alt="미리보기" 
-                      className="img-fluid rounded"
-                      style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
-                    />
-                  </div>
-                </div>
-              )}
+             {/* 메시지 */}
+             {message && (
+               <div className={`alert ${message.includes('성공') ? 'alert-success' : 'alert-danger'}`}>
+                 {message}
+               </div>
+             )}
 
-              {/* 메시지 */}
-              {message && (
-                <div className={`alert ${message.includes('성공') ? 'alert-success' : 'alert-danger'}`}>
-                  {message}
-                </div>
-              )}
+             {/* 버튼들 */}
+             <div className="d-flex gap-2">
+               <button
+                 type="button"
+                 className="btn btn-primary"
+                 onClick={handleUpload}
+                 disabled={!selectedFile || uploading}
+               >
+                 {uploading ? (
+                   <>
+                     <i className="fas fa-spinner fa-spin mr-2"></i>
+                     업로드 중...
+                   </>
+                 ) : (
+                   <>
+                     <i className="fas fa-upload mr-2"></i>
+                     업로드
+                   </>
+                 )}
+               </button>
+               
+               {selectedFile && (
+                 <button
+                   type="button"
+                   className="btn btn-secondary"
+                   onClick={handleCancel}
+                   disabled={uploading}
+                 >
+                   <i className="fas fa-times mr-2"></i>
+                   취소
+                 </button>
+               )}
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
 
-              {/* 버튼들 */}
-              <div className="d-flex gap-2">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleUpload}
-                  disabled={!selectedFile || uploading}
-                >
-                  {uploading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      업로드 중...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-upload mr-2"></i>
-                      업로드
-                    </>
-                  )}
-                </button>
-                
-                {selectedFile && (
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleCancel}
-                    disabled={uploading}
-                  >
-                    <i className="fas fa-times mr-2"></i>
-                    취소
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 안내 사항 */}
-      <div className="row">
-        <div className="col-12">
-          <div className="card shadow">
-            <div className="card-header py-3">
-              <h6 className="m-0 font-weight-bold text-info">안내사항</h6>
-            </div>
-            <div className="card-body">
-              <ul className="mb-0">
-                <li>권장 이미지 크기: 1200px × 300px (비율 4:1)</li>
-                <li>지원 형식: JPG, PNG, GIF</li>
-                <li>최대 파일 크기: 10MB</li>
-                <li>업로드 후 기존 이미지는 자동으로 백업됩니다.</li>
-                <li>변경사항은 즉시 홈페이지에 반영됩니다.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+     {/* 안내 사항 */}
+     <div className="row">
+       <div className="col-12">
+         <div className="card shadow">
+           <div className="card-header py-3">
+             <h6 className="m-0 font-weight-bold text-info">안내사항</h6>
+           </div>
+           <div className="card-body">
+             <ul className="mb-0">
+               <li>권장 이미지 크기: 1200px × 300px (비율 4:1)</li>
+               <li>지원 형식: JPG, PNG, GIF</li>
+               <li>최대 파일 크기: 10MB</li>
+               <li>업로드 후 기존 이미지는 자동으로 백업됩니다.</li>
+               <li>변경사항은 즉시 홈페이지에 반영됩니다.</li>
+             </ul>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+ );
 };
 
 export default BannerUpload;

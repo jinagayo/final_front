@@ -16,10 +16,7 @@ const PendingTeachers = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // 인증 헤더 추가
           'Authorization': token ? `Bearer ${token}` : '',
-          // 또는 다른 인증 방식
-          // 'X-Auth-Token': token,
         },
         credentials: 'include', // 쿠키 기반 인증인 경우
       });
