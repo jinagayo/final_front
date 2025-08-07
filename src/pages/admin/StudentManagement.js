@@ -8,7 +8,7 @@ const StudentManagement = () => {
   const [sortBy, setSortBy] = useState('userId');
   const [sortOrder, setSortOrder] = useState('asc');
   const { user } = useAuth();
-
+  const [error, setError] = useState(null);
   // 페이징 관련 상태 (10개 고정)
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // 고정값
@@ -24,47 +24,61 @@ const StudentManagement = () => {
   // 관리자 권한 확인
   const isAdmin = () => user?.position === '3' || user?.position === 'admin';
 
-  // 학생 목록 가져오기 (서버 페이징)
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
-      
-      // 페이징 파라미터를 URL에 추가
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        size: itemsPerPage.toString(),
-        search: searchTerm || ''
-      });
-      
-      console.log('API 요청 URL:', `http://localhost:8080/api/admin/students?${params}`);
-      
-      const response = await fetch(`http://localhost:8080/api/admin/students?${params}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+  // 컴포넌트 마운트 시 및 페이징 상태 변경 시 데이터 로드
+useEffect(() => {
+  if (isAdmin()) {
+    fetchStudents();
+  }
+}, [currentPage, searchTerm]);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API 응답 데이터:', data);
-        
-        setStudents(data.data || []);
-        setCurrentPage(data.currentPage || 1);
-        setTotalPages(data.totalPages || 0);
-        setTotalElements(data.totalElements || 0);
-      } else {
-        console.error('학생 목록 가져오기 실패:', response.status);
-        setStudents([]);
+
+  // 학생 목록 가져오기 (서버 페이징)
+const fetchStudents = async () => {
+  try {
+    setLoading(true);
+    setError(null); // ⭐ 에러 상태 초기화
+    
+    // 페이징 파라미터를 URL에 추가
+    const params = new URLSearchParams({
+      page: currentPage.toString(),
+      size: itemsPerPage.toString(),
+      search: searchTerm || ''
+    });
+    
+    console.log('API 요청 URL:', `http://localhost:8080/api/admin/students?${params}`);
+    
+    const response = await fetch(`http://localhost:8080/api/admin/students?${params}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
       }
-    } catch (error) {
-      console.error('학생 목록 가져오기 오류:', error);
-      setStudents([]);
-    } finally {
-      setLoading(false);
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setStudents(data.data || []);
+      setCurrentPage(data.currentPage || 1);
+      setTotalPages(data.totalPages || 0);
+      setTotalElements(data.totalElements || 0);
+    } else {
+      // ⭐ 에러 상태별로 적절한 메시지 설정
+      if (response.status === 403) {
+        throw new Error('접근 권한이 없습니다. 관리자 권한이 필요합니다.');
+      } else if (response.status === 401) {
+        throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
+      } else {
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+      }
     }
-  };
+  } catch (error) {
+    console.error('학생 목록 가져오기 오류:', error);
+    setError(error.message); // ⭐ 에러 상태 설정
+    setStudents([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 삭제 버튼 클릭 시 모달 열기
   const handleDeleteClick = (userId) => {
@@ -119,6 +133,54 @@ const StudentManagement = () => {
     }
   };
 
+  if (error) {
+    return (
+      <div className="card-body">
+        <div className="alert alert-danger" role="alert">
+          <h4 className="alert-heading">오류 발생</h4>
+          <p>{error}</p>
+          <hr />
+          <div className="mb-0">
+            <button 
+              className="btn btn-outline-danger" 
+              onClick={() => fetchStudents()}
+            >
+              다시 시도
+            </button>
+            {error.includes('권한') && (
+              <div className="mt-2">
+                <small className="text-muted">
+                  관리자 권한이 필요합니다. 로그인 상태와 권한을 확인해주세요.
+                </small>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+// 관리자 권한 확인
+if (!isAdmin()) {
+  return (
+    <div className="container-fluid px-4 py-5">
+      <div className="alert alert-danger" role="alert">
+        <h4 className="alert-heading">접근 권한 없음</h4>
+        <p>
+          <i className="fas fa-exclamation-triangle mr-2"></i>
+          관리자 권한이 필요합니다.
+        </p>
+        <hr />
+        <div className="mb-0">
+          <small className="text-muted">
+            현재 권한: {user?.position || '없음'} | 필요 권한: 관리자(3)
+          </small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
   // 엔터 키로 삭제 실행
   const handlePasswordKeyPress = (e) => {
     if (e.key === 'Enter' && !passwordLoading) {
@@ -167,23 +229,6 @@ const StudentManagement = () => {
     
     return pages;
   };
-
-  // 컴포넌트 마운트 시 및 페이징 상태 변경 시 데이터 로드
-  useEffect(() => {
-    fetchStudents();
-  }, [currentPage, searchTerm]); // itemsPerPage 제거
-
-  // 관리자 권한 확인
-  if (!isAdmin()) {
-    return (
-      <div className="container-fluid px-4 py-5">
-        <div className="alert alert-danger">
-          <i className="fas fa-exclamation-triangle"></i>
-          관리자 권한이 필요합니다.
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container-fluid px-4 py-5">

@@ -1,18 +1,175 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import { useAuth } from '../../../contexts/AuthContext';
 export default function CourseApplicationList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-
   const [applications, setApplications] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const location = useLocation();
   const navigate = useNavigate();
+  
+    const checkAuth = async () => {
+    try {
+      setAuthLoading(true);
+      setError(null);
+
+      const response = await fetch('http://localhost:8080/auth/check', {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.isLoggedIn && (data.position === "2" || data.position === "3")) {
+          setIsAuthorized(true);
+        } else if (!data.isLoggedIn) {
+          throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
+        } else {
+          throw new Error('접근 권한이 없습니다. 강사 권한이 필요합니다.');
+        }
+      } else {
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('권한 체크 실패:', error);
+      setError(error.message);
+      setIsAuthorized(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, [navigate]);
+
+   useEffect(() => {
+    const fetchApplicationData = async () => {
+      if (!isAuthorized) return; // 권한이 없으면 로딩하지 않음
+
+      try {
+        setLoading(true);
+        
+        const response = await fetch('http://localhost:8080/course/teacher/List', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            setError("강사 권한이 없습니다. 로그인해주세요.");
+            navigate('/auth/login');
+            return;
+          }
+          throw new Error(`HTTP 에러! 상태: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setApplications(data.applications);
+        setCategories(['all', ...data.categories]);
+      } catch (e) {
+        setError("데이터를 불러오는 데 실패했습니다: " + e.message);
+        console.error("강의 신청 데이터를 가져오지 못했습니다:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplicationData();
+  }, [navigate, isAuthorized]); // ⭐ isAuthorized 의존성 추가
+
+  useEffect(() => {
+    const fetchApplicationData = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/course/teacher/List', {
+          // 중요: credentials 옵션을 'include'로 설정합니다.
+          credentials: 'include' // 이 옵션이 세션 쿠키를 포함하도록 합니다.
+        });
+        
+        if (!response.ok) {
+          // 특정 HTTP 상태 코드에 따라 에러 처리 강화
+          if (response.status === 401 || response.status === 403) {
+            // 인증되지 않았거나 권한이 없는 경우
+            // 로그인 페이지로 리다이렉션하거나 사용자에게 메시지를 보여줄 수 있습니다.
+            setError("강사 권한이 없습니다. 로그인해주세요.");
+            navigate('/login'); // 예시: 로그인 페이지로 이동
+            return; // 이후 코드 실행 중지
+          }
+          throw new Error(`HTTP 에러! 상태: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setApplications(data.applications);
+        setCategories(['all', ...data.categories]);
+      } catch (e) {
+        setError("데이터를 불러오는 데 실패했습니다: " + e.message);
+        console.error("강의 신청 데이터를 가져오지 못했습니다:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplicationData();
+  }, [navigate]);
+  
+  // ⭐ 권한 체크 중일 때
+  if (authLoading) {
+    return (
+      <div className="container-fluid text-center py-5">
+        <i className="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+        <p className="text-gray-500">권한을 확인하는 중입니다...</p>
+      </div>
+    );
+  }
+
+  // ⭐ 에러가 있을 때
+  if (error) {
+    return (
+      <div className="container-fluid">
+        <div className="card-body">
+          <div className="alert alert-danger" role="alert">
+            <h4 className="alert-heading">오류 발생</h4>
+            <p>{error}</p>
+            <hr />
+            <div className="mb-0">
+              <button 
+                className="btn btn-outline-danger" 
+                onClick={checkAuth}
+              >
+                다시 시도
+              </button>
+              {error.includes('권한') && (
+                <div className="mt-2">
+                  <small className="text-muted">
+                    강사 권한이 필요합니다. 로그인 상태와 권한을 확인해주세요.
+                  </small>
+                  <br />
+                  <button 
+                    className="btn btn-sm btn-outline-primary mt-2"
+                    onClick={() => navigate('/login')}
+                  >
+                    로그인 페이지로 이동
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ⭐ 권한이 없을 때
+  if (!isAuthorized) {
+    return null;
+  }
+
 
   // 날짜 포맷팅 함수 추가
   const formatDate = (dateString) => {
@@ -59,41 +216,6 @@ export default function CourseApplicationList() {
     return '-';
   };
 
-  useEffect(() => {
-    const fetchApplicationData = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/course/teacher/List', {
-          // 중요: credentials 옵션을 'include'로 설정합니다.
-          credentials: 'include' // 이 옵션이 세션 쿠키를 포함하도록 합니다.
-        });
-        
-        if (!response.ok) {
-          // 특정 HTTP 상태 코드에 따라 에러 처리 강화
-          if (response.status === 401 || response.status === 403) {
-            // 인증되지 않았거나 권한이 없는 경우
-            // 로그인 페이지로 리다이렉션하거나 사용자에게 메시지를 보여줄 수 있습니다.
-            setError("인증 정보가 없거나 권한이 없습니다. 로그인해주세요.");
-            navigate('/login'); // 예시: 로그인 페이지로 이동
-            return; // 이후 코드 실행 중지
-          }
-          throw new Error(`HTTP 에러! 상태: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setApplications(data.applications);
-        setCategories(['all', ...data.categories]);
-      } catch (e) {
-        setError("데이터를 불러오는 데 실패했습니다: " + e.message);
-        console.error("강의 신청 데이터를 가져오지 못했습니다:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchApplicationData();
-  }, [navigate]); // navigate가 변경될 수 있으므로 의존성 배열에 추가 (리다이렉션 사용 시)
-
-  // 나머지 코드는 동일합니다.
   const statusOptions = [
     { value: 'all', label: '전체' },
     { value: 'STA002', label: '검토중' },

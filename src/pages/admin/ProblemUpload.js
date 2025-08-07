@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CodingProblemSubmit = () => {
  const [formData, setFormData] = useState({
@@ -13,6 +14,50 @@ const CodingProblemSubmit = () => {
    ]
  });
 
+ //권한 관련
+ const [isAuthorized, setIsAuthorized] = useState(false);
+ const [loading, setLoading] = useState(true);
+ const navigate = useNavigate();
+ const [error, setError] = useState(null);
+
+ useEffect(() => {
+ const checkAuth = async () => { 
+   try {
+     setLoading(true);
+     setError(null); // ⭐ 에러 상태 초기화
+
+     const response = await fetch("/auth/check", {
+       credentials: 'include'
+     });
+
+     if (response.ok) {
+       const data = await response.json();
+       if (data.position === "3") {
+         setIsAuthorized(true); 
+       } else {
+         throw new Error('접근 권한이 없습니다. 관리자 권한이 필요합니다.');
+       }
+     } else {
+       // ⭐ 에러 상태별로 적절한 메시지 설정
+       if (response.status === 403) {
+         throw new Error('접근 권한이 없습니다. 관리자 권한이 필요합니다.');
+       } else if (response.status === 401) {
+         throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
+       } else {
+         throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+       }
+     }
+   } catch (error) {
+     console.error("Auth check failed", error);
+     setError(error.message); // ⭐ 에러 상태 설정
+   } finally {
+     setLoading(false);
+   }
+ };
+ 
+ checkAuth();
+}, [navigate]);
+
  const handleChange = (e) => {
    const { name, value } = e.target;
    setFormData(prev => ({
@@ -20,6 +65,48 @@ const CodingProblemSubmit = () => {
      [name]: name === 'level' ? parseInt(value) : value  // level은 숫자로 변환
    }));
  };
+
+ if(loading){
+      return (
+      <div className="container-fluid">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2">권한을 확인하는 중...</p>
+        </div>
+      </div>
+    );
+ }
+   if (error) {
+    return (
+      <div className="card-body">
+        <div className="alert alert-danger" role="alert">
+          <h4 className="alert-heading">오류 발생</h4>
+          <p>{error}</p>
+          <hr />
+          <div className="mb-0">
+            <button 
+              className="btn btn-outline-danger" 
+              onClick={() => CodingProblemSubmit()}
+            >
+              다시 시도
+            </button>
+            {error.includes('권한') && (
+              <div className="mt-2">
+                <small className="text-muted">
+                  관리자 권한이 필요합니다. 로그인 상태와 권한을 확인해주세요.
+                </small>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+ if(!isAuthorized){
+  return null;
+ }
 
  const handleTestCaseChange = (index, field, value) => {
    const newTestCases = [...formData.test_case];

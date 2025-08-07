@@ -25,17 +25,12 @@ useEffect(() => {
         const data = await res.json();
         setProfile(data);
       } else if (res.status === 401) {
-        // ⭐ 로그인이 필요한 경우
         console.log('로그인이 필요합니다.');
-        window.location.href = '/auth/login'; // 원하는 로그인 페이지 경로로 수정
-        // 또는 React Router 사용시: navigate('/login');
       } else {
         console.error('Profile을 가져오는데 실패했습니다.');
       }
     } catch (error) {
       console.error('Profile fetch 에러:', error);
-      // 네트워크 에러 등의 경우에도 로그인 페이지로 보낼지 결정
-      window.location.href = '/auth/login';
     }
   }
   
