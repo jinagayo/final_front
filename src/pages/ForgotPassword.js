@@ -11,10 +11,6 @@ export default function ForgotPassword() {
 
   const [step, setStep] = useState(1); // 1: 정보입력, 2: 이메일전송완료, 3: 새비밀번호설정
   const [isLoading, setIsLoading] = useState(false);
-  const [newPassword, setNewPassword] = useState({
-    password: "",
-    confirmPassword: "",
-  });
   const [verificationCode, setVerificationCode] = useState("");
 
   const handleChange = (e) => {
@@ -25,13 +21,6 @@ export default function ForgotPassword() {
     }));
   };
 
-  const handleNewPasswordChange = (e) => {
-    const { name, value } = e.target;
-    setNewPassword((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   // 1단계: 아이디와 이메일로 사용자 확인
   const handleFindPassword = async (e) => {
@@ -43,15 +32,14 @@ export default function ForgotPassword() {
       console.log('아이디:', form.user_id);
       console.log('이메일:', form.email);
 
+      const formData = new FormData();
+      formData.append('user_id',form.user_id);
+      formData.append('email',form.email);
+
       const response = await fetch('http://localhost:8080/auth/forgot-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: form.user_id,
-          email: form.email,
-        })
+        body: formData,
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -71,51 +59,39 @@ export default function ForgotPassword() {
     }
   };
 
-  // 2단계: 인증코드 확인 및 새 비밀번호 설정
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    
-    if (newPassword.password !== newPassword.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
-      return;
-    }
+  // 2단계: 임시 비밀번호 발급
+  const handleSendTempPassword = async (e) => {
+      e.preventDefault();
+      setIsLoading(true);
 
-    if (newPassword.password.length < 6) {
-      alert('비밀번호는 6자 이상 입력해주세요.');
-      return;
-    }
+  try {
 
-    setIsLoading(true);
+    const formData = new FormData();
+      formData.append('user_id',form.user_id);
+      formData.append('email',form.email);
+      formData.append('verification_code',verificationCode);
 
-    try {
-      const response = await fetch('http://localhost:8080/auth/reset-password', {
+    const response = await fetch('http://localhost:8080/auth/send-temp-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: form.user_id,
-          email: form.email,
-          verification_code: verificationCode,
-          new_password: newPassword.password,
-        })
-      });
+        body: formData,
+        credentials: 'include',
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok && data.success) {
-        alert('비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.');
-        navigate('/auth/login');
-      } else {
-        alert(data.message || '비밀번호 변경에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('비밀번호 재설정 오류:', error);
-      alert('서버 연결에 실패했습니다. 네트워크를 확인해주세요.');
-    } finally {
-      setIsLoading(false);
+    if (response.ok && data.success) {
+      alert('임시 비밀번호가 이메일로 발송되었습니다. 이메일을 확인해 주세요.');
+      navigate('/auth/login');
+    } else {
+      alert(data.message || '임시 비밀번호 발급에 실패했습니다.');
     }
-  };
+  } catch (error) {
+    alert('서버 연결에 실패했습니다.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const goToLogin = () => {
     navigate('/auth/login');
@@ -124,15 +100,14 @@ export default function ForgotPassword() {
   const resendEmail = async () => {
     setIsLoading(true);
     try {
+      const formData = new FormData();
+      formData.append('user_id',form.user_id);
+      formData.append('email',form.email);
+
       const response = await fetch('http://localhost:8080/auth/forgot-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: form.user_id,
-          email: form.email,
-        })
+        body: formData,
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -275,7 +250,7 @@ export default function ForgotPassword() {
 
         {/* 2단계: 이메일 발송 완료 및 새 비밀번호 설정 */}
         {step === 2 && (
-          <form onSubmit={handleResetPassword} autoComplete="off">
+          <form onSubmit={handleSendTempPassword} autoComplete="off">
             <h2
               className="text-center mb-4"
               style={{
@@ -284,7 +259,7 @@ export default function ForgotPassword() {
                 letterSpacing: "-1px",
               }}
             >
-              새 비밀번호 설정
+              임시 비밀번호 발급
             </h2>
             
             <p 
@@ -295,7 +270,8 @@ export default function ForgotPassword() {
                 lineHeight: "1.5"
               }}
             >
-              이메일로 발송된 인증코드를 입력하고<br/>새 비밀번호를 설정해주세요.
+              이메일로 발송된 인증코드를 입력해주세요. <br/>
+              인증에 성공하면 임시 비밀번호가 이메일로 발송됩니다.
             </p>
             
             <div className="mb-3">
@@ -319,46 +295,6 @@ export default function ForgotPassword() {
               />
             </div>
             
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                name="password"
-                placeholder="새 비밀번호 (6자 이상)"
-                value={newPassword.password}
-                onChange={handleNewPasswordChange}
-                style={{
-                  borderRadius: "30px",
-                  padding: "15px 22px",
-                  fontSize: "15px",
-                  border: "1.5px solid #ececec",
-                }}
-                minLength="6"
-                required
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div className="mb-4">
-              <input
-                type="password"
-                className="form-control"
-                name="confirmPassword"
-                placeholder="새 비밀번호 확인"
-                value={newPassword.confirmPassword}
-                onChange={handleNewPasswordChange}
-                style={{
-                  borderRadius: "30px",
-                  padding: "15px 22px",
-                  fontSize: "15px",
-                  border: "1.5px solid #ececec",
-                }}
-                minLength="6"
-                required
-                disabled={isLoading}
-              />
-            </div>
-            
             <button
               type="submit"
               className="btn w-100 mb-2"
@@ -373,7 +309,7 @@ export default function ForgotPassword() {
               }}
               disabled={isLoading}
             >
-              {isLoading ? "변경 중..." : "비밀번호 변경"}
+              {isLoading ? "발급 중..." : "임시 비밀번호 발급"}
             </button>
             
             <button
