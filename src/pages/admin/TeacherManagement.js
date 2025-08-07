@@ -28,14 +28,11 @@ const TeacherManagement = () => {
     try {
       setLoading(true);
       
-      // 페이징 파라미터를 URL에 추가
       const params = new URLSearchParams({
         page: currentPage.toString(),
         size: itemsPerPage.toString(),
         search: searchTerm || ''
       });
-      
-      console.log('강사 API 요청 URL:', `http://localhost:8080/api/admin/teachers?${params}`);
       
       const response = await fetch(`http://localhost:8080/api/admin/teachers?${params}`, {
         method: 'GET',
@@ -47,21 +44,58 @@ const TeacherManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('강사 API 응답 데이터:', data);
+        
+        console.log('API 응답 데이터:', data); // 디버깅용 로그
         
         setTeachers(data.data || []);
         setCurrentPage(data.currentPage || 1);
         setTotalPages(data.totalPages || 0);
         setTotalElements(data.totalElements || 0);
+        setPendingTotal(data.pendingTotal || 0);
+        
+        // API 응답 구조 확인용 로그
+        console.log('totalElements:', data.totalElements);
+        console.log('pendingTotal:', data.pendingTotal);
       } else {
         console.error('강사 목록 가져오기 실패:', response.status);
         setTeachers([]);
+        setTotalPages(0);
+        setTotalElements(0);
+        setPendingTotal(0);
       }
     } catch (error) {
       console.error('강사 목록 가져오기 오류:', error);
       setTeachers([]);
+      setTotalPages(0);
+      setTotalElements(0);
+      setPendingTotal(0);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 통계 데이터만 별도로 가져오는 함수 (검색과 무관하게)
+  const fetchStatistics = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/admin/teachers/statistics', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('통계 데이터:', data); // 디버깅용 로그
+        
+        setTotalElements(data.totalElements || 0);
+        setPendingTotal(data.pendingTotal || 0);
+      } else {
+        console.error('통계 데이터 가져오기 실패:', response.status);
+      }
+    } catch (error) {
+      console.error('통계 데이터 가져오기 오류:', error);
     }
   };
 
@@ -102,7 +136,12 @@ const TeacherManagement = () => {
       if (response.ok) {
         alert('강사가 삭제되었습니다.');
         closePasswordModal();
-        fetchTeachers(); // 현재 페이지 다시 로드
+        
+        // 삭제 후 통계 데이터와 목록 모두 새로고침
+        await Promise.all([
+          fetchTeachers(),
+          fetchStatistics()
+        ]);
       } else if (response.status === 401) {
         alert('비밀번호가 일치하지 않습니다.');
       } else if (response.status === 403) {
@@ -136,23 +175,28 @@ const TeacherManagement = () => {
     setCurrentPage(page);
   };
 
+  // 새로고침 버튼 클릭 시
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchTeachers(),
+      fetchStatistics()
+    ]);
+  };
+
   // 페이지 번호 배열 생성 (최대 5개 페이지 표시, 현재 페이지 중심)
   const getPageNumbers = () => {
     const maxVisiblePages = 5;
     const pages = [];
     
     if (totalPages <= maxVisiblePages) {
-      // 총 페이지가 5개 이하면 모두 표시
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // 총 페이지가 5개 초과면 현재 페이지 기준으로 조정
       const half = Math.floor(maxVisiblePages / 2);
       let start = Math.max(1, currentPage - half);
       let end = Math.min(totalPages, start + maxVisiblePages - 1);
       
-      // 끝에서 조정이 필요한 경우
       if (end - start + 1 < maxVisiblePages) {
         start = Math.max(1, end - maxVisiblePages + 1);
       }
@@ -165,24 +209,19 @@ const TeacherManagement = () => {
     return pages;
   };
 
+  // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    fetch(`http://localhost:8080/api/admin/teachers?page=1&size=10&search=`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("받은 pendingTotal:", data.pendingTotal);
-        setPendingTotal(data.pendingTotal);
-      });
+    if (isAdmin()) {
+      // 초기 로드 시 통계 데이터 먼저 가져오기
+      fetchStatistics();
+    }
   }, []);
 
-  // 컴포넌트 마운트 시 및 페이징 상태 변경 시 데이터 로드
+  // 페이징/검색 상태 변경 시 목록 데이터만 로드
   useEffect(() => {
-    fetchTeachers();
+    if (isAdmin()) {
+      fetchTeachers();
+    }
   }, [currentPage, searchTerm]);
 
   // 관리자 권한 확인
@@ -199,7 +238,6 @@ const TeacherManagement = () => {
 
   return (
     <div className="container-fluid px-4 py-5">
-      {/* 페이지 헤더 */} 
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 className="h3 mb-0 text-gray-800">
           <i className="fas fa-chalkboard-teacher mr-2"></i>
@@ -207,7 +245,6 @@ const TeacherManagement = () => {
         </h1>
       </div>
 
-      {/* 강사 통계 카드 */}
       <div className="row mb-4">
         <div className="col-xl-4 col-md-6 mb-4">
           <div className="card border-left-primary shadow h-100 py-2">
@@ -270,19 +307,17 @@ const TeacherManagement = () => {
         </div>
       </div>
 
-      {/* 강사 목록 테이블 */}
       <div className="card shadow mb-4">
         <div className="card-header py-3">
           <h6 className="m-0 font-weight-bold text-primary">강사 목록</h6>
         </div>
 
         <div className="card-body">
-          {/* 검색 */}
           <div className="row mb-3">
             <div className="col-md-6">
               <div className="input-group">
                 <div className="input-group-prepend">
-                  <span className="input-group-text">검색
+                  <span className="input-group-text">
                     <i className="fas fa-search"></i>
                   </span>
                 </div>
@@ -298,7 +333,7 @@ const TeacherManagement = () => {
             <div className="col-md-6 text-right">
               <button
                 className="btn btn-primary"
-                onClick={fetchTeachers}
+                onClick={handleRefresh}
                 disabled={loading}
               >
                 <i className="fas fa-sync-alt mr-2"></i>
@@ -307,7 +342,6 @@ const TeacherManagement = () => {
             </div>
           </div>
 
-          {/* 로딩 상태 */}
           {loading ? (
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
@@ -317,17 +351,15 @@ const TeacherManagement = () => {
             </div>
           ) : (
             <>
-              {/* 결과 정보 */}
               <div className="row mb-3">
                 <div className="col-md-6">
                   <small className="text-muted">
-                    총 {totalElements}명 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalElements)}명 표시 
+                    총 {searchTerm ? teachers.length : totalElements}명 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, searchTerm ? teachers.length : totalElements)}명 표시 
                     (페이지 {currentPage}/{totalPages})
                   </small>
                 </div>
               </div>
 
-              {/* 테이블 */}
               <div className="table-responsive">
                 <table className="table table-bordered table-hover">
                   <thead className="thead-light">
@@ -372,12 +404,10 @@ const TeacherManagement = () => {
                 </table>
               </div>
 
-              {/* 페이징 */}
               {totalPages > 1 && (
                 <div className="d-flex justify-content-center align-items-center mt-4">
                   <nav aria-label="Page navigation">
                     <ul className="pagination mb-0">
-                      {/* 이전 페이지 */}
                       <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                         <button
                           className="page-link border-0 bg-transparent"
@@ -393,7 +423,6 @@ const TeacherManagement = () => {
                         </button>
                       </li>
 
-                      {/* 페이지 번호들 (최대 5개) */}
                       {getPageNumbers().map((pageNumber) => (
                         <li key={pageNumber} className="page-item mx-1">
                           <button
@@ -416,7 +445,6 @@ const TeacherManagement = () => {
                         </li>
                       ))}
 
-                      {/* 다음 페이지 */}
                       <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
                         <button
                           className="page-link border-0 bg-transparent"
@@ -440,7 +468,6 @@ const TeacherManagement = () => {
         </div>
       </div>
 
-      {/* 비밀번호 확인 모달 */}
       {showPasswordModal && (
         <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
