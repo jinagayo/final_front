@@ -74,7 +74,6 @@ const BoardEdit = () => {
     }
   }, [userInfo, post]);
 
-
   // 사용자 정보 가져오기
   const fetchUserInfo = async () => {
     try {
@@ -101,15 +100,35 @@ const BoardEdit = () => {
     }
   };
 
-  // 게시글 수정 권한 체크 함수
+  // 🔥 게시글 수정 권한 체크 함수 - 수정됨
   const canModifyPost = () => {
-    if (!userInfo || !post) return false;
+    if (!userInfo || !post) {
+      console.log('Edit - userInfo 또는 post가 없음:', userInfo, post);
+      return false;
+    }
+    
+    // role을 문자열로 통일해서 비교
+    const userRole = String(userInfo.role);
+    
     // 관리자는 모든 글 수정/삭제 가능
-    if (userInfo.role === "3") return true;
-    // 본인 글만 수정/삭제 가능
-    return userInfo.userId === post.userId || 
-           userInfo.userId === post.created_user_id || 
-           userInfo.userId === post.authorId;
+    if (userRole === "3") {
+      console.log('관리자 권한으로 수정 가능');
+      return true;
+    }
+    
+    // 본인 글만 수정/삭제 가능 - Detail.js와 동일한 필드명 사용
+    const isOwner = userInfo.userId === post.author || 
+                    userInfo.userId === post.createdBy;
+    
+    console.log('Edit 권한 체크:', {
+      userId: userInfo.userId,
+      userRole: userRole,
+      postAuthor: post.author,
+      postCreatedBy: post.createdBy,
+      isOwner: isOwner
+    });
+    
+    return isOwner;
   };
 
   // 기존 게시글 데이터 가져오기
@@ -157,7 +176,8 @@ const BoardEdit = () => {
           boardnum: apiResponse.data.boardnum || currentBoardnum
         };
         
-        // 게시글 정보 저장 (권한 체크용)
+        // 🔥 게시글 정보 저장 (권한 체크용) - 로그 추가
+        console.log('Edit - 가져온 post 데이터:', apiResponse.data);
         setPost(apiResponse.data);
         setFormData(postData);
         setOriginalData(postData);
@@ -410,8 +430,6 @@ const BoardEdit = () => {
                 변경된 내용이 있습니다. 수정 버튼을 클릭하여 저장하세요.
               </div>
             )}
-
-
 
             {/* 버튼 그룹 */}
             <div className="d-flex justify-content-between">
