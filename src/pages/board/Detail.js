@@ -50,19 +50,40 @@ const BoardDetail = () => {
       setUserInfo(null);
     }
   };
-  const canModifyPost = () => {
-    if (!userInfo || !post) return false;
-    // 관리자는 모든 글 수정/삭제 가능
-    if (userInfo.role === "3") return true;
-    // 본인 글만 수정/삭제 가능
-    return userInfo.userId === post.userId || userInfo.userId === post.created_user_id || userInfo.userId === post.authorId;
-  };
+const canModifyPost = () => {
+  if (!userInfo || !post) {
+    console.log('userInfo 또는 post가 없음');
+    return false;
+  }
+   
+  // 관리자는 모든 글 수정/삭제 가능 (문자열과 숫자 둘 다 체크)
+  if (userInfo.role === "3" || userInfo.role === 3) {
+    return true;
+  }
+  
+  // 본인 글만 수정/삭제 가능 - 실제 필드명 사용
+  const isOwner = userInfo.userId === post.author || 
+                  userInfo.userId === post.createdBy ||
+                  userInfo.userId === post.userId || 
+                  userInfo.userId === post.created_user_id || 
+                  userInfo.userId === post.authorId;  
+  return isOwner;
+};
 
-
-  // 댓글 권한 체크 함수
+  // 댓글 권한 체크 함수 - 수정된 로직
   const canWriteComment = () => {
     if (!userInfo) return false;
-    return userInfo.role !== "1" && userInfo.role !== "2";
+    
+    // 공지사항 게시판(BOD001)인지 확인
+    const isNoticeBoard = currentBoardnum === 'BOD002';
+    
+    // 공지사항 게시판인 경우: 1번, 2번 권한은 댓글 작성 불가
+    if (isNoticeBoard) {
+      return userInfo.role !== "1" && userInfo.role !== "2";
+    }
+    
+    // 공지사항이 아닌 다른 게시판: 모든 로그인된 사용자 댓글 작성 가능
+    return true;
   };
 
   // 댓글 수정/삭제 권한 체크 함수 (본인 댓글만 수정/삭제 가능)
@@ -73,7 +94,6 @@ const BoardDetail = () => {
     // 본인 댓글만 수정/삭제 가능
     return userInfo.userId === commentAuthorId;
   };
-
 
   //날짜 포맷
   const formatDate = (dateString) => {
@@ -184,7 +204,12 @@ const BoardDetail = () => {
     
     // 권한 체크
     if (!canWriteComment()) {
-      alert('댓글 작성 권한이 없습니다.');
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
       return;
     }
 
@@ -263,7 +288,12 @@ const BoardDetail = () => {
   const handleReplyComment = (comment) => {
     // 권한 체크
     if (!canWriteComment()) {
-      alert('댓글 작성 권한이 없습니다.');
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
       return;
     }
     setReplyingToComment(comment.comment_id);
@@ -280,7 +310,12 @@ const BoardDetail = () => {
   const handleReplySubmit = async (parentCommentId) => {
     // 권한 체크
     if (!canWriteComment()) {
-      alert('댓글 작성 권한이 없습니다.');
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
       return;
     }
     if (!replyContent.trim()) {
@@ -405,7 +440,7 @@ const BoardDetail = () => {
         await fetchComments();
         alert('댓글이 삭제되었습니다.');
       } else {
-        throw new Error('댓글 삭제에 실패했습니다.');
+        throw new Error('댓글 삭제 권한이 없습니다.');
       }
     } catch (err) {
       alert(err.message);
@@ -442,12 +477,24 @@ const BoardDetail = () => {
           alert('삭제되었습니다.');
           window.location.href = `/board/list?boardnum=${currentBoardnum}`;
         } else {
-          throw new Error('삭제에 실패했습니다.');
+          throw new Error('삭제 권한이 없습니다.');
         }
       } catch (err) {
-        alert('삭제에 실패했습니다.');
+        alert('삭제 권한이 없습니다.');
       }
     }
+  };
+
+  // 권한에 따른 안내 메시지 생성
+  const getCommentPermissionMessage = () => {
+    if (!userInfo) return '로그인이 필요합니다.';
+    
+    const isNoticeBoard = currentBoardnum === 'BOD002';
+    if (isNoticeBoard && (userInfo.role === "1" || userInfo.role === "2")) {
+      return '공지사항에는 댓글 작성 권한이 없습니다.';
+    }
+    
+    return null;
   };
 
   if (loading) {
@@ -600,7 +647,7 @@ const BoardDetail = () => {
                   수정
                 </button>
               )}
-              
+              &nbsp;&nbsp;&nbsp;
               {/* ⭐ 삭제 버튼 - 권한 체크 */}
               {canModifyPost() && (
                 <button 
@@ -611,23 +658,6 @@ const BoardDetail = () => {
                   삭제
                 </button>
               )}
-            </div>
-            <div>
-              <button 
-                className="btn btn-primary me-2"
-                onClick={handleEdit}
-              >
-                <i className="fas fa-edit me-1"></i>
-                수정
-              </button>
-              &nbsp;&nbsp;&nbsp;
-              <button 
-                className="btn btn-danger"
-                onClick={handleDelete}
-              >
-                <i className="fas fa-trash me-1"></i>
-                삭제
-              </button>
             </div>
           </div>
         </div>
@@ -640,47 +670,49 @@ const BoardDetail = () => {
           댓글 ({comments.length})
         </div>
         <div className="card-body">
-          {/* 권한이 없는 경우 안내 메세지 표시 */}
-          {!canWriteComment() &&  (
+          {/* 권한에 따른 안내 메세지 표시 */}
+          {!canWriteComment() && getCommentPermissionMessage() && (
             <div className='alert alert-info mb-4'>
-              <i className='fas fa-info-circle me-2'>댓글 작성 권한 없음</i>
+              <i className='fas fa-info-circle me-2'></i>
+              {getCommentPermissionMessage()}
             </div>
           )}
-          {/* 댓글 작성 폼 - 권한이있는 경우만 표시 */}
+          
+          {/* 댓글 작성 폼 - 권한이 있는 경우만 표시 */}
           {canWriteComment() && (
-                      <form onSubmit={handleCommentSubmit} className="mb-4">
-            <div className="mb-3">
-              <label htmlFor="newComment" className="form-label">댓글 작성</label>
-              <textarea
-                id="newComment"
-                className="form-control"
-                rows="3"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="댓글을 입력해주세요..."
-                disabled={commentLoading}
-              />
-            </div>
-            <div className="d-flex justify-content-end">
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-                disabled={commentLoading}
-              >
-                {commentLoading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                    등록 중...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane me-1"></i>
-                    댓글 등록
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleCommentSubmit} className="mb-4">
+              <div className="mb-3">
+                <label htmlFor="newComment" className="form-label">댓글 작성</label>
+                <textarea
+                  id="newComment"
+                  className="form-control"
+                  rows="3"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="댓글을 입력해주세요..."
+                  disabled={commentLoading}
+                />
+              </div>
+              <div className="d-flex justify-content-end">
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={commentLoading}
+                >
+                  {commentLoading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      등록 중...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane me-1"></i>
+                      댓글 등록
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           )}
           <hr />
 
@@ -735,29 +767,35 @@ const BoardDetail = () => {
                             </div>
                           ) : (
                             <div>
-                              <button
-                                className="btn btn-sm btn-outline-secondary me-1"
-                                onClick={() => handleReplyComment(comment)}
-                              >
-                                <i className="fas fa-reply me-1"></i>
-                                답글
-                              </button>
+                              {canWriteComment() && (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary me-1"
+                                  onClick={() => handleReplyComment(comment)}
+                                >
+                                  <i className="fas fa-reply me-1"></i>
+                                  답글
+                                </button>
+                              )}
                               &nbsp;&nbsp;
-                              <button
-                                className="btn btn-sm btn-outline-primary me-1"
-                                onClick={() => handleEditComment(comment)}
-                              >
-                                <i className="fas fa-edit me-1"></i>
-                                수정
-                              </button>
+                              {canModifyComment(comment.created_user_id || comment.authorId) && (
+                                <button
+                                  className="btn btn-sm btn-outline-primary me-1"
+                                  onClick={() => handleEditComment(comment)}
+                                >
+                                  <i className="fas fa-edit me-1"></i>
+                                  수정
+                                </button>
+                              )}
                               &nbsp;&nbsp;
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => handleDeleteComment(comment.comment_id || comment.id, comment.created_user_id || comment.authorId)}
-                              >
-                                <i className="fas fa-trash me-1"></i>
-                                삭제
-                              </button>
+                              {canModifyComment(comment.created_user_id || comment.authorId) && (
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleDeleteComment(comment.comment_id || comment.id, comment.created_user_id || comment.authorId)}
+                                >
+                                  <i className="fas fa-trash me-1"></i>
+                                  삭제
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -867,21 +905,25 @@ const BoardDetail = () => {
                                     </div>
                                   ) : (
                                     <div>
-                                      <button
-                                        className="btn btn-sm btn-outline-primary me-1"
-                                        onClick={() => handleEditComment(reply)}
-                                      >
-                                        <i className="fas fa-edit"></i>
-                                        수정
-                                      </button>
+                                      {canModifyComment(reply.created_user_id || reply.authorId) && (
+                                        <button
+                                          className="btn btn-sm btn-outline-primary me-1"
+                                          onClick={() => handleEditComment(reply)}
+                                        >
+                                          <i className="fas fa-edit"></i>
+                                          수정
+                                        </button>
+                                      )}
                                       &nbsp;&nbsp;
-                                      <button
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => handleDeleteComment(reply.comment_id || reply.id)}
-                                      >
-                                        <i className="fas fa-trash"></i>
-                                        삭제
-                                      </button>
+                                      {canModifyComment(reply.created_user_id || reply.authorId) && (
+                                        <button
+                                          className="btn btn-sm btn-outline-danger"
+                                          onClick={() => handleDeleteComment(reply.comment_id || reply.id, reply.created_user_id || reply.authorId)}
+                                        >
+                                          <i className="fas fa-trash"></i>
+                                          삭제
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -913,7 +955,7 @@ const BoardDetail = () => {
         </div>
       </div>
     </div>
-        </div>
+    </div>
   );
 };
 

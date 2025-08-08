@@ -3,6 +3,7 @@ import FroalaEditorComponent from 'react-froala-wysiwyg';
 import { useParams, useNavigate } from 'react-router-dom';
 import 'froala-editor/css/froala_style.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
+
 const BoardEdit = () => {
   const { boardId } = useParams();
   const { boardnum } = useParams();
@@ -10,6 +11,10 @@ const BoardEdit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  
+  // 사용자 정보 상태 추가
+  const [userInfo, setUserInfo] = useState('');
+  const [post, setPost] = useState(null);
   
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
@@ -39,7 +44,8 @@ const BoardEdit = () => {
       }
     }
   };
-    // Froala Editor 내용 변경 처리
+
+  // Froala Editor 내용 변경 처리
   const handleContentChange = (content) => {
     setFormData(prev => ({
       ...prev,
@@ -51,11 +57,60 @@ const BoardEdit = () => {
   const [originalData, setOriginalData] = useState({});
   
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardnum') || 'BOD002';
+  
   console.log("boardId:" + boardId);
   console.log("boardnum" + boardnum);
+  
   useEffect(() => {
+    fetchUserInfo();
     fetchPostData();
   }, [boardId]);
+
+  // 권한이 없는 경우 접근 차단
+  useEffect(() => {
+    if (userInfo && post && !canModifyPost()) {
+      alert('게시글 수정 권한이 없습니다. 본인이 작성한 글만 수정할 수 있습니다.');
+      navigate(`/board/detail/${boardId}?boardnum=${currentBoardnum}`);
+    }
+  }, [userInfo, post]);
+
+
+  // 사용자 정보 가져오기
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/auth/check', {
+        method: 'GET',
+        credentials: 'include' // 세션 쿠키 전송
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.isLoggedIn) {
+          setUserInfo({
+            userId: responseData.user_id,
+            name: responseData.name,
+            role: responseData.position // position을 role로 매핑
+          });
+        } else {
+          setUserInfo(null);
+        }
+      }
+    } catch (err) {
+      console.error('사용자 정보 조회 오류:', err);
+      setUserInfo(null);
+    }
+  };
+
+  // 게시글 수정 권한 체크 함수
+  const canModifyPost = () => {
+    if (!userInfo || !post) return false;
+    // 관리자는 모든 글 수정/삭제 가능
+    if (userInfo.role === "3") return true;
+    // 본인 글만 수정/삭제 가능
+    return userInfo.userId === post.userId || 
+           userInfo.userId === post.created_user_id || 
+           userInfo.userId === post.authorId;
+  };
 
   // 기존 게시글 데이터 가져오기
   const fetchPostData = async () => {
@@ -102,6 +157,8 @@ const BoardEdit = () => {
           boardnum: apiResponse.data.boardnum || currentBoardnum
         };
         
+        // 게시글 정보 저장 (권한 체크용)
+        setPost(apiResponse.data);
         setFormData(postData);
         setOriginalData(postData);
       } else {
@@ -159,6 +216,12 @@ const BoardEdit = () => {
   // 수정 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 권한 체크
+    if (!canModifyPost()) {
+      alert('게시글 수정 권한이 없습니다.');
+      return;
+    }
     
     if (!validateForm()) {
       return;
@@ -296,6 +359,12 @@ const BoardEdit = () => {
         <div className="card-header">
           <i className="fas fa-edit me-1"></i>
           게시물 수정
+          {/* 권한 정보 표시 */}
+          {userInfo && post && (
+            <small className="text-muted ms-2">
+              (작성자: {post.author || post.writer} | 현재 사용자: {userInfo.name})
+            </small>
+          )}
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
@@ -342,6 +411,8 @@ const BoardEdit = () => {
               </div>
             )}
 
+
+
             {/* 버튼 그룹 */}
             <div className="d-flex justify-content-between">
               <button 
@@ -368,7 +439,7 @@ const BoardEdit = () => {
                 <button 
                   type="submit"
                   className="btn btn-primary"
-                  disabled={saving || !hasChanges()}
+                  disabled={saving || !hasChanges() || !canModifyPost()}
                 >
                   {saving ? (
                     <>
