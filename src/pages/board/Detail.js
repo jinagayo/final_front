@@ -53,20 +53,39 @@ const BoardDetail = () => {
 const canModifyPost = () => {
   if (!userInfo || !post) {
     console.log('userInfo 또는 post가 없음');
+    console.log('userInfo:', userInfo);
+    console.log('post:', post);
     return false;
   }
    
-  // 관리자는 모든 글 수정/삭제 가능 (문자열과 숫자 둘 다 체크)
+  // 🔥 디버깅용 로그 추가
+  console.log('=== 권한 체크 디버깅 ===');
+  console.log('userInfo:', userInfo);
+  console.log('post 객체:', post);
+  console.log('userInfo.userId:', userInfo.userId);
+  console.log('userInfo.role:', userInfo.role);
+  console.log('post의 모든 필드:', Object.keys(post));
+  
+  // 관리자는 모든 글 수정/삭제 가능
   if (userInfo.role === "3" || userInfo.role === 3) {
+    console.log('관리자 권한으로 수정 가능');
     return true;
   }
   
-  // 본인 글만 수정/삭제 가능 - 실제 필드명 사용
+  // 🔥 각 필드별로 체크하면서 로그 출력
+  console.log('post.author:', post.author);
+  console.log('post.createdBy:', post.createdBy);
+  console.log('post.userId:', post.userId);
+  console.log('post.created_user_id:', post.created_user_id);
+  console.log('post.authorId:', post.authorId);
+  
   const isOwner = userInfo.userId === post.author || 
                   userInfo.userId === post.createdBy ||
                   userInfo.userId === post.userId || 
                   userInfo.userId === post.created_user_id || 
-                  userInfo.userId === post.authorId;  
+                  userInfo.userId === post.authorId;
+                  
+  console.log('본인 글 여부:', isOwner);
   return isOwner;
 };
 
