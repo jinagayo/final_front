@@ -36,6 +36,9 @@ export default function Join() {
     addressnum: ''
   });
 
+  // ⭐ 제출 중 상태 추가
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (role === 'student' || role === 'teacher') {
       setSelectedRole(role === 'teacher' ? 'instructor' : 'student');
@@ -129,35 +132,53 @@ export default function Join() {
     }
   };
 
+  // ⭐ 버튼 활성화 조건 체크
+  const isFormValid = () => {
+    const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum', 'pw', 'confirmPassword'];
+    const allFieldsFilled = requiredFields.every(field => 
+      formData[field] && formData[field].toString().trim()
+    );
+    
+    const passwordsMatch = formData.pw === formData.confirmPassword;
+    const passwordStrong = passwordStrength.score >= 3;
+    
+    return allFieldsFilled && passwordsMatch && passwordStrong && !isSubmitting;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 비밀번호 강도 체크
-    if (passwordStrength.score < 3) {
-      alert('비밀번호 강도가 너무 약합니다. 더 안전한 비밀번호를 사용해주세요.');
-      return;
-    }
-
-    // 비밀번호 일치 확인
-    if (formData.pw !== formData.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    if (formData.pw.length < 8) {
-      alert('비밀번호는 8자리 이상이어야 합니다.');
-      return;
-    }
-
-    const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];
-    for (let field of requiredFields) {
-      if (!formData[field] || !formData[field].toString().trim()) {
-        alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
+    // ⭐ 이미 제출 중이면 리턴
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // 비밀번호 강도 체크
+      if (passwordStrength.score < 3) {
+        alert('비밀번호 강도가 너무 약합니다. 더 안전한 비밀번호를 사용해주세요.');
         return;
       }
-    }
 
-    try {
+      // 비밀번호 일치 확인
+      if (formData.pw !== formData.confirmPassword) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      if (formData.pw.length < 8) {
+        alert('비밀번호는 8자리 이상이어야 합니다.');
+        return;
+      }
+
+      const requiredFields = ['user_id', 'name', 'email', 'phone', 'birthday', 'address1', 'addressnum'];
+      for (let field of requiredFields) {
+        if (!formData[field] || !formData[field].toString().trim()) {
+          alert(`${getFieldName(field)}은(는) 필수 입력 항목입니다.`);
+          return;
+        }
+      }
+
       const endpoint = selectedRole === 'student' 
         ? 'http://localhost:8080/join/signup/student'
         : 'http://localhost:8080/join/signup/teacher';
@@ -199,6 +220,9 @@ export default function Join() {
     } catch (error) {
       console.error('상세 오류:', error);
       alert(`오류 발생: ${error.message}`);
+    } finally {
+      // ⭐ 제출 완료 후 상태 리셋
+      setIsSubmitting(false);
     }
   };
 
@@ -330,7 +354,7 @@ export default function Join() {
             </div>
           ) : (
             // 회원정보 입력 화면
-            <div>
+            <form onSubmit={handleSubmit}>
               <div className="text-center mb-3">
                 <div 
                   className="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-2"
@@ -349,6 +373,7 @@ export default function Join() {
                   {selectedRole === 'student' ? '수강생' : '강사'} 회원가입
                 </h4>
                 <button 
+                  type="button"
                   className="btn btn-link btn-sm text-decoration-none p-0"
                   onClick={() => {
                     setSelectedRole('');
@@ -573,18 +598,30 @@ export default function Join() {
               <div className="row g-2">
                 <div className="col-md-8">
                   <button 
-                    type="button" 
+                    type="button"
                     className="btn btn-lg fw-semibold text-white w-100"
                     style={{
                       background: selectedRole === 'student' 
                         ? 'linear-gradient(45deg, #4facfe 0%, #00f2fe 100%)'
                         : 'linear-gradient(45deg, #fa709a 0%, #fee140 100%)',
-                      border: 'none'
+                      border: 'none',
+                      cursor: 'pointer',
+                      zIndex: 1
                     }}
-                    onClick={handleSubmit}
-                    disabled={passwordStrength.score < 3 || formData.pw !== formData.confirmPassword}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('버튼 클릭됨!'); // 디버깅용
+                      handleSubmit(e);
+                    }}
                   >
-                    회원가입 완료
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        처리 중...
+                      </>
+                    ) : (
+                      '회원가입 완료'
+                    )}
                   </button>
                 </div>
                 <div className="col-md-4">
@@ -593,14 +630,15 @@ export default function Join() {
                     className="btn btn-outline-secondary w-100"
                     onClick={() => {
                       setSelectedRole('');
-                      navigate('');
+                      navigate('/join');
                     }}
+                    disabled={isSubmitting}
                   >
                     이전으로
                   </button>
                 </div>
               </div>
-            </div>
+            </form>
           )}
 
           {/* 카카오 주소 API 모달 */}

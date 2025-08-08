@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { comment } from 'postcss';
 const BoardDetail = () => {
   // URL에서 올바른 파라미터 추출
   const { classId, boardId } = useParams();
@@ -13,17 +14,87 @@ const BoardDetail = () => {
     const [editContent, setEditContent] = useState('');
     const [replyingToComment, setReplyingToComment] = useState(null);
     const [replyContent, setReplyContent] = useState('');
-   const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum') || 'BOD002';
+   const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum');
+   const [userInfo,setUserInfo] = useState('');
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchUserInfo();
     fetchPostDetail();
+    fetchComments();
     fetchComments();
   }, [boardId]);
 
+    // 사용자 정보 가져오기
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/auth/check', {
+        method: 'GET',
+        credentials: 'include' // 세션 쿠키 전송
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.isLoggedIn) {
+          setUserInfo({
+            userId: responseData.user_id,
+            name: responseData.name,
+            role: responseData.position // position을 role로 매핑
+          });
+        } else {
+          setUserInfo(null);
+        }
+      }
+    } catch (err) {
+      console.error('사용자 정보 조회 오류:', err);
+      setUserInfo(null);
+    }
+  };
+
+const canModifyPost = () => {
+  if (!userInfo || !post) {
+    console.log('userInfo 또는 post가 없음');
+    return false;
+  }
+   
+  // 관리자는 모든 글 수정/삭제 가능 (문자열과 숫자 둘 다 체크)
+  if (userInfo.role === "3" || userInfo.role === 3) {
+    return true;
+  }
+  
+  // 본인 글만 수정/삭제 가능 - 실제 필드명 사용
+  const isOwner = userInfo.userId === post.author || 
+                  userInfo.userId === post.createdBy ||
+                  userInfo.userId === post.userId || 
+                  userInfo.userId === post.created_user_id || 
+                  userInfo.userId === post.authorId;  
+  return isOwner;
+};
+
+    // 댓글 권한 체크 함수 - 수정된 로직
+  const canWriteComment = () => {
+    if (!userInfo) return false;
+
+    const restrictedBoardNum = 'BOD002';
+    const currentBoardnum = post?.boardNum || searchParams.get('boardNum');
+
+    if (currentBoardnum === restrictedBoardNum) {
+      return userInfo.role !== "1";
+    }
+
+    return true;
+  };
+  // 댓글 수정/삭제 권한 체크 함수 (본인 댓글만 수정/삭제 가능)
+  const canModifyComment = (commentAuthorId) => {
+    if (!userInfo) return false;
+    // 관리자는 모든 댓글 수정/삭제 가능
+    if (userInfo.role === "3") return true;
+    // 본인 댓글만 수정/삭제 가능
+    return userInfo.userId === commentAuthorId;
+  };
 
     //날짜 포맷
   const formatDate = (dateString) => {
@@ -60,18 +131,12 @@ const BoardDetail = () => {
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      console.log('요청 헤더:', headers);
-      console.log('요청 URL:', `http://localhost:8080/api/myclass/board/detail/${classId}`);
-      
+      }    
       const response = await fetch(`http://localhost:8080/api/myclass/board/detail/${classId}/${boardId}`, {
         method: 'GET',
         headers: headers,
         credentials: 'include'
       });
-      
-      console.log('응답 상태:', response.status);
       
       if (!response.ok) {
         if (response.status === 403) {
@@ -141,6 +206,16 @@ const BoardDetail = () => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     
+        // 권한 체크
+    if (!canWriteComment()) {
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
+      return;
+    }
     if (!newComment.trim()) {
       alert('댓글 내용을 입력해주세요.');
       return;
@@ -176,7 +251,15 @@ const BoardDetail = () => {
         await fetchComments(); // 댓글 목록 새로고침
         alert('댓글이 등록되었습니다.');
       } else {
-        throw new Error('댓글 등록에 실패했습니다.');
+        const errorData = await response.json();
+        
+        if (response.status === 403) {
+          alert('댓글 작성 권한이 없습니다.');
+        } else if (response.status === 401) {
+          alert('로그인이 필요합니다.');
+        } else {
+          alert(errorData.message || '댓글 등록에 실패했습니다.');
+        }
       }
     } catch (err) {
       alert(err.message);
@@ -193,12 +276,27 @@ const BoardDetail = () => {
 
   // 댓글 수정 취소
   const handleCancelEdit = () => {
+    // 권한 체크
+    if (!canModifyComment(comment.created_user_id || comment.authorId)) {
+      alert('댓글 수정 권한이 없습니다.');
+      return;
+    }
     setEditingComment(null);
     setEditContent('');
   };
 
   // 대댓글 작성 시작
   const handleReplyComment = (comment) => {
+    // 권한 체크
+    if (!canWriteComment()) {
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
+      return;
+    }
     setReplyingToComment(comment.comment_id);
     setReplyContent('');
   };
@@ -211,6 +309,16 @@ const BoardDetail = () => {
 
   // 대댓글 작성 제출
   const handleReplySubmit = async (parentCommentId) => {
+    // 권한 체크
+    if (!canWriteComment()) {
+      const isNoticeBoard = currentBoardnum === 'BOD002';
+      if (isNoticeBoard) {
+        alert('공지사항에는 댓글 작성 권한이 없습니다.');
+      } else {
+        alert('댓글 작성 권한이 없습니다.');
+      }
+      return;
+    }
     if (!replyContent.trim()) {
       alert('댓글 내용을 입력해주세요.');
       return;
@@ -300,7 +408,13 @@ const BoardDetail = () => {
   };
 
   // 댓글 삭제
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (commentId,commentAuthorId) => {
+    // 권한 체크
+    if (!canModifyComment(commentAuthorId)) {
+      alert('댓글 삭제 권한이 없습니다.');
+      return;
+    }
+    
     if (!window.confirm('정말로 댓글을 삭제하시겠습니까?')) {
       return;
     }
@@ -338,10 +452,8 @@ const BoardDetail = () => {
 
   const handleList = () => {
     if (classId) {
-      // 강의별 게시판으로 돌아가기
       window.location.href = `/myclass/board/list/${classId}?boardNum=${boardNum}&classId=${classId}`;
     } else {
-      // 전체 게시판으로 돌아가기
       window.location.href = `/board/list?boardnum=${boardNum}`;
     }
   };
@@ -383,6 +495,18 @@ const handleDelete = async () => {
     }
   }
 };
+
+  // 권한에 따른 안내 메시지 생성
+  const getCommentPermissionMessage = () => {
+    if (!userInfo) return '로그인이 필요합니다.';
+    
+    const isNoticeBoard = currentBoardnum === 'BOD002';
+    if (isNoticeBoard && (userInfo.role === "1" || userInfo.role === "2")) {
+      return '공지사항에는 댓글 작성 권한이 없습니다.';
+    }
+    
+    return null;
+  };
 
   if (loading) {
     return (
@@ -525,21 +649,27 @@ const handleDelete = async () => {
             </button>
             
             <div>
-              <button 
-                className="btn btn-primary me-2"
-                onClick={handleEdit}
-              >
-                <i className="fas fa-edit me-1"></i>
-                수정
-              </button>
+              {/* ⭐ 수정 버튼 - 권한 체크 */}
+              {canModifyPost() && (
+                <button 
+                  className="btn btn-primary me-2"
+                  onClick={handleEdit}
+                >
+                  <i className="fas fa-edit me-1"></i>
+                  수정
+                </button>
+              )}
               &nbsp;&nbsp;&nbsp;
-              <button 
-                className="btn btn-danger"
-                onClick={handleDelete}
-              >
-                <i className="fas fa-trash me-1"></i>
-                삭제
-              </button>
+              {/* ⭐ 삭제 버튼 - 권한 체크 */}
+              {canModifyPost() && (
+                <button 
+                  className="btn btn-danger"
+                  onClick={handleDelete}
+                >
+                  <i className="fas fa-trash me-1"></i>
+                  삭제
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -552,40 +682,51 @@ const handleDelete = async () => {
           댓글 ({comments.length})
         </div>
         <div className="card-body">
+          {/* 권한에 따른 안내 메세지 표시 */}
+          {!canWriteComment() && getCommentPermissionMessage() && (
+            <div className='alert alert-info mb-4'>
+              <i className='fas fa-info-circle me-2'></i>
+              {getCommentPermissionMessage()}
+            </div>
+          )}
+
           {/* 댓글 작성 폼 */}
-          <form onSubmit={handleCommentSubmit} className="mb-4">
-            <div className="mb-3">
-              <label htmlFor="newComment" className="form-label">댓글 작성</label>
-              <textarea
-                id="newComment"
-                className="form-control"
-                rows="3"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="댓글을 입력해주세요..."
-                disabled={commentLoading}
-              />
-            </div>
-            <div className="d-flex justify-content-end">
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-                disabled={commentLoading}
-              >
-                {commentLoading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                    등록 중...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane me-1"></i>
-                    댓글 등록
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+
+           {canWriteComment() && (
+            <form onSubmit={handleCommentSubmit} className="mb-4">
+              <div className="mb-3">
+                <label htmlFor="newComment" className="form-label">댓글 작성</label>
+                <textarea
+                  id="newComment"
+                  className="form-control"
+                  rows="3"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="댓글을 입력해주세요..."
+                  disabled={commentLoading}
+                />
+              </div>
+              <div className="d-flex justify-content-end">
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={commentLoading}
+                >
+                  {commentLoading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      등록 중...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane me-1"></i>
+                      댓글 등록
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
 
           <hr />
 
@@ -639,30 +780,36 @@ const handleDelete = async () => {
                               </button>
                             </div>
                           ) : (
-                            <div>
-                              <button
-                                className="btn btn-sm btn-outline-secondary me-1"
-                                onClick={() => handleReplyComment(comment)}
-                              >
-                                <i className="fas fa-reply me-1"></i>
-                                답글
-                              </button>
+                                            <div>
+                              {canWriteComment() && (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary me-1"
+                                  onClick={() => handleReplyComment(comment)}
+                                >
+                                  <i className="fas fa-reply me-1"></i>
+                                  답글
+                                </button>
+                              )}
                               &nbsp;&nbsp;
-                              <button
-                                className="btn btn-sm btn-outline-primary me-1"
-                                onClick={() => handleEditComment(comment)}
-                              >
-                                <i className="fas fa-edit me-1"></i>
-                                수정
-                              </button>
+                              {canModifyComment(comment.created_user_id || comment.authorId) && (
+                                <button
+                                  className="btn btn-sm btn-outline-primary me-1"
+                                  onClick={() => handleEditComment(comment)}
+                                >
+                                  <i className="fas fa-edit me-1"></i>
+                                  수정
+                                </button>
+                              )}
                               &nbsp;&nbsp;
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => handleDeleteComment(comment.comment_id || comment.id)}
-                              >
-                                <i className="fas fa-trash me-1"></i>
-                                삭제
-                              </button>
+                              {canModifyComment(comment.created_user_id || comment.authorId) && (
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleDeleteComment(comment.comment_id || comment.id, comment.created_user_id || comment.authorId)}
+                                >
+                                  <i className="fas fa-trash me-1"></i>
+                                  삭제
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -772,21 +919,25 @@ const handleDelete = async () => {
                                     </div>
                                   ) : (
                                     <div>
-                                      <button
-                                        className="btn btn-sm btn-outline-primary me-1"
-                                        onClick={() => handleEditComment(reply)}
-                                      >
-                                        <i className="fas fa-edit"></i>
-                                        수정
-                                      </button>
+                                      {canModifyComment(reply.created_user_id || reply.authorId) && (
+                                        <button
+                                          className="btn btn-sm btn-outline-primary me-1"
+                                          onClick={() => handleEditComment(reply)}
+                                        >
+                                          <i className="fas fa-edit"></i>
+                                          수정
+                                        </button>
+                                      )}
                                       &nbsp;&nbsp;
-                                      <button
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => handleDeleteComment(reply.comment_id || reply.id)}
-                                      >
-                                        <i className="fas fa-trash"></i>
-                                        삭제
-                                      </button>
+                                      {canModifyComment(reply.created_user_id || reply.authorId) && (
+                                        <button
+                                          className="btn btn-sm btn-outline-danger"
+                                          onClick={() => handleDeleteComment(reply.comment_id || reply.id, reply.created_user_id || reply.authorId)}
+                                        >
+                                          <i className="fas fa-trash"></i>
+                                          삭제
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
