@@ -183,7 +183,7 @@ const handleSaveClassInfo = async() => {
       });
       if(uploadRes.ok){
         const data = await uploadRes.json();
-        imgUrl = data.url; // 서버가 { url: "업로드된 url" } 반환한다고 가정
+        imgUrl = data.url; 
       } else {
         alert("이미지 업로드 실패");
         setSavingClass(false);
