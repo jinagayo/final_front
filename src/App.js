@@ -74,24 +74,16 @@ function App() {
               </div>
             } />
             
-            {/* 클래스 관련 라우트 */}
-            <Route path="/myclass/*" element={<ClassRoutes />} />
-            
-            {/* 수강신청 관련 라우트 */}
-            <Route path="/course/*" element={<CourseRoutes />} />
-            
-            {/* 관리자 관련 라우트 */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
-            
-            {/* 마이페이지 관련 라우트 */}
-            <Route path="/mypage/*" element={<MypageRoutes />} />
-            
-            {/* 게시판 관련 라우트 */}
-            <Route path='/board/*' element={<BoardRouters/>} />
-            
+          <Route path="/myclass/*" element={<ClassRoutes />} />
             {/* 검색 결과 라우트 */}
             <Route path="/search" element={<SearchResults />} />
           </Route>
+
+          {/* 자체 레이아웃을 가진 라우트들은 Layout 밖으로 */}
+          <Route path="/course/*" element={<CourseRoutes />} />
+          <Route path="/admin/*" element={<AdminRoutes />} />
+          <Route path="/mypage/*" element={<MypageRoutes />} />
+          <Route path='/board/*' element={<BoardRouters/>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
