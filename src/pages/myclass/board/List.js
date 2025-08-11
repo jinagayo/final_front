@@ -12,15 +12,69 @@ const MyclassBoardList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
+  const [currentUser, setCurrentUser] = useState(null); // 현재 사용자 정보
   const boardnum = searchParams.get('boardNum') || 'BOD002';
   const currentBoardnum = new URLSearchParams(window.location.search).get('boardNum') || 'BOD002';
+
+  // 사용자 정보 조회 함수
+// 사용자 정보 조회 함수
+const fetchCurrentUser = async () => {
+  try {
+    console.log('사용자 정보 조회 시작...');
+
+    const response = await fetch('http://localhost:8080/auth/check', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('사용자 정보 API 응답:', data); // 디버깅용
+    
+    if (data.isLoggedIn) {
+      // 올바른 형태로 사용자 객체 생성
+      const user = {
+        userId: data.user_id,
+        user_id: data.user_id,
+        name: data.name,
+        position: parseInt(data.position) || 1 // 문자열을 숫자로 변환
+      };
+      
+      setCurrentUser(user);
+      console.log('현재 사용자 설정됨:', user); // 디버깅용
+    } else {
+      setCurrentUser(null);
+    }
+  } catch (error) {
+    console.error('사용자 정보 조회 오류:', error);
+    setCurrentUser(null);
+  }
+};
+
+
+  // 게시글 작성 권한 체크 함수
+  const canCreatePost = () => {
+    if (!currentUser) return false;
+    
+    // BOD001(QnA)는 모든 사용자가 작성 가능
+    if (currentBoardnum === 'BOD001') {
+      return true;
+    }
+    
+    // 기타 게시판(공지사항 등)은 강사/관리자만 작성 가능
+    return currentUser.position >= 2;
+  };
 
   const fetchNotices = async () => {
     try {
       const url = `http://localhost:8080/api/myclass/board/list/${classId}?boardNum=${boardnum}&page=${currentPage}&size=10&search=${encodeURIComponent(searchTerm)}&sortBy=${sortBy}&filterBy=${filterBy}`;
 
-      
-      
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
@@ -58,6 +112,7 @@ const MyclassBoardList = () => {
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
+    fetchCurrentUser(); // 사용자 정보 먼저 조회
     if (classId) {
       fetchNotices();
     }
@@ -94,20 +149,20 @@ const MyclassBoardList = () => {
   };
 
   // 공지사항 상세보기
-const handleNoticeClick = async (noticeId) => {
-  try {
-    // 조회수 증가 API 호출
-    await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
-      method: 'POST',
-      credentials: 'include'
-    });
-    
-    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
-  } catch (error) {
-    console.error('조회수 증가 오류:', error);
-    window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
-  }
-};
+  const handleNoticeClick = async (noticeId) => {
+    try {
+      // 조회수 증가 API 호출
+      await fetch(`http://localhost:8080/board/notices/${noticeId}/view`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+    } catch (error) {
+      console.error('조회수 증가 오류:', error);
+      window.location.href = `/myclass/board/detail/${classId}/${noticeId}?boardNum=${currentBoardnum}`;
+    }
+  };
 
   //게시판 title
   const getBoardTitle = (boardnum) => {
@@ -120,6 +175,11 @@ const handleNoticeClick = async (noticeId) => {
   const boardTitle = getBoardTitle(currentBoardnum);
 
   const handleCreateNotice = () => {
+    // 권한 재확인
+    if (!canCreatePost()) {
+      alert('게시글 작성 권한이 없습니다.');
+      return;
+    }
     // 현재 게시판의 boardnum을 가져와서 작성 페이지로 이동
     window.location.href = `/myclass/board/write/${classId}?boardNum=${currentBoardnum}`;
   };
@@ -208,18 +268,21 @@ const handleNoticeClick = async (noticeId) => {
                 강의목록
               </button>
 
-              <button 
-                className="btn btn-primary"
-                onClick={handleCreateNotice}
-                style={{
-                  backgroundColor: '#4e73df',
-                  borderColor: '#4e73df',
-                  borderRadius: '0.35rem',
-                  padding: '0.5rem 1.5rem'
-                }}
-              >
-                게시글 작성
-              </button>
+              {/* 권한이 있는 사용자만 게시글 작성 버튼 표시 */}
+              {canCreatePost() && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleCreateNotice}
+                  style={{
+                    backgroundColor: '#4e73df',
+                    borderColor: '#4e73df',
+                    borderRadius: '0.35rem',
+                    padding: '0.5rem 1.5rem'
+                  }}
+                >
+                  게시글 작성
+                </button>
+              )}
             </div>
           </div>
 
@@ -292,7 +355,7 @@ const handleNoticeClick = async (noticeId) => {
                       <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>
                         <span className="mr-3">
                           <i className="fas fa-user mr-1"></i>
-                          {notice.author || notice.createBy}
+                          {notice.author || notice.createBy || notice.userId}
                         </span>
                         <span className="mr-3">
                           <i className="fas fa-clock mr-1"></i>
@@ -336,7 +399,7 @@ const handleNoticeClick = async (noticeId) => {
                       <div className="d-flex align-items-center text-muted" style={{ fontSize: '13px' }}>
                         <span className="mr-3">
                           <i className="fas fa-user mr-1"></i>
-                          {notice.author || notice.createBy}
+                          {notice.author || notice.createBy || notice.userId}
                         </span>
                         <span className="mr-3">
                           <i className="fas fa-clock mr-1"></i>
