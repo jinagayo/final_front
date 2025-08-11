@@ -89,7 +89,7 @@ const Layout = () => {
           {/* Main Content */}
           <div id="content" className="flex-fill">
             {/* Begin Page Content */}
-            <div className="container-fluid p-4">
+            <div className="container-fluid p-4" style={{ paddingTop: '2rem !important' }}>
                <Outlet />
             </div>
             {/* /.container-fluid */}

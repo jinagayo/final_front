@@ -1,8 +1,10 @@
 import React from 'react';
 import Layout from './layout/Layout';
+import LayoutMain from './layout/LayoutMain';
 import './styles/css/sb-admin-2.min.css';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Home from './pages/Home';
+import ForgotPassword from './pages/ForgotPassword';
 import CourseList from './pages/course/List';
 import CourseRoutes from './routes/CourseRoutes';
 import ClassRoutes from './routes/ClassRoutes';
@@ -27,17 +29,17 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* 로그인/회원가입 관련 라우트 */}
-
+          {/* 로그인/회원가입 관련 라우트 (레이아웃 없음) */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/join" element={<Join />} />
           <Route path="/join/signup/student" element={<Join />} />
           <Route path="/join/signup/teacher" element={<Join />} /> 
           <Route path="/oauth" element={<OAuthCallback />} />
           <Route path="/kakao/callback" element={<KakaoCallback />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
 
-          {/* 공통 레이아웃을 사용하는 메인 페이지들 */}
-          <Route element={<Layout />}>
+          {/* 메인 페이지만 LayoutMain 사용 (사이드바 접힌 상태) */}
+          <Route element={<LayoutMain />}>
             <Route path="/" element={
               <div className="row">
                 <div className="col-lg-12">
@@ -47,6 +49,10 @@ function App() {
                 </div>
               </div>
             } />
+          </Route>
+
+          {/* 나머지 모든 페이지는 Layout 사용 (사이드바 펼친 상태) */}
+          <Route element={<Layout />}>
             <Route path="/course/List" element={
               <div className="row">
                 <div className="col-lg-12">
@@ -56,7 +62,8 @@ function App() {
                 </div>
               </div>
             } />
-            {/* 강사 권한 승인 페이지*/}
+            
+            {/* 강사 권한 승인 페이지 */}
             <Route path="/admin/teacher-approval" element={
               <div className="row">
                 <div className="col-lg-12">
@@ -66,23 +73,17 @@ function App() {
                 </div>
               </div>
             } />
-            {/* 클래스 관련 라우트 */}
-           <Route path="/myclass/*" element={<ClassRoutes />} />
+            
+          <Route path="/myclass/*" element={<ClassRoutes />} />
+            {/* 검색 결과 라우트 */}
+            <Route path="/search" element={<SearchResults />} />
+          </Route>
 
-          </Route>\
-          
-          {/* 수강신청 관련 라우트 */}
+          {/* 자체 레이아웃을 가진 라우트들은 Layout 밖으로 */}
           <Route path="/course/*" element={<CourseRoutes />} />
-          {/* 관리자 관련 라우트 */}
           <Route path="/admin/*" element={<AdminRoutes />} />
-          {/* 마이페이지 관련 라우트 */}
           <Route path="/mypage/*" element={<MypageRoutes />} />
-
-
           <Route path='/board/*' element={<BoardRouters/>} />
-
-          {/* 🔥 검색 결과 라우트 추가 */}
-          <Route path="/search" element={<SearchResults />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -253,7 +253,7 @@ export default function Login() {
           <hr style={{ borderTop: "1px solid #eee", margin: "22px 0 8px 0" }} />
           
           <div className="text-center" style={{ fontSize: "13.5px" }}>
-            <a href="#" className="text-primary text-decoration-none me-2">
+            <a href="/ForgotPassword" className="text-primary text-decoration-none me-2">
               Forgot Password?
             </a>
             <button

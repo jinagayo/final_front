@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef} from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Settings, Users,
@@ -10,6 +11,7 @@ import {
 
 export default function LectureViewer() {
 const lastSentProgress = useRef(0);
+const navigate = useNavigate();
 const videoRef = useRef();
  const userId = localStorage.getItem('userId');
  const { meterId } = useParams(); 
@@ -100,7 +102,7 @@ const handleCancelEdit = () => {
   };
 
   fetchMaterial();
-}, []);
+}, [meterId]);
 
 useEffect(() => {
   console.log('meterial:', meterial);
@@ -130,7 +132,7 @@ useEffect(() => {
           withCredentials: true,
       });
        console.log('📦 강의 목록 응답:', res.data);
-      setLectures(res.data.data || []);
+      setLectures((res.data.data || []).filter(item => item.type === "MET001"));
     } catch (err) {
        if (err.response) {
       console.error('강의 목록 로딩 실패:', err.response.status, err.response.data);
@@ -294,7 +296,9 @@ const progressPercent = totalLectures > 0
             <h2 className="text-lg font-semibold mb-4">강의 목록</h2>
             <div className="space-y-2">
              {lectures.map((lec) => (
-              <div key={lec.meterId} className={`p-4 rounded-lg ${lec.meterId == meterId ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}>
+              <div key={lec.meterId} className={`p-4 rounded-lg ${lec.meterId == meterId ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'} flex flex-col`}
+                onClick={()=>navigate(`/myclass/videoView/${lec.meterId}`)}
+              >
               <div className="flex justify-between">
               <h3 className="text-sm font-medium">{lec.title}</h3>
               {lec.completed && <div className="w-2 h-2 bg-green-400 rounded-full" />}
