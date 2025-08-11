@@ -134,31 +134,61 @@ const TeacherTestList = () => {
   };
 
   // 통계 계산
-  const getStatistics = () => {
-    if (!data || !data.students) return null;
+// 통계 계산 함수 (수정된 버전)
+const getStatistics = () => {
+  if (!data || !data.students || data.students.length === 0) {
+    return null;
+  }
 
-    const scores = data.students.map(s => s.score);
-    const totalStudents = scores.length;
-    const averageScore = totalStudents > 0 ? (scores.reduce((a, b) => a + b, 0) / totalStudents).toFixed(1) : 0;
-    const maxScore = totalStudents > 0 ? Math.max(...scores) : 0;
-    const minScore = totalStudents > 0 ? Math.min(...scores) : 0;
+  // 점수 추출 및 변환 (여러 필드명 시도)
+  const scores = data.students
+    .map(student => {
+      // 다양한 점수 필드명 시도
+      let score = student.score || student.totalScore || student.point || student.grade;
+      
+      // 문자열을 숫자로 변환
+      if (typeof score === 'string') {
+        score = parseFloat(score);
+      }
+      
+      
+      return score;
+    })
+    .filter(score => !isNaN(score) && score !== null && score !== undefined);
 
-    const gradeDistribution = {
-      A: scores.filter(s => s >= 90).length,
-      B: scores.filter(s => s >= 80 && s < 90).length,
-      C: scores.filter(s => s >= 70 && s < 80).length,
-      D: scores.filter(s => s >= 60 && s < 70).length,
-      F: scores.filter(s => s < 60).length
-    };
+  const totalStudents = data.students.length;
+  const validScores = scores.length;
 
-    return {
-      totalStudents,
-      averageScore,
-      maxScore,
-      minScore,
-      gradeDistribution
-    };
+  // 평균 계산 (안전한 방법)
+  let averageScore = 0;
+  if (validScores > 0 && scores.length > 0) {
+    const sum = scores.reduce((a, b) => Number(a) + Number(b), 0);
+    averageScore = (sum / validScores).toFixed(1);
+  }
+
+  const maxScore = validScores > 0 ? Math.max(...scores) : 0;
+  const minScore = validScores > 0 ? Math.min(...scores) : 0;
+
+  // 등급 분포 계산
+  const gradeDistribution = {
+    A: scores.filter(s => s >= 90).length,
+    B: scores.filter(s => s >= 80 && s < 90).length,
+    C: scores.filter(s => s >= 70 && s < 80).length,
+    D: scores.filter(s => s >= 60 && s < 70).length,
+    F: scores.filter(s => s < 60).length
   };
+
+  const result = {
+    totalStudents,
+    averageScore: averageScore || 0,
+    maxScore,
+    minScore,
+    gradeDistribution,
+    validScores // 디버깅용
+  };
+
+  return result;
+};
 
   const statistics = getStatistics();
   const sortedData = getSortedAndFilteredData();
